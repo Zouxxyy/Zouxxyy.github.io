@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="java,jvm,">
+  <meta name="keywords" content="hadoop,mapreduce,">
 
 
 
@@ -81,28 +81,22 @@
 
 
 
-<meta name="description" content="本文是《深入理解Java虚拟机（第二版）》第四章的笔记">
-<meta name="keywords" content="java,jvm">
+<meta name="description" content="介绍了MapReduce的详细流程和一些总结">
+<meta name="keywords" content="hadoop,mapreduce">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JVM(4)-虚拟机性能监控与故障处理工具">
-<meta property="og:url" content="http://yoursite.com/2019/03/25/JVM-4-虚拟机性能监控与故障处理工具/index.html">
+<meta property="og:title" content="hadoop-MapReduce流程解析">
+<meta property="og:url" content="http://yoursite.com/2019/08/30/hadoop-MapReduce流程解析/index.html">
 <meta property="og:site_name" content="ZxysHexo">
-<meta property="og:description" content="本文是《深入理解Java虚拟机（第二版）》第四章的笔记">
+<meta property="og:description" content="介绍了MapReduce的详细流程和一些总结">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/3/23/169a9a09b0013234?w=918&h=205&f=png&s=96305">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/3/23/169a9aa3cfd87699?w=923&h=459&f=png&s=275718">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/3/23/169a9b5409980aff?w=933&h=403&f=png&s=202391">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/3/23/169a9b95790bdcd5?w=920&h=188&f=png&s=81541">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/3/25/169b291ef7f36929?w=858&h=628&f=png&s=106536">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/3/25/169b2a74ba142acd?w=811&h=134&f=png&s=29000">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/3/25/169b2a7c8556a816?w=819&h=206&f=png&s=45681">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/3/25/169b2bdcdb14d52d?w=844&h=306&f=png&s=35573">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/3/25/169b2e570ebb1cc5?w=1239&h=665&f=png&s=126621">
-<meta property="og:updated_time" content="2019-03-25T09:15:59.000Z">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/MapTask.png?raw=true">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/ReduceTask.png?raw=true">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/Shuffer.png?raw=true">
+<meta property="og:updated_time" content="2019-08-30T09:00:23.020Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="JVM(4)-虚拟机性能监控与故障处理工具">
-<meta name="twitter:description" content="本文是《深入理解Java虚拟机（第二版）》第四章的笔记">
-<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/3/23/169a9a09b0013234?w=918&h=205&f=png&s=96305">
+<meta name="twitter:title" content="hadoop-MapReduce流程解析">
+<meta name="twitter:description" content="介绍了MapReduce的详细流程和一些总结">
+<meta name="twitter:image" content="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/MapTask.png?raw=true">
 
 
 
@@ -132,13 +126,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/03/25/JVM-4-虚拟机性能监控与故障处理工具/">
+  <link rel="canonical" href="http://yoursite.com/2019/08/30/hadoop-MapReduce流程解析/">
 
 
 
 
 
-  <title>JVM(4)-虚拟机性能监控与故障处理工具 | ZxysHexo</title>
+  <title>hadoop-MapReduce流程解析 | ZxysHexo</title>
   
 
 
@@ -285,7 +279,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/25/JVM-4-虚拟机性能监控与故障处理工具/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/30/hadoop-MapReduce流程解析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Zouxxyy">
@@ -302,7 +296,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">JVM(4)-虚拟机性能监控与故障处理工具</h1>
+          <h1 class="post-title" itemprop="name headline">hadoop-MapReduce流程解析</h1>
         
 
         <div class="post-meta">
@@ -314,8 +308,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-25T17:14:42+08:00">
-                2019-03-25
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-30T16:38:07+08:00">
+                2019-08-30
               </time>
             
 
@@ -337,8 +331,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程语言/" itemprop="url" rel="index">
-                    <span itemprop="name">编程语言</span>
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
                   </a>
                 </span>
 
@@ -354,7 +348,7 @@
 
           
           
-             <span id="/2019/03/25/JVM-4-虚拟机性能监控与故障处理工具/" class="leancloud_visitors" data-flag-title="JVM(4)-虚拟机性能监控与故障处理工具">
+             <span id="/2019/08/30/hadoop-MapReduce流程解析/" class="leancloud_visitors" data-flag-title="hadoop-MapReduce流程解析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -403,115 +397,46 @@
       
 
       
-        <p>本文是《深入理解Java虚拟机（第二版）》第四章的笔记</p>
+        <p>介绍了MapReduce的详细流程和一些总结</p>
 <a id="more"></a>
-<p>我的JDK工具地址</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">zxysMac:~ elwg$ <span class="built_in">cd</span> /Library/Java/JavaVirtualMachines/jdk1.8.0_161.jdk/Contents/Home/bin</span><br><span class="line">zxysMac:bin elwg$ ls</span><br><span class="line">appletviewer	javah		jjs		jvisualvm	schemagen</span><br><span class="line">extcheck	javap		jmap		keytool		serialver</span><br><span class="line">idlj		javapackager	jmc		native2ascii	servertool</span><br><span class="line">jar		jcmd		jps		orbd		tnameserv</span><br><span class="line">jarsigner	jconsole	jrunscript	pack200		unpack200</span><br><span class="line">java		jdb		jsadebugd	policytool	wsgen</span><br><span class="line">javac		jdeps		jstack		rmic		wsimport</span><br><span class="line">javadoc		jhat		jstat		rmid		xjc</span><br><span class="line">javafxpackager	jinfo		jstatd		rmiregistry</span><br></pre></td></tr></table></figure>
 
-<h1 id="JDK的命令行工具"><a href="#JDK的命令行工具" class="headerlink" title="JDK的命令行工具"></a>JDK的命令行工具</h1><table>
-<thead>
-<tr>
-<th>名称</th>
-<th>全名</th>
-<th>主要功能</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>jps</td>
-<td>JVM Process Status</td>
-<td>显示指定系统的所有的虚拟机进程</td>
-</tr>
-<tr>
-<td>jstat</td>
-<td>JVM Statistics Monitoring Tool</td>
-<td>用于收集虚拟机各方面的运行数据</td>
-</tr>
-<tr>
-<td>jinfo</td>
-<td>Configuration Info for Java</td>
-<td>显示虚拟机配置信息</td>
-</tr>
-<tr>
-<td>jmap</td>
-<td>Memory Map for Java</td>
-<td>生成虚拟机的内存转储快照（heapdump文件）</td>
-</tr>
-<tr>
-<td>jhat</td>
-<td>JVM Heap Dump Browser</td>
-<td>用于分析heapdump文件</td>
-</tr>
-<tr>
-<td>jstack</td>
-<td>Stack Trace for Java</td>
-<td>显示虚拟机的线程快照</td>
-</tr>
-<tr>
-<td>## jps：虚拟机进程状况工具</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>- 功能：可以列出运行的虚拟机进程、看到虚拟机执行的主类、本地虚拟机唯一ID</td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
-<ul>
-<li>命令格式：<br><code>jps [ option ] [ hostid ]</code></li>
-<li>主要选项：</li>
-</ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9a09b0013234?w=918&h=205&f=png&s=96305" alt></p>
-<ul>
-<li>例子：我在IDEA中运行列一个java文件，测试如下：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(base) zxysMac:~ elwg$ jps -l</span><br><span class="line">16387 org.jetbrains.idea.maven.server.RemoteMavenServer</span><br><span class="line">44422 sun.tools.jps.Jps</span><br><span class="line">44392 com.zouxxyy.jvm.chap4.JpsTest</span><br><span class="line">31368 org.jetbrains.kotlin.daemon.KotlinCompileDaemon</span><br><span class="line">16217</span><br><span class="line">44393 org.jetbrains.jps.cmdline.Launcher</span><br></pre></td></tr></table></figure>
-
-</li>
-</ul>
-<h2 id="jstat：虚拟机统计信息监视工具"><a href="#jstat：虚拟机统计信息监视工具" class="headerlink" title="jstat：虚拟机统计信息监视工具"></a>jstat：虚拟机统计信息监视工具</h2><ul>
-<li>功能：可以显示本地或远程虚拟机进程中的类装载、内存、垃圾收集、JIT编译等运行数据</li>
-<li>命令格式：<code>jstat [ option vmid [interval[s|ms] [count]] ]</code></li>
-<li>主要选项：</li>
-</ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9aa3cfd87699?w=923&h=459&f=png&s=275718" alt></p>
-<h2 id="jinfo：Java配置信息工具"><a href="#jinfo：Java配置信息工具" class="headerlink" title="jinfo：Java配置信息工具"></a>jinfo：Java配置信息工具</h2><ul>
-<li><p>功能：实时查看和调整虚拟机各项参数</p>
-</li>
-<li><p>命令格式：<code>jinfo [ option ] pid</code></p>
-</li>
-<li><p>例子：看有没有用SerialGC</p>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(base) zxysMac:~ elwg$ jinfo -flag UseSerialGC 46521</span><br><span class="line">-XX:-UseSerialGC</span><br></pre></td></tr></table></figure>
-
-<h2 id="jmap：Java内存映像工具"><a href="#jmap：Java内存映像工具" class="headerlink" title="jmap：Java内存映像工具"></a>jmap：Java内存映像工具</h2><ul>
-<li>功能：生成虚拟机堆存转储快照（heapdump文件）</li>
-<li>命令格式：<code>jmap [ option] vmid</code></li>
-<li>主要选项：</li>
-</ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9b5409980aff?w=933&h=403&f=png&s=202391" alt></p>
-<h2 id="jhat：虚拟机堆快照分析工具"><a href="#jhat：虚拟机堆快照分析工具" class="headerlink" title="jhat：虚拟机堆快照分析工具"></a>jhat：虚拟机堆快照分析工具</h2><p>与jmap配合使用，也就是分析堆存转储快照（heapdump文件）。</p>
-<h2 id="jstack：Java堆栈跟踪工具"><a href="#jstack：Java堆栈跟踪工具" class="headerlink" title="jstack：Java堆栈跟踪工具"></a>jstack：Java堆栈跟踪工具</h2><ul>
-<li>功能：用于生成虚拟机的线程快照</li>
-<li>命令格式：<code>jstack [ option ] vmid</code></li>
-<li>主要选项：</li>
-</ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9b95790bdcd5?w=920&h=188&f=png&s=81541" alt></p>
-<h1 id="JDK的可视化工具"><a href="#JDK的可视化工具" class="headerlink" title="JDK的可视化工具"></a>JDK的可视化工具</h1><h2 id="JConsole：Java监视与管理控制台"><a href="#JConsole：Java监视与管理控制台" class="headerlink" title="JConsole：Java监视与管理控制台"></a>JConsole：Java监视与管理控制台</h2><p><strong>内存监控，相当于可视化的<code>jstat</code>命令</strong></p>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b291ef7f36929?w=858&h=628&f=png&s=106536" alt><br><strong>线程监控，相当于可视化的<code>jstack</code>命令</strong>，以下举几个简单的例子</p>
-<ul>
-<li>监听用户键盘输入</li>
-</ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2a74ba142acd?w=811&h=134&f=png&s=29000" alt></p>
-<ul>
-<li>监听wait()</li>
-</ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2a7c8556a816?w=819&h=206&f=png&s=45681" alt></p>
-<ul>
-<li>监听死锁</li>
-</ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2bdcdb14d52d?w=844&h=306&f=png&s=35573" alt></p>
-<h2 id="VisualVM：多合一故障处理工具"><a href="#VisualVM：多合一故障处理工具" class="headerlink" title="VisualVM：多合一故障处理工具"></a>VisualVM：多合一故障处理工具</h2><p>书上说它很强大，我还没下载成功。它几乎集成里上面的所有功能啊。</p>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2e570ebb1cc5?w=1239&h=665&f=png&s=126621" alt></p>
+<h1 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h1><p><img src="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/MapTask.png?raw=true" alt="MapTask流程图" title="MapTask流程图"></p>
+<p><img src="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/ReduceTask.png?raw=true" alt="ReduceTask流程图" title="ReduceTask流程图"></p>
+<p><img src="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/Shuffer.png?raw=true" alt="Shuffer流程图" title="Shuffer流程图"></p>
+<h1 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h1><p>逻辑上可以这样划分：1-10是MapTask ；11-16是ReduceTask；7-14是shuffer</p>
+<h3 id="1-待处理文本"><a href="#1-待处理文本" class="headerlink" title="1. 待处理文本"></a><strong>1. 待处理文本</strong></h3><p>这里假设是<code>/user/input</code>目录下的<code>ss.txt</code>    文件，大小为<strong>200M</strong>。</p>
+<h3 id="2-客户端submit（）"><a href="#2-客户端submit（）" class="headerlink" title="2. 客户端submit（）"></a><strong>2. 客户端submit（）</strong></h3><p>发生在client端，主要获取3个信息：</p>
+<p>（1）<strong>Job.split</strong> ：找到文件ss.txt，根据切片算法，得到切片的元数据信息（起始位置，长度以及所在节点等）如把ss.txt分成两片 0-128M 和 128M-200M</p>
+<p>（2）<strong>Job.xml</strong>：任务的配置信息</p>
+<p>（3）<strong>wc.jar</strong>：任务的jar包</p>
+<p>（可以在<code>/tmp/hadoop-zxy/mapred/staging/zxy1248702679/.staging/</code>下找到它们）</p>
+<h3 id="3-提交信息"><a href="#3-提交信息" class="headerlink" title="3. 提交信息"></a><strong>3. 提交信息</strong></h3><p>将刚刚获取的任务规划信息，提交到资源管理器上，我们这里用Yarn。</p>
+<h3 id="4-RM计算MapTask数量"><a href="#4-RM计算MapTask数量" class="headerlink" title="4. RM计算MapTask数量"></a><strong>4. RM计算MapTask数量</strong></h3><p>接着向Yarn的RM申请资源，RM根据任务规划信息用户Job分成Task，并把任务下发给节点。这里我们数据分成了2片，根据默认规则，会有2个MapTask各自处理一片数据。</p>
+<h3 id="5-根据采用的InputFormat读取数据"><a href="#5-根据采用的InputFormat读取数据" class="headerlink" title="5. 根据采用的InputFormat读取数据"></a><strong>5. 根据采用的InputFormat读取数据</strong></h3><p>这里采用默认的TextInputFormat类，按行读取每条记录。key是行偏移量，value是该行的内容。</p>
+<h3 id="6-执行Mapper的map"><a href="#6-执行Mapper的map" class="headerlink" title="6. 执行Mapper的map()"></a><strong>6. 执行Mapper的map()</strong></h3><p>根据用户的代码执行map逻辑，把结果写入Context中。</p>
+<h3 id="7-向环形缓存区写入数据"><a href="#7-向环形缓存区写入数据" class="headerlink" title="7. 向环形缓存区写入数据"></a><strong>7. 向环形缓存区写入数据</strong></h3><p>环形缓存区取一点：一边写索引，一边写真实数据。达到80%时发生溢写</p>
+<h3 id="8-分区、排序"><a href="#8-分区、排序" class="headerlink" title="8. 分区、排序"></a><strong>8. 分区、排序</strong></h3><p>一种2次排序，先按区号排，再对key排序（快排）。得到一组按区排好序的数据。注意：这步是在环形缓存区就可以执行的，且排序排的是索引，真实数据不用动。且此时可以使用第一次Combiner合并操作。</p>
+<h3 id="9-溢出写入文件"><a href="#9-溢出写入文件" class="headerlink" title="9. 溢出写入文件"></a><strong>9. 溢出写入文件</strong></h3><p>环形缓存区达到80%时，溢写到磁盘上。注意写磁盘前已经完成了分区、排序、合并、压缩等操作。此时生成第一组溢写文件<code>spillN.out</code> 与元数据<code>spillN.out.index</code>。</p>
+<h3 id="10-MapTask的归并排序"><a href="#10-MapTask的归并排序" class="headerlink" title="10. MapTask的归并排序"></a><strong>10. MapTask的归并排序</strong></h3><p>将多组溢写文件，以分区为单位进行归并排序，写入磁盘形成大文件<code>output/file.out</code>，与索引文件<code>output/file.out.index</code>。此时一个MapTask任务完成，得到一个分区有序的数据。注意：在归并排序时可以使用第二次Combiner合并操作。</p>
+<h3 id="11-启动ReduceTask"><a href="#11-启动ReduceTask" class="headerlink" title="11. 启动ReduceTask"></a><strong>11. 启动ReduceTask</strong></h3><p>假设分区数为2，此时启动2个ReduceTask，一个ReduceTask处理一个区的数据。</p>
+<h3 id="12-copy数据"><a href="#12-copy数据" class="headerlink" title="12. copy数据"></a><strong>12. copy数据</strong></h3><p>ReduceTask从各个MapTask上拷贝它要处理的区的数据，如果其大小超过一定阈值，则写到磁盘上，否则直接放到内存中。</p>
+<h3 id="13-ReduceTask的归并排序"><a href="#13-ReduceTask的归并排序" class="headerlink" title="13. ReduceTask的归并排序"></a><strong>13. ReduceTask的归并排序</strong></h3><p>把同区的数据复制到同一个ReduceTask后，对它们进行归并排序</p>
+<h3 id="14-分组"><a href="#14-分组" class="headerlink" title="14. 分组"></a><strong>14. 分组</strong></h3><p>默认把key相同的数据分到一组。用户可以继承WritableComparator，自定义分组规则。</p>
+<h3 id="15-执行Reducer的Reduce"><a href="#15-执行Reducer的Reduce" class="headerlink" title="15. 执行Reducer的Reduce()"></a><strong>15. 执行Reducer的Reduce()</strong></h3><p>根据用户的代码执行reduce逻辑，把结果写入Context中。注意：一次读一组，value是迭代器对象，包含一个组的全部数据。</p>
+<h3 id="16-根据采用的OutputFormat读取数据"><a href="#16-根据采用的OutputFormat读取数据" class="headerlink" title="16. 根据采用的OutputFormat读取数据"></a><strong>16. 根据采用的OutputFormat读取数据</strong></h3><p>这里采用默认的TextOutputFormat类，按行写入key和value，key和value用tab分开。</p>
+<h1 id="一些总结"><a href="#一些总结" class="headerlink" title="一些总结"></a>一些总结</h1><h3 id="1个逻辑"><a href="#1个逻辑" class="headerlink" title="1个逻辑"></a><strong>1个逻辑</strong></h3><p><strong>先分区 -&gt; 再排序 -&gt; 再分组</strong></p>
+<p>分区：用户定义分区数后，默认按hash分区。用户也可以继承<code>Partitioner</code>，自定义分区规则。ReduceTask的个数一般等于分区数。</p>
+<p>排序：默认对key排序，key必须实现<code>WritableComparable</code>接口。用户可以重写<code>WritableComparable</code>接口的<code>compareTo()</code>方法，定义自己的排序规则。</p>
+<h3 id="2次合并"><a href="#2次合并" class="headerlink" title="2次合并"></a><strong>2次合并</strong></h3><p>Combiner的父类就是Reducer，它可以通过对Map阶段的局部结果进行汇总，减少输出。</p>
+<p>时机： 2次，<strong>分区排序后、MapTask的归并排序时</strong>。</p>
+<p>条件：不能影响业务逻辑 且 输入输出的范型一致</p>
+<h3 id="3次排序"><a href="#3次排序" class="headerlink" title="3次排序"></a><strong>3次排序</strong></h3><p>MapTask：</p>
+<p><strong>分区排序</strong>：在缓行缓冲区进行，是一种2次排序。先按分区号排序，再对key排序（快排）。</p>
+<p><strong>归并排序</strong>：对每组溢写的数据，进行的按区，归并排序。</p>
+<p>ReduceTask：</p>
+<p><strong>归并排序</strong>：对从MapTask拷贝的同区数据，进行的归并排序。</p>
+<h3 id="分片和分区"><a href="#分片和分区" class="headerlink" title="分片和分区"></a><strong>分片和分区</strong></h3><p>分片：<strong>分片数决定MapTask的个数</strong>。在客户端即完成，举FileInputFormat切片机制为例：简单的按文件长度进行切片，切片大小等于块大小（默认128M），切片时是对文件单独切片。</p>
+<p>分区：<strong>分区数决定ReduceTask的个数</strong>。</p>
 
       
     </div>
@@ -529,9 +454,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/java/" rel="tag"><i class="fa fa-tag"></i> java</a>
+            <a href="/tags/hadoop/" rel="tag"><i class="fa fa-tag"></i> hadoop</a>
           
-            <a href="/tags/jvm/" rel="tag"><i class="fa fa-tag"></i> jvm</a>
+            <a href="/tags/mapreduce/" rel="tag"><i class="fa fa-tag"></i> mapreduce</a>
           
         </div>
       
@@ -544,8 +469,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/03/25/JVM-3-垃圾收集器与内存分配策略/" rel="next" title="JVM(3)-垃圾收集器与内存分配策略">
-                <i class="fa fa-chevron-left"></i> JVM(3)-垃圾收集器与内存分配策略
+              <a href="/2019/08/24/hadoop-单节点伪分布式搭建/" rel="next" title="hadoop-单节点伪分布式搭建">
+                <i class="fa fa-chevron-left"></i> hadoop-单节点伪分布式搭建
               </a>
             
           </div>
@@ -553,10 +478,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/03/29/JVM-7-虚拟机类加载机制/" rel="prev" title="JVM(7)-虚拟机类加载机制">
-                JVM(7)-虚拟机类加载机制 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -707,7 +628,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JDK的命令行工具"><span class="nav-number">1.</span> <span class="nav-text">JDK的命令行工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#jstat：虚拟机统计信息监视工具"><span class="nav-number">1.1.</span> <span class="nav-text">jstat：虚拟机统计信息监视工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jinfo：Java配置信息工具"><span class="nav-number">1.2.</span> <span class="nav-text">jinfo：Java配置信息工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jmap：Java内存映像工具"><span class="nav-number">1.3.</span> <span class="nav-text">jmap：Java内存映像工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jhat：虚拟机堆快照分析工具"><span class="nav-number">1.4.</span> <span class="nav-text">jhat：虚拟机堆快照分析工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jstack：Java堆栈跟踪工具"><span class="nav-number">1.5.</span> <span class="nav-text">jstack：Java堆栈跟踪工具</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JDK的可视化工具"><span class="nav-number">2.</span> <span class="nav-text">JDK的可视化工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#JConsole：Java监视与管理控制台"><span class="nav-number">2.1.</span> <span class="nav-text">JConsole：Java监视与管理控制台</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VisualVM：多合一故障处理工具"><span class="nav-number">2.2.</span> <span class="nav-text">VisualVM：多合一故障处理工具</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#流程图"><span class="nav-number">1.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#具体步骤"><span class="nav-number">2.</span> <span class="nav-text">具体步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-待处理文本"><span class="nav-number">2.0.1.</span> <span class="nav-text">1. 待处理文本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-客户端submit（）"><span class="nav-number">2.0.2.</span> <span class="nav-text">2. 客户端submit（）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-提交信息"><span class="nav-number">2.0.3.</span> <span class="nav-text">3. 提交信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-RM计算MapTask数量"><span class="nav-number">2.0.4.</span> <span class="nav-text">4. RM计算MapTask数量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-根据采用的InputFormat读取数据"><span class="nav-number">2.0.5.</span> <span class="nav-text">5. 根据采用的InputFormat读取数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-执行Mapper的map"><span class="nav-number">2.0.6.</span> <span class="nav-text">6. 执行Mapper的map()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-向环形缓存区写入数据"><span class="nav-number">2.0.7.</span> <span class="nav-text">7. 向环形缓存区写入数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-分区、排序"><span class="nav-number">2.0.8.</span> <span class="nav-text">8. 分区、排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-溢出写入文件"><span class="nav-number">2.0.9.</span> <span class="nav-text">9. 溢出写入文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-MapTask的归并排序"><span class="nav-number">2.0.10.</span> <span class="nav-text">10. MapTask的归并排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-启动ReduceTask"><span class="nav-number">2.0.11.</span> <span class="nav-text">11. 启动ReduceTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-copy数据"><span class="nav-number">2.0.12.</span> <span class="nav-text">12. copy数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#13-ReduceTask的归并排序"><span class="nav-number">2.0.13.</span> <span class="nav-text">13. ReduceTask的归并排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#14-分组"><span class="nav-number">2.0.14.</span> <span class="nav-text">14. 分组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#15-执行Reducer的Reduce"><span class="nav-number">2.0.15.</span> <span class="nav-text">15. 执行Reducer的Reduce()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#16-根据采用的OutputFormat读取数据"><span class="nav-number">2.0.16.</span> <span class="nav-text">16. 根据采用的OutputFormat读取数据</span></a></li></ol></li></ol><li class="nav-item nav-level-1"><a class="nav-link" href="#一些总结"><span class="nav-number">3.</span> <span class="nav-text">一些总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1个逻辑"><span class="nav-number">3.0.1.</span> <span class="nav-text">1个逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2次合并"><span class="nav-number">3.0.2.</span> <span class="nav-text">2次合并</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3次排序"><span class="nav-number">3.0.3.</span> <span class="nav-text">3次排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分片和分区"><span class="nav-number">3.0.4.</span> <span class="nav-text">分片和分区</span></a></li></ol></li></div>
             
 
           </div>
