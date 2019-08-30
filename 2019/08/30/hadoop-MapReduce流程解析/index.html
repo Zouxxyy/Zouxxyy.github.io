@@ -89,14 +89,14 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="介绍了MapReduce的详细流程和一些总结">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/MapTask.png?raw=true">
-<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/ReduceTask.png?raw=true">
-<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/Shuffer.png?raw=true">
-<meta property="og:updated_time" content="2019-08-30T09:00:23.020Z">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/MapTask.png?raw=true">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/ReduceTask.png?raw=true">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/Shuffer.png?raw=true">
+<meta property="og:updated_time" content="2019-08-30T09:10:22.879Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hadoop-MapReduce流程解析">
 <meta name="twitter:description" content="介绍了MapReduce的详细流程和一些总结">
-<meta name="twitter:image" content="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/MapTask.png?raw=true">
+<meta name="twitter:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/MapTask.png?raw=true">
 
 
 
@@ -400,9 +400,9 @@
         <p>介绍了MapReduce的详细流程和一些总结</p>
 <a id="more"></a>
 
-<h1 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h1><p><img src="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/MapTask.png?raw=true" alt="MapTask流程图" title="MapTask流程图"></p>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/ReduceTask.png?raw=true" alt="ReduceTask流程图" title="ReduceTask流程图"></p>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/master/hadoop-learning/data/image/Shuffer.png?raw=true" alt="Shuffer流程图" title="Shuffer流程图"></p>
+<h1 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h1><p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/MapTask.png?raw=true" alt="MapTask流程图" title="MapTask流程图"></p>
+<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/ReduceTask.png?raw=true" alt="ReduceTask流程图" title="ReduceTask流程图"></p>
+<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/Shuffer.png?raw=true" alt="Shuffer流程图" title="Shuffer流程图"></p>
 <h1 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h1><p>逻辑上可以这样划分：1-10是MapTask ；11-16是ReduceTask；7-14是shuffer</p>
 <h3 id="1-待处理文本"><a href="#1-待处理文本" class="headerlink" title="1. 待处理文本"></a><strong>1. 待处理文本</strong></h3><p>这里假设是<code>/user/input</code>目录下的<code>ss.txt</code>    文件，大小为<strong>200M</strong>。</p>
 <h3 id="2-客户端submit（）"><a href="#2-客户端submit（）" class="headerlink" title="2. 客户端submit（）"></a><strong>2. 客户端submit（）</strong></h3><p>发生在client端，主要获取3个信息：</p>
