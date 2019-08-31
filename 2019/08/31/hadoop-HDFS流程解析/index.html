@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="java,jvm,">
+  <meta name="keywords" content="hadoop,HDFS,">
 
 
 
@@ -81,18 +81,23 @@
 
 
 
-<meta name="description" content="本文是《深入理解Java虚拟机（第二版）》第八章的笔记">
-<meta name="keywords" content="java,jvm">
+<meta name="description" content="介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互">
+<meta name="keywords" content="hadoop,HDFS">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JVM(8)-虚拟机字节码执行引擎">
-<meta property="og:url" content="http://yoursite.com/2019/03/29/JVM-8-虚拟机字节码执行引擎/index.html">
+<meta property="og:title" content="hadoop-HDFS流程解析">
+<meta property="og:url" content="http://yoursite.com/2019/08/31/hadoop-HDFS流程解析/index.html">
 <meta property="og:site_name" content="ZxysHexo">
-<meta property="og:description" content="本文是《深入理解Java虚拟机（第二版）》第八章的笔记">
+<meta property="og:description" content="介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-03-29T08:53:30.000Z">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/readHDFS.png?raw=true">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/writeHDFS.png?raw=true">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/NNand2NN.png?raw=true">
+<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/DataNode.png?raw=true">
+<meta property="og:updated_time" content="2019-08-31T07:12:19.630Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="JVM(8)-虚拟机字节码执行引擎">
-<meta name="twitter:description" content="本文是《深入理解Java虚拟机（第二版）》第八章的笔记">
+<meta name="twitter:title" content="hadoop-HDFS流程解析">
+<meta name="twitter:description" content="介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互">
+<meta name="twitter:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/readHDFS.png?raw=true">
 
 
 
@@ -122,13 +127,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/03/29/JVM-8-虚拟机字节码执行引擎/">
+  <link rel="canonical" href="http://yoursite.com/2019/08/31/hadoop-HDFS流程解析/">
 
 
 
 
 
-  <title>JVM(8)-虚拟机字节码执行引擎 | ZxysHexo</title>
+  <title>hadoop-HDFS流程解析 | ZxysHexo</title>
   
 
 
@@ -275,7 +280,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/29/JVM-8-虚拟机字节码执行引擎/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/31/hadoop-HDFS流程解析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Zouxxyy">
@@ -292,7 +297,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">JVM(8)-虚拟机字节码执行引擎</h1>
+          <h1 class="post-title" itemprop="name headline">hadoop-HDFS流程解析</h1>
         
 
         <div class="post-meta">
@@ -304,8 +309,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-29T16:51:23+08:00">
-                2019-03-29
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-31T15:04:57+08:00">
+                2019-08-31
               </time>
             
 
@@ -327,8 +332,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程语言/" itemprop="url" rel="index">
-                    <span itemprop="name">编程语言</span>
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
                   </a>
                 </span>
 
@@ -344,7 +349,7 @@
 
           
           
-             <span id="/2019/03/29/JVM-8-虚拟机字节码执行引擎/" class="leancloud_visitors" data-flag-title="JVM(8)-虚拟机字节码执行引擎">
+             <span id="/2019/08/31/hadoop-HDFS流程解析/" class="leancloud_visitors" data-flag-title="hadoop-HDFS流程解析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -393,56 +398,85 @@
       
 
       
-        <p>本文是《深入理解Java虚拟机（第二版）》第八章的笔记</p>
+        <p>介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互</p>
 <a id="more"></a>
-<h1 id="运行时栈帧结构"><a href="#运行时栈帧结构" class="headerlink" title="运行时栈帧结构"></a>运行时栈帧结构</h1><p>在活动线程中，只有栈顶的栈时有效的，称为<strong>当前栈帧</strong>，与这个栈帧相关联的方法称为<strong>当前方法</strong>。下面对栈帧的4个主要部分进行分析。</p>
-<h2 id="局部变量表"><a href="#局部变量表" class="headerlink" title="局部变量表"></a>局部变量表</h2><p>存放方法参数和方法内部定义的局部变量</p>
-<p>一些细节：</p>
+<h1 id="HDFS写数据"><a href="#HDFS写数据" class="headerlink" title="HDFS写数据"></a>HDFS写数据</h1><h2 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h2><p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/readHDFS.png?raw=true" alt="HDFS写数据" title="HDFS写数据"></p>
+<h2 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h2><ol>
+<li>客户端调用DS模块向NameNode请求上传文件。</li>
+<li>NameNode会检查目标文件和父目录是否已存在，再返回是否可以上传</li>
+<li>假设文件为200M，客户端请求上传第一个 Block ，希望得到DataNode服务器位置。</li>
+<li>NameNode返回3个DataNode节点，分别为dn1、dn2、dn3，用它们存储数据。</li>
+<li>客户端通过FSDataOutputStream模块请求dn1建立上传数据通道，dn1收到请求会继续请求dn2，然后dn2请求dn3，直到将这个通信管道建立完成。</li>
+<li>dn3、dn2、dn1逐级应答客户端。</li>
+<li>客户端开始往dn1上传第一个Block（先从磁盘读取数据放到一个本地内存缓存），以Packet为单位，dn1收到一个Packet就会传给dn2，dn2传给dn3；dn1每传一个packet会放入一个应答队列等待应答。（类似队列，以Packet为单位）</li>
+<li>当一个Block（0-128M）传输完成之后，客户端再次请求NameNode上传第二个Block的服务器。（重复执行3-7步）。</li>
+<li>向NameNode汇报上传完毕。</li>
+</ol>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><ul>
+<li>DataNode位置选择，以默认3副本为例：第一个副本是最近的一般是它自己；第二个副本选择同一机架（同一路由）的不同节点；第三个副本是另一机架的随机节点。</li>
+<li>数据传递以包为单位，第一个节点收到一个包，就把包传递给下一个DataNode。并不是等数据传完，再传递。</li>
+</ul>
+<h1 id="HDFS读数据"><a href="#HDFS读数据" class="headerlink" title="HDFS读数据"></a>HDFS读数据</h1><h2 id="流程图-1"><a href="#流程图-1" class="headerlink" title="流程图"></a>流程图</h2><p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/writeHDFS.png?raw=true" alt="HDFS读数据" title="HDFS读数据"></p>
+<h2 id="具体步骤-1"><a href="#具体步骤-1" class="headerlink" title="具体步骤"></a>具体步骤</h2><ol>
+<li>客户端调用DS模块向NameNode请求下载文件。</li>
+<li>NameNode会检查目标文件是否存在，再通过查询元数据，返回文件块所在的DataNode地址。</li>
+<li>客户端通过FSDataInputStream模块向dn1（就近挑选）请求读取 Block1。</li>
+<li>DataNode开始传输数据给客户端（从磁盘里面读取数据输入流，以Packet为单位来做校验）。客户端以Packet为单位接收，先在本地缓存，然后写入目标文件。</li>
+<li>当一个Block（0-128M）传输完成之后，客户端再次请求下载Block2。（重复执行2-4步）。</li>
+<li>向NameNode汇报下载完毕。</li>
+</ol>
+<h2 id="注意事项-1"><a href="#注意事项-1" class="headerlink" title="注意事项"></a>注意事项</h2><ul>
+<li>如果块的第一个副本请求失败，会向第二个副本请求，依次类推。</li>
+</ul>
+<h1 id="NameNode和SecondaryNameNode"><a href="#NameNode和SecondaryNameNode" class="headerlink" title="NameNode和SecondaryNameNode"></a>NameNode和SecondaryNameNode</h1><h2 id="流程图-2"><a href="#流程图-2" class="headerlink" title="流程图"></a>流程图</h2><p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/NNand2NN.png?raw=true" alt="NameNode和SecondaryNameNode" title="NameNode和SecondaryNameNode"></p>
+<h2 id="具体步骤-2"><a href="#具体步骤-2" class="headerlink" title="具体步骤"></a>具体步骤</h2><p>第一阶段：NameNode</p>
+<ol>
+<li>第一次启动NameNode（格式化）后，会创建Fsimage（镜像文件）和Edits（编辑日志）文件。以后启动，会直接加载镜像文件和编辑日志到内存，此时会进行合并操作。</li>
+<li>假设此时客户端提出了增删改的请求。</li>
+<li>NameNode记录之前的编辑日志（edits_n），更新新日志到滚动日志（edits_inprogress_n）中。</li>
+<li>日志记录完毕后，NameNode在内存中对数据进行增删改。</li>
+</ol>
+<p>第二阶段：SecondaryNameNode</p>
+<ol>
+<li>Secondary NameNode向NameNode询问是否需要CheckPoint。</li>
+<li>如果需要，Secondary NameNode请求执行CheckPoint。</li>
+<li>NameNode滚动日志。</li>
+<li>将滚动前的编辑日志（edits_001）和镜像文件(fsimage)拷贝到Secondary NameNode。</li>
+<li>Secondary NameNode加载编辑日志和镜像文件到内存，并合并。</li>
+<li>合并后，生成新的镜像文件fsimage.chkpoint。</li>
+<li>拷贝fsimage.chkpoint到NameNode。</li>
+<li>NameNode将fsimage.chkpoint重新命名成fsimage。</li>
+</ol>
+<h2 id="注意事项-2"><a href="#注意事项-2" class="headerlink" title="注意事项"></a>注意事项</h2><ul>
+<li>Fsimage 和 Edits文件？</li>
+</ul>
+<p>fsimage是NameNode内存中元数据序列化后形成的文件。Edits中记录客户端更新元数据信息的每一步操作。每次执行增删改时，先改日志再改文件。好处是：如果保证中途gg，可以保证操作不丢失，便于复原。</p>
 <ul>
-<li>最小存储单元(Slot)，一个Slot可以存32位以内的数据类型。</li>
-<li><code>boolean、byte、char、short、int、float、reference、returnAddress</code>占一个Slot；<code>long、double</code>占两个Slot，是非原子的，但它是<strong>线程安全</strong>的，因为它是栈中的，是线程私有的。</li>
-<li>对于实例方法，第一个Slot是传递所属对象实例的引用，也就是我们常用的   <code>this</code>。</li>
-<li>注意局部变量<strong>没有初始值</strong>哦。</li>
-<li>当一个变量的pc寄存器的值大于Slot的作用域时，Slot是可以<strong>复用</strong>的。</li>
+<li>为啥要Secondary NameNode？</li>
 </ul>
-<h2 id="操作数栈"><a href="#操作数栈" class="headerlink" title="操作数栈"></a>操作数栈</h2><ul>
-<li>虚拟机字节码执行引擎是“<strong>基于栈的执行引擎</strong>”，这个栈就是操作数栈。</li>
-<li>对比<strong>基于寄存器</strong>的执行引擎</li>
-</ul>
-<p>优点：可移植性、代码更加紧凑、编译器实现更紧凑。确定就是速度更慢。</p>
+<p>首先要知道只有NameNode重启时，edit.log才会合并到fsimage文件中，所以运行时间久了就会有3个问题：edis.log文件会变的很大；NameNode下次重启会花费很长时间；fsimage文件文件很旧，如果中途挂掉就很睿智。</p>
+<p>为了解决上述问题，SecondaryNameNode诞生，每隔一定时间辅助合并NameNode的edit.log到fsimage文件中。从上述流程图就可以发现，它做的就是这个。</p>
 <ul>
-<li>下面栈帧的部分操作数栈与上面的栈帧的部分局部变量是重叠的。</li>
+<li>什么时候执行CheckPoint？</li>
 </ul>
-<h2 id="动态连接"><a href="#动态连接" class="headerlink" title="动态连接"></a>动态连接</h2><p>指向运行时常量池中该栈帧所属方法的引用，这个引用的为了支持方法调用过程的动态连接。具体内容在下面的方法调用中解释。</p>
-<h2 id="方法返回地址"><a href="#方法返回地址" class="headerlink" title="方法返回地址"></a>方法返回地址</h2><p>方法退出（也就是<strong>当前栈帧出栈</strong>）的两种方式：</p>
+<p>（1） 用户定时 （2）edit.log 满了</p>
 <ul>
-<li><code>return</code>正常退出</li>
-<li>异常退出，根据异常表得返回出口</li>
+<li>Secondary NameNode是热备份吗？</li>
 </ul>
-<h1 id="方法调用"><a href="#方法调用" class="headerlink" title="方法调用"></a>方法调用</h1><p>方法调用不等同于方法的执行，方法调用阶段唯一的任务就是确定被调用方法的版本。说白了就是找方法，方法唯一就直接确定（<strong>解析</strong>）。方法不唯一：<strong>重载（静态分配）、重写（动态分配）</strong></p>
-<h2 id="解析调用"><a href="#解析调用" class="headerlink" title="解析调用"></a>解析调用</h2><ul>
-<li><p>调用目标在程序代码写好、编译器进行编译时就确定好的。这类方法时调用称为解析。是静态的。</p>
-</li>
-<li><p><strong>非虚方法</strong>：静态方法、私有方法、实例构造器、父类方法、final方法。它们都是采用解析调用。反之其它就是虚方法。</p>
-</li>
+<p>不是，可以发现Secondary NameNode合并的是滚动前的edis，它总是比NameNode的编辑日志少一点。</p>
+<h1 id="DataNode和NameNode"><a href="#DataNode和NameNode" class="headerlink" title="DataNode和NameNode"></a>DataNode和NameNode</h1><h2 id="流程图-3"><a href="#流程图-3" class="headerlink" title="流程图"></a>流程图</h2><p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/DataNode.png?raw=true" alt="NameNode和DataNode" title="NameNode和DataNode"></p>
+<h2 id="具体步骤-3"><a href="#具体步骤-3" class="headerlink" title="具体步骤"></a>具体步骤</h2><ol>
+<li>DataNode启动后向NameNode注册。</li>
+<li>NameNode告知注册成功。</li>
+<li>DataNode周期性（1小时）的向NameNode上报所有的块信息。</li>
+<li>DataNode每3秒发送一次心跳，心跳返回结果带有NameNode给该DataNode的命令如复制块数据到另一台机器，或删除某个数据块。</li>
+<li>超过10分钟没有收到心跳，表示该节点不可用。</li>
+</ol>
+<h2 id="注意事项-3"><a href="#注意事项-3" class="headerlink" title="注意事项"></a>注意事项</h2><ul>
+<li>一个数据块在DataNode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据包括数据块的长度、校验和 以及时间戳。</li>
+<li>节点增加：新节点配置好后，自动向NameNode注册的。</li>
+<li>节点退役：NameNode可以通过白名单指定需要的节点；通过黑名单指定不要的节点。</li>
 </ul>
-<h2 id="分派调用"><a href="#分派调用" class="headerlink" title="分派调用"></a>分派调用</h2><p><code>Human man = new Man();</code></p>
-<p><code>Human</code>是静态类型（外观类型），<code>Man</code>是实际类型</p>
-<h3 id="静态分派"><a href="#静态分派" class="headerlink" title="静态分派"></a>静态分派</h3><p>依赖静态类型来定位方法执行的版本的分配动作称为静态分配。最典型的应用是方法重载。</p>
-<ul>
-<li>编译器在<strong>重载</strong>时是根据参数的<strong>静态类型</strong>作为依据的。</li>
-<li>由于字面量没有显式的静态类型，它重载时可能会有多种选择，只是选一个更好的版本。</li>
-<li>静态分配和解析不是互斥的，例如静态方法也是可以重载的。</li>
-<li>注意：静态分配更严格，<strong>一定是要用静态类型做参数</strong>。</li>
-</ul>
-<h3 id="动态分派"><a href="#动态分派" class="headerlink" title="动态分派"></a>动态分派</h3><p>依赖实际类型来定位方法执行的版本的分配动作称为动态分配。最典型的应用是方法重写。</p>
-<ul>
-<li>虚拟器在<strong>重写</strong>时是对象的<strong>实际类型</strong>作为依据的。</li>
-<li>注意：动态分配更宽松，如果实际类型中没有对应的方法，就会向上找父类里的相同方法来调用。</li>
-</ul>
-<p>一个测试例子：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MixTest</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Human</span></span>&#123; &#125;</span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Man</span> <span class="keyword">extends</span> <span class="title">Human</span></span>&#123;&#125;</span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Woman</span> <span class="keyword">extends</span> <span class="title">Human</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Father</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Human arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"father choose human"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Man arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"father choose man"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Woman arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"father choose woman"</span>); <span class="comment">// 和同一类里的同名方法是重载关系</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Son</span> <span class="keyword">extends</span> <span class="title">Father</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Human arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"son choose human"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Man arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"son choose man"</span>); <span class="comment">// 和父类的同名同参数方法是重写关系</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Woman arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"son choose woman"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Human woman = <span class="keyword">new</span> Woman();</span><br><span class="line">        Man man = <span class="keyword">new</span> Man();</span><br><span class="line">        Father father = <span class="keyword">new</span> Father();</span><br><span class="line">        Father son = <span class="keyword">new</span> Son();</span><br><span class="line">        father.choice(woman); <span class="comment">// 重写：对象类型选Father(实际类型) 重载：参数类型选 Human（静态类型）</span></span><br><span class="line">        son.choice(man); <span class="comment">// 重写：对象类型选Son(实际类型) 重载：参数类型选 Man（静态类型）</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 程序输出：</span></span><br><span class="line"><span class="comment">father choose human</span></span><br><span class="line"><span class="comment">son choose man</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
-
 
       
     </div>
@@ -460,9 +494,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/java/" rel="tag"><i class="fa fa-tag"></i> java</a>
+            <a href="/tags/hadoop/" rel="tag"><i class="fa fa-tag"></i> hadoop</a>
           
-            <a href="/tags/jvm/" rel="tag"><i class="fa fa-tag"></i> jvm</a>
+            <a href="/tags/HDFS/" rel="tag"><i class="fa fa-tag"></i> HDFS</a>
           
         </div>
       
@@ -475,8 +509,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/03/29/JVM-7-虚拟机类加载机制/" rel="next" title="JVM(7)-虚拟机类加载机制">
-                <i class="fa fa-chevron-left"></i> JVM(7)-虚拟机类加载机制
+              <a href="/2019/08/30/hadoop-MapReduce流程解析/" rel="next" title="hadoop-MapReduce流程解析">
+                <i class="fa fa-chevron-left"></i> hadoop-MapReduce流程解析
               </a>
             
           </div>
@@ -485,8 +519,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/04/10/linux下命令行安装anaconda3-pytorch-fastai/" rel="prev" title="linux下命令行安装anaconda3+pytorch+fastai">
-                linux下命令行安装anaconda3+pytorch+fastai <i class="fa fa-chevron-right"></i>
+              <a href="/2019/08/31/hadoop-Yarn流程解析/" rel="prev" title="hadoop-Yarn流程解析">
+                hadoop-Yarn流程解析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -638,7 +672,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#运行时栈帧结构"><span class="nav-number">1.</span> <span class="nav-text">运行时栈帧结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#局部变量表"><span class="nav-number">1.1.</span> <span class="nav-text">局部变量表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#操作数栈"><span class="nav-number">1.2.</span> <span class="nav-text">操作数栈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态连接"><span class="nav-number">1.3.</span> <span class="nav-text">动态连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法返回地址"><span class="nav-number">1.4.</span> <span class="nav-text">方法返回地址</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#方法调用"><span class="nav-number">2.</span> <span class="nav-text">方法调用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解析调用"><span class="nav-number">2.1.</span> <span class="nav-text">解析调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分派调用"><span class="nav-number">2.2.</span> <span class="nav-text">分派调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#静态分派"><span class="nav-number">2.2.1.</span> <span class="nav-text">静态分派</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态分派"><span class="nav-number">2.2.2.</span> <span class="nav-text">动态分派</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#HDFS写数据"><span class="nav-number">1.</span> <span class="nav-text">HDFS写数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图"><span class="nav-number">1.1.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤"><span class="nav-number">1.2.</span> <span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项"><span class="nav-number">1.3.</span> <span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HDFS读数据"><span class="nav-number">2.</span> <span class="nav-text">HDFS读数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-1"><span class="nav-number">2.1.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-1"><span class="nav-number">2.2.</span> <span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-1"><span class="nav-number">2.3.</span> <span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NameNode和SecondaryNameNode"><span class="nav-number">3.</span> <span class="nav-text">NameNode和SecondaryNameNode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-2"><span class="nav-number">3.1.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-2"><span class="nav-number">3.2.</span> <span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-2"><span class="nav-number">3.3.</span> <span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#DataNode和NameNode"><span class="nav-number">4.</span> <span class="nav-text">DataNode和NameNode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-3"><span class="nav-number">4.1.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-3"><span class="nav-number">4.2.</span> <span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-3"><span class="nav-number">4.3.</span> <span class="nav-text">注意事项</span></a></li></ol></li></ol></div>
             
 
           </div>

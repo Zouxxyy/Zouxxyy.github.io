@@ -89,16 +89,16 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="本文是对 java 集合的总结。书的思路是将接口与实现分开讲；然后从父讲起，再讲子对父的提升。我觉得这种方式很好理解加记忆，所以本文也是这样整理的。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/interface.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/me.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/shixian.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/hash.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/yiliu.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/interface.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/me.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/shixian.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/hash.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/yiliu.png">
 <meta property="og:updated_time" content="2019-03-07T03:51:03.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="corejava基础知识(5)-集合">
 <meta name="twitter:description" content="本文是对 java 集合的总结。书的思路是将接口与实现分开讲；然后从父讲起，再讲子对父的提升。我觉得这种方式很好理解加记忆，所以本文也是这样整理的。">
-<meta name="twitter:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/interface.png">
+<meta name="twitter:image" content="http://yoursite.com/2019/03/07/corejava基础知识-5-集合/interface.png">
 
 
 
@@ -403,10 +403,10 @@
 <a id="more"></a>
 <h1 id="集合框架"><a href="#集合框架" class="headerlink" title="集合框架"></a>集合框架</h1><p>主要思路是让<strong>接口与实现分离</strong></p>
 <p>集合框架的接口：两个基本接口 <code>Collection</code> 和 <code>Map</code></p>
-<p><img src="corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/interface.png" alt="集合框架的接口" title="集合框架的接口"></p>
+<p><img src="/2019/03/07/corejava基础知识-5-集合/interface.png" alt="集合框架的接口" title="集合框架的接口"></p>
 <p>集合框架的类：</p>
-<p><img src="corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/me.png" alt="集合框架的类" title="集合类的解释"></p>
-<p><img src="corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/shixian.png" alt="集合框架的类" title="集合框架的类"></p>
+<p><img src="/2019/03/07/corejava基础知识-5-集合/me.png" alt="集合框架的类" title="集合类的解释"></p>
+<p><img src="/2019/03/07/corejava基础知识-5-集合/shixian.png" alt="集合框架的类" title="集合框架的类"></p>
 <h1 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h1><h2 id="两个基本接口：Collection-和-Map"><a href="#两个基本接口：Collection-和-Map" class="headerlink" title="两个基本接口：Collection 和 Map"></a>两个基本接口：<code>Collection</code> 和 <code>Map</code></h2><h3 id="Collection"><a href="#Collection" class="headerlink" title="Collection"></a>Collection</h3><p>以下是<code>Collection</code>接口内的一些方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">interface</span> <span class="title">class</span> <span class="title">java</span>.<span class="title">util</span>.<span class="title">Collection</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">add</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">remove</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">contains</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">abstract</span> java.util.<span class="function">Iterator <span class="title">iterator</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">addAll</span><span class="params">(java.util.Collection)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">containsAll</span><span class="params">(java.util.Collection)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">removeAll</span><span class="params">(java.util.Collection)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">retainAll</span><span class="params">(java.util.Collection)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">removeIf</span><span class="params">(java.util.function.Predicate)</span></span>;</span><br><span class="line">  ...</span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -458,7 +458,7 @@
 <li><code>array.size()</code>返回的是数组列表内元素实际的个数。</li>
 </ul>
 <p>p.s. 这和c++的 <code>vector</code> 很像</p>
-<h2 id="Set-1"><a href="#Set-1" class="headerlink" title="Set"></a>Set</h2><h3 id="HashSet-散列集"><a href="#HashSet-散列集" class="headerlink" title="HashSet(散列集)"></a>HashSet(散列集)</h3><p><img src="corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/hash.png" alt="散列表" title="散列表"></p>
+<h2 id="Set-1"><a href="#Set-1" class="headerlink" title="Set"></a>Set</h2><h3 id="HashSet-散列集"><a href="#HashSet-散列集" class="headerlink" title="HashSet(散列集)"></a>HashSet(散列集)</h3><p><img src="/2019/03/07/corejava基础知识-5-集合/hash.png" alt="散列表" title="散列表"></p>
 <ul>
 <li><code>HashSet</code>: 基于散列表的Set，内部用链表数组实现。初始化时可以指定容量和装填因子。</li>
 <li>由于HashSet访问是随机的，所以当不需要关心集合中的顺序时才使用它。</li>
@@ -501,7 +501,7 @@
 <li>在实现对象遍历算法 (如对象串行化)时，可以它用来跟踪每个对象的遍历状况。</li>
 </ul>
 <h1 id="遗留的集合"><a href="#遗留的集合" class="headerlink" title="遗留的集合"></a>遗留的集合</h1><p>看看就好，遇到时再查书</p>
-<p><img src="corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/yiliu.png" alt="遗留集合" title="遗留集合"></p>
+<p><img src="/2019/03/07/corejava基础知识-5-集合/yiliu.png" alt="遗留集合" title="遗留集合"></p>
 <p>本文示例代码：<a href="https://github.com/Zouxxyy/java-learning/tree/master/corejava-learning/src/com/zouxxyy/corejava/chap9" title="github" target="_blank" rel="noopener">github</a></p>
 
       
@@ -624,7 +624,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">24</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -646,7 +646,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
