@@ -90,7 +90,7 @@
 <meta property="og:description" content="介绍了Yarn的工作流程和一些总结">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/Yarn.png?raw=true">
-<meta property="og:updated_time" content="2019-08-31T10:53:50.370Z">
+<meta property="og:updated_time" content="2019-09-02T03:25:39.261Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hadoop-Yarn流程解析">
 <meta name="twitter:description" content="介绍了Yarn的工作流程和一些总结">
@@ -410,12 +410,12 @@
 <ol start="5">
 <li>当RM收到Client的请求后，将该job添加到资源调度器中，将job初始化成task。</li>
 <li>某一个空闲的NM领取到该Job。</li>
-<li>该NM创建Container，并产生MRAppmaster。</li>
+<li>在该NM中创建Container，并产生MRAppmaster(一个job创建一个)，它管理该job。</li>
 <li>下载之前Client提交的资源到本地。</li>
 </ol>
 <p>（3）任务分配</p>
 <ol start="9">
-<li>MrAppMaster向RM申请运行多个MapTask任务资源。</li>
+<li>MRAppMaster向RM申请运行多个MapTask任务资源。</li>
 <li>RM将运行MapTask任务分配给另外两个NodeManager，另外两个NodeManager分别领取任务并创建容器。</li>
 </ol>
 <p>（4）任务执行</p>
@@ -426,10 +426,10 @@
 <li>程序运行完毕后，MR会向RM申请注销自己。</li>
 </ol>
 <h1 id="一些细节"><a href="#一些细节" class="headerlink" title="一些细节"></a>一些细节</h1><h2 id="4大组件"><a href="#4大组件" class="headerlink" title="4大组件"></a>4大组件</h2><ul>
-<li><strong>ResourceManager</strong>：处理客户端请求，监控NodeManager，启动或监控ApplicationMaster，资源的分配与调度</li>
-<li><strong>NodeManager</strong>：管理单个节点的资源，处理来自ResourceManager、ApplicationMaster的命令</li>
-<li><strong>ApplicationMaster</strong>：负责数据切分，为应用程序申请资源并分配内部的任务，任务的监控与容错</li>
-<li><strong>Container</strong>：资源抽象，如内存、cpu、磁盘、网络等</li>
+<li><strong>ResourceManager</strong>：总的老大：处理客户端请求，监控NodeManager，启动或监控ApplicationMaster，资源的分配与调度</li>
+<li><strong>NodeManager</strong>：单个节点的老大：管理单个节点的资源，处理来自ResourceManager、ApplicationMaster的命令</li>
+<li><strong>ApplicationMaster</strong>：单个job的老大：负责数据切分，为应用程序申请资源并分配内部的任务，任务的监控与容错</li>
+<li><strong>Container</strong>：资源抽象：如内存、cpu、磁盘、网络等</li>
 </ul>
 <h2 id="3种资源调度器"><a href="#3种资源调度器" class="headerlink" title="3种资源调度器"></a>3种资源调度器</h2><ul>
 <li><strong>FIFO</strong>：先进先出</li>
@@ -483,6 +483,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/02/spark-Yarn流程解析/" rel="prev" title="spark-Yarn流程解析">
+                spark-Yarn流程解析 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -561,7 +565,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-count">25</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -583,7 +587,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
