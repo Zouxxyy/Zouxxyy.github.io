@@ -89,12 +89,12 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="介绍了在spark中Yarn的工作流程和一些总结">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/9/2/16cf0ee03121fdb9?w=1610&h=1264&f=png&s=622005">
-<meta property="og:updated_time" content="2019-09-02T08:17:53.830Z">
+<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png">
+<meta property="og:updated_time" content="2019-09-09T01:12:27.955Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark-Yarn流程解析">
 <meta name="twitter:description" content="介绍了在spark中Yarn的工作流程和一些总结">
-<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/9/2/16cf0ee03121fdb9?w=1610&h=1264&f=png&s=622005">
+<meta name="twitter:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png">
 
 
 
@@ -397,7 +397,7 @@
       
         <p>介绍了在spark中Yarn的工作流程和一些总结</p>
 <a id="more"></a>
-<h1 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h1><p><img src="https://user-gold-cdn.xitu.io/2019/9/2/16cf0ee03121fdb9?w=1610&h=1264&f=png&s=622005" alt="YARN-Cluster流程图" title="YARN-Cluster流程图"></p>
+<h1 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png" alt="YARN-Cluster流程图" title="YARN-Cluster流程图"></p>
 <p>主要流程和<a href="https://zouxxyy.github.io/2019/08/31/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/#more" target="_blank" rel="noopener">Yarn的流程</a>一样，不同的就是紫色部分。这里采用的是spark的<strong>yarn-cluster</strong>模式，driver在APPMaster中。</p>
 <h1 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h1><h2 id="解耦思想"><a href="#解耦思想" class="headerlink" title="解耦思想"></a>解耦思想</h2><ul>
 <li><p>ResourceManager管理资源调度，与NodeManager直接联系；Driver负责执行计算，与Executor也就是一个个Task直接联系。</p>
@@ -477,6 +477,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2019/09/09/spark-窄、宽依赖和任务划分/" rel="prev" title="spark-窄、宽依赖和任务划分">
+                spark-窄、宽依赖和任务划分 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -554,7 +558,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-count">27</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -576,7 +580,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
