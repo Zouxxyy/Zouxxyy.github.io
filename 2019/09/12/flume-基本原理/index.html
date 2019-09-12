@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="java,jvm,">
+  <meta name="keywords" content="flume,">
 
 
 
@@ -81,18 +81,22 @@
 
 
 
-<meta name="description" content="本文是《深入理解Java虚拟机（第二版）》第八章的笔记">
-<meta name="keywords" content="java,jvm">
+<meta name="description" content="介绍了flume的基本原理和使用">
+<meta name="keywords" content="flume">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JVM(8)-虚拟机字节码执行引擎">
-<meta property="og:url" content="http://yoursite.com/2019/03/29/JVM-8-虚拟机字节码执行引擎/index.html">
+<meta property="og:title" content="flume-基本原理">
+<meta property="og:url" content="http://yoursite.com/2019/09/12/flume-基本原理/index.html">
 <meta property="og:site_name" content="ZxysHexo">
-<meta property="og:description" content="本文是《深入理解Java虚拟机（第二版）》第八章的笔记">
+<meta property="og:description" content="介绍了flume的基本原理和使用">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-03-29T08:53:30.000Z">
+<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/agent.png">
+<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/flume.png">
+<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/transaction.png">
+<meta property="og:updated_time" content="2019-09-12T08:30:53.708Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="JVM(8)-虚拟机字节码执行引擎">
-<meta name="twitter:description" content="本文是《深入理解Java虚拟机（第二版）》第八章的笔记">
+<meta name="twitter:title" content="flume-基本原理">
+<meta name="twitter:description" content="介绍了flume的基本原理和使用">
+<meta name="twitter:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/agent.png">
 
 
 
@@ -122,13 +126,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/03/29/JVM-8-虚拟机字节码执行引擎/">
+  <link rel="canonical" href="http://yoursite.com/2019/09/12/flume-基本原理/">
 
 
 
 
 
-  <title>JVM(8)-虚拟机字节码执行引擎 | ZxysHexo</title>
+  <title>flume-基本原理 | ZxysHexo</title>
   
 
 
@@ -275,7 +279,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/29/JVM-8-虚拟机字节码执行引擎/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/12/flume-基本原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Zouxxyy">
@@ -292,7 +296,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">JVM(8)-虚拟机字节码执行引擎</h1>
+          <h1 class="post-title" itemprop="name headline">flume-基本原理</h1>
         
 
         <div class="post-meta">
@@ -304,8 +308,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-29T16:51:23+08:00">
-                2019-03-29
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-12T16:25:19+08:00">
+                2019-09-12
               </time>
             
 
@@ -327,8 +331,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程语言/" itemprop="url" rel="index">
-                    <span itemprop="name">编程语言</span>
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
                   </a>
                 </span>
 
@@ -344,7 +348,7 @@
 
           
           
-             <span id="/2019/03/29/JVM-8-虚拟机字节码执行引擎/" class="leancloud_visitors" data-flag-title="JVM(8)-虚拟机字节码执行引擎">
+             <span id="/2019/09/12/flume-基本原理/" class="leancloud_visitors" data-flag-title="flume-基本原理">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -393,56 +397,88 @@
       
 
       
-        <p>本文是《深入理解Java虚拟机（第二版）》第八章的笔记</p>
+        <p>介绍了flume的基本原理和使用</p>
 <a id="more"></a>
-<h1 id="运行时栈帧结构"><a href="#运行时栈帧结构" class="headerlink" title="运行时栈帧结构"></a>运行时栈帧结构</h1><p>在活动线程中，只有栈顶的栈时有效的，称为<strong>当前栈帧</strong>，与这个栈帧相关联的方法称为<strong>当前方法</strong>。下面对栈帧的4个主要部分进行分析。</p>
-<h2 id="局部变量表"><a href="#局部变量表" class="headerlink" title="局部变量表"></a>局部变量表</h2><p>存放方法参数和方法内部定义的局部变量</p>
-<p>一些细节：</p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/agent.png" alt></p>
+<p>Flume是一种<strong>分布式</strong>，<strong>可靠且可用</strong>的服务，用于<strong>有效地收集，聚合和传输大量日志数据</strong>，是基于<strong>流式</strong>的简单灵活的架构。</p>
+<p>它具有可靠的<strong>可靠性机制</strong>和许多<strong>故障转移和恢复机制</strong>，具有强大的容错性。</p>
+<p>它使用简单的<strong>可扩展</strong>数据模型，允许在线分析应用程序。</p>
+<h1 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/flume.png" alt></p>
+<h1 id="六大组件"><a href="#六大组件" class="headerlink" title="六大组件"></a>六大组件</h1><p>3大基本组件，3个辅助组件。这些组件都支持用户自定义。</p>
+<h2 id="Source"><a href="#Source" class="headerlink" title="Source"></a>Source</h2><p>用于数据的收集。将数据捕获后可以先进行自定义处理，然后将数据封装到事件（event） 里（如event的body），最后将事件推入Channel中。</p>
+<p><strong>常见的source</strong>:</p>
+<p><strong>Avro Source</strong>、<strong>Exce Source</strong>、<strong>Spooling Directory Source</strong>、<strong>NetCat Source</strong>、Syslog Source、Syslog TCP Source、Syslog UDP Source、HTTP Source、<strong>HDFS Source</strong> 等等。</p>
+<h2 id="Channel"><a href="#Channel" class="headerlink" title="Channel"></a>Channel</h2><p>用于连接Source和Sink的组件，是数据的缓冲区。它可以将事件暂存到内存中也可以持久化到本地磁盘上， 直到Sink处理完该事件。</p>
+<p><strong>常见的channel</strong>:</p>
+<p><strong>Memory Channel</strong>、<strong>File Channel</strong>、<strong>Kafka Channel</strong>等等。</p>
+<h2 id="Sink"><a href="#Sink" class="headerlink" title="Sink"></a>Sink</h2><p>从channel中取出数据，再将数据存入相应的存储文件系统，数据库，或者提交到远程服务器。</p>
+<p><strong>常见的sink</strong>:</p>
+<p><strong>HDFS sink</strong>、<strong>Logger sink</strong>、<strong>Avro sink</strong>、<strong>File Roll sink</strong>、Null sink、HBase sink 等等。</p>
+<h2 id="Interceptor"><a href="#Interceptor" class="headerlink" title="Interceptor"></a>Interceptor</h2><p>对Source收集的数据，进行<strong>分类</strong>或者<strong>拦截</strong>。可以将多个Interceptor连接形成拦截器链。</p>
+<p><strong>用法</strong></p>
 <ul>
-<li>最小存储单元(Slot)，一个Slot可以存32位以内的数据类型。</li>
-<li><code>boolean、byte、char、short、int、float、reference、returnAddress</code>占一个Slot；<code>long、double</code>占两个Slot，是非原子的，但它是<strong>线程安全</strong>的，因为它是栈中的，是线程私有的。</li>
-<li>对于实例方法，第一个Slot是传递所属对象实例的引用，也就是我们常用的   <code>this</code>。</li>
-<li>注意局部变量<strong>没有初始值</strong>哦。</li>
-<li>当一个变量的pc寄存器的值大于Slot的作用域时，Slot是可以<strong>复用</strong>的。</li>
+<li>分类：自定义分类逻辑，将分类属性(k,v类型)，加入event的headers中，然后使用<strong>MultiplexingChannelSelector</strong>选择器 选择放入哪个channel中。</li>
 </ul>
-<h2 id="操作数栈"><a href="#操作数栈" class="headerlink" title="操作数栈"></a>操作数栈</h2><ul>
-<li>虚拟机字节码执行引擎是“<strong>基于栈的执行引擎</strong>”，这个栈就是操作数栈。</li>
-<li>对比<strong>基于寄存器</strong>的执行引擎</li>
-</ul>
-<p>优点：可移植性、代码更加紧凑、编译器实现更紧凑。确定就是速度更慢。</p>
 <ul>
-<li>下面栈帧的部分操作数栈与上面的栈帧的部分局部变量是重叠的。</li>
+<li>拦截：自定义丢弃逻辑，将不要的event设为<strong>null</strong>即可。</li>
 </ul>
-<h2 id="动态连接"><a href="#动态连接" class="headerlink" title="动态连接"></a>动态连接</h2><p>指向运行时常量池中该栈帧所属方法的引用，这个引用的为了支持方法调用过程的动态连接。具体内容在下面的方法调用中解释。</p>
-<h2 id="方法返回地址"><a href="#方法返回地址" class="headerlink" title="方法返回地址"></a>方法返回地址</h2><p>方法退出（也就是<strong>当前栈帧出栈</strong>）的两种方式：</p>
+<h2 id="ChannelSelector"><a href="#ChannelSelector" class="headerlink" title="ChannelSelector"></a>ChannelSelector</h2><p>将event放入指定的channel中。</p>
+<p><strong>2种ChannelSelector</strong>:</p>
 <ul>
-<li><code>return</code>正常退出</li>
-<li>异常退出，根据异常表得返回出口</li>
-</ul>
-<h1 id="方法调用"><a href="#方法调用" class="headerlink" title="方法调用"></a>方法调用</h1><p>方法调用不等同于方法的执行，方法调用阶段唯一的任务就是确定被调用方法的版本。说白了就是找方法，方法唯一就直接确定（<strong>解析</strong>）。方法不唯一：<strong>重载（静态分配）、重写（动态分配）</strong></p>
-<h2 id="解析调用"><a href="#解析调用" class="headerlink" title="解析调用"></a>解析调用</h2><ul>
-<li><p>调用目标在程序代码写好、编译器进行编译时就确定好的。这类方法时调用称为解析。是静态的。</p>
+<li><p><strong>ReplicatingChannelSelector</strong>（默认） ：将事件放入所有channel中。（用于复制，也就是备份）</p>
 </li>
-<li><p><strong>非虚方法</strong>：静态方法、私有方法、实例构造器、父类方法、final方法。它们都是采用解析调用。反之其它就是虚方法。</p>
+<li><p><strong>MultiplexingChannelSelector</strong> ：结合<strong>Interceptor</strong>使用。根据header，将event放到指定的channel中。</p>
 </li>
 </ul>
-<h2 id="分派调用"><a href="#分派调用" class="headerlink" title="分派调用"></a>分派调用</h2><p><code>Human man = new Man();</code></p>
-<p><code>Human</code>是静态类型（外观类型），<code>Man</code>是实际类型</p>
-<h3 id="静态分派"><a href="#静态分派" class="headerlink" title="静态分派"></a>静态分派</h3><p>依赖静态类型来定位方法执行的版本的分配动作称为静态分配。最典型的应用是方法重载。</p>
+<h2 id="sinkgroups中的SinkProcessor"><a href="#sinkgroups中的SinkProcessor" class="headerlink" title="sinkgroups中的SinkProcessor"></a>sinkgroups中的SinkProcessor</h2><p>按照指定算法将event分配到sink组的sink中。需要先指定一个sink组，再选择SinkProcessor，它会根据配置的分配方式自动将event分到组里的sink中。注意默认的SinkProcessor中，没有sink组的概念，不需要配置，也就是一对一。</p>
+<p><strong>2种SinkProcessor</strong>:</p>
 <ul>
-<li>编译器在<strong>重载</strong>时是根据参数的<strong>静态类型</strong>作为依据的。</li>
-<li>由于字面量没有显式的静态类型，它重载时可能会有多种选择，只是选一个更好的版本。</li>
-<li>静态分配和解析不是互斥的，例如静态方法也是可以重载的。</li>
-<li>注意：静态分配更严格，<strong>一定是要用静态类型做参数</strong>。</li>
+<li><p><strong>LoadBalanceSinkProcessor</strong> ：负载均衡。可选择分配方式：如随机分配、轮询分配等等</p>
+</li>
+<li><p><strong>FailoverSinkProcessor</strong> ：优先级分配（多用于故障转移）。指定sink的优先级，按优先级分配。</p>
+</li>
 </ul>
-<h3 id="动态分派"><a href="#动态分派" class="headerlink" title="动态分派"></a>动态分派</h3><p>依赖实际类型来定位方法执行的版本的分配动作称为动态分配。最典型的应用是方法重写。</p>
+<h1 id="两个Transaction"><a href="#两个Transaction" class="headerlink" title="两个Transaction"></a>两个Transaction</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/transaction.png" alt></p>
+<h2 id="Put-Transaction"><a href="#Put-Transaction" class="headerlink" title="Put Transaction"></a>Put Transaction</h2><p>它实现 source 将 event 发送至 channel，带有容错机制，可以分为以下阶段：</p>
 <ul>
-<li>虚拟器在<strong>重写</strong>时是对象的<strong>实际类型</strong>作为依据的。</li>
-<li>注意：动态分配更宽松，如果实际类型中没有对应的方法，就会向上找父类里的相同方法来调用。</li>
+<li><strong>doPut</strong>: 将批数据写入临时缓冲区putList</li>
+<li><strong>doCommit</strong>: 检查channel内存队列是否足够合并。</li>
+<li><strong>doRollback</strong>: channel内存队列空间不足，回滚数据</li>
 </ul>
-<p>一个测试例子：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MixTest</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Human</span></span>&#123; &#125;</span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Man</span> <span class="keyword">extends</span> <span class="title">Human</span></span>&#123;&#125;</span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Woman</span> <span class="keyword">extends</span> <span class="title">Human</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Father</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Human arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"father choose human"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Man arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"father choose man"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Woman arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"father choose woman"</span>); <span class="comment">// 和同一类里的同名方法是重载关系</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Son</span> <span class="keyword">extends</span> <span class="title">Father</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Human arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"son choose human"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Man arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"son choose man"</span>); <span class="comment">// 和父类的同名同参数方法是重写关系</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">choice</span><span class="params">(Woman arg)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"son choose woman"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Human woman = <span class="keyword">new</span> Woman();</span><br><span class="line">        Man man = <span class="keyword">new</span> Man();</span><br><span class="line">        Father father = <span class="keyword">new</span> Father();</span><br><span class="line">        Father son = <span class="keyword">new</span> Son();</span><br><span class="line">        father.choice(woman); <span class="comment">// 重写：对象类型选Father(实际类型) 重载：参数类型选 Human（静态类型）</span></span><br><span class="line">        son.choice(man); <span class="comment">// 重写：对象类型选Son(实际类型) 重载：参数类型选 Man（静态类型）</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 程序输出：</span></span><br><span class="line"><span class="comment">father choose human</span></span><br><span class="line"><span class="comment">son choose man</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
-
+<h2 id="Take-Transaction"><a href="#Take-Transaction" class="headerlink" title="Take Transaction"></a>Take Transaction</h2><p>它实现 sink 将 event 从 channel 中提取出来，带有容错机制，可以分为以下阶段：</p>
+<ul>
+<li><strong>doTake</strong>: 将数据提取到临时缓冲区takeList</li>
+<li><strong>doCommit</strong>: 数据发送成功的前提下，清除临时缓冲区takeList</li>
+<li><strong>doRollback</strong>: 数据发送过程中如果出现异常，rollback将临时缓冲区takeList中的数据归还给channel内存队列。</li>
+</ul>
+<h1 id="一些案例"><a href="#一些案例" class="headerlink" title="一些案例"></a>一些案例</h1><ul>
+<li><strong>日志复制（备份）</strong></li>
+</ul>
+<p>单source，多channel，多sink</p>
+<p>使用 ReplicatingChannelSelector，将每个event分到多个channel再传到sink中，实现复制（备份）。</p>
+<ul>
+<li><strong>日志分类</strong></li>
+</ul>
+<p>单source，多channel，多sink， 配置拦截器</p>
+<p>使用 MultiplexingChannelSelector，根据拦截器将每个event，分到指定的channel中再传到sink中，实现分类。</p>
+<ul>
+<li><strong>负载均衡</strong></li>
+</ul>
+<p>单source，单channel，多sink（组成一个sink组）</p>
+<p>使用LoadBalanceSinkProcessor，选择分配方式：如随机分配、轮询分配，将event递给相应sink。</p>
+<ul>
+<li><strong>故障转移</strong></li>
+</ul>
+<p>单source，单channel，多sink（组成一个sink组）</p>
+<p>使用FailoverSinkProcessor，给sink组里的sink指定优先级，只有优先级最高的会接收，当它挂了，次优先级的才会接收。</p>
+<ul>
+<li><strong>日志聚合</strong></li>
+</ul>
+<p>多source，单channel，单sink</p>
+<p>直接将多个源的数据，用一个channel接收。</p>
+<ul>
+<li><strong>可以使用第三方框架Ganglia对flume实现监控</strong></li>
+</ul>
 
       
     </div>
@@ -460,9 +496,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/java/" rel="tag"><i class="fa fa-tag"></i> java</a>
-          
-            <a href="/tags/jvm/" rel="tag"><i class="fa fa-tag"></i> jvm</a>
+            <a href="/tags/flume/" rel="tag"><i class="fa fa-tag"></i> flume</a>
           
         </div>
       
@@ -475,8 +509,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/03/29/JVM-7-虚拟机类加载机制/" rel="next" title="JVM(7)-虚拟机类加载机制">
-                <i class="fa fa-chevron-left"></i> JVM(7)-虚拟机类加载机制
+              <a href="/2019/09/09/spark-DataFrame和DataSet/" rel="next" title="spark-DataFrame和DataSet">
+                <i class="fa fa-chevron-left"></i> spark-DataFrame和DataSet
               </a>
             
           </div>
@@ -484,10 +518,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/04/10/linux下命令行安装anaconda3-pytorch-fastai/" rel="prev" title="linux下命令行安装anaconda3+pytorch+fastai">
-                linux下命令行安装anaconda3+pytorch+fastai <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -638,7 +668,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#运行时栈帧结构"><span class="nav-number">1.</span> <span class="nav-text">运行时栈帧结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#局部变量表"><span class="nav-number">1.1.</span> <span class="nav-text">局部变量表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#操作数栈"><span class="nav-number">1.2.</span> <span class="nav-text">操作数栈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态连接"><span class="nav-number">1.3.</span> <span class="nav-text">动态连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法返回地址"><span class="nav-number">1.4.</span> <span class="nav-text">方法返回地址</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#方法调用"><span class="nav-number">2.</span> <span class="nav-text">方法调用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解析调用"><span class="nav-number">2.1.</span> <span class="nav-text">解析调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分派调用"><span class="nav-number">2.2.</span> <span class="nav-text">分派调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#静态分派"><span class="nav-number">2.2.1.</span> <span class="nav-text">静态分派</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态分派"><span class="nav-number">2.2.2.</span> <span class="nav-text">动态分派</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#流程图"><span class="nav-number">2.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#六大组件"><span class="nav-number">3.</span> <span class="nav-text">六大组件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Source"><span class="nav-number">3.1.</span> <span class="nav-text">Source</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Channel"><span class="nav-number">3.2.</span> <span class="nav-text">Channel</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sink"><span class="nav-number">3.3.</span> <span class="nav-text">Sink</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interceptor"><span class="nav-number">3.4.</span> <span class="nav-text">Interceptor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ChannelSelector"><span class="nav-number">3.5.</span> <span class="nav-text">ChannelSelector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sinkgroups中的SinkProcessor"><span class="nav-number">3.6.</span> <span class="nav-text">sinkgroups中的SinkProcessor</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#两个Transaction"><span class="nav-number">4.</span> <span class="nav-text">两个Transaction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Put-Transaction"><span class="nav-number">4.1.</span> <span class="nav-text">Put Transaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Take-Transaction"><span class="nav-number">4.2.</span> <span class="nav-text">Take Transaction</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一些案例"><span class="nav-number">5.</span> <span class="nav-text">一些案例</span></a></li></ol></div>
             
 
           </div>

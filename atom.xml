@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2019-09-09T01:28:15.128Z</updated>
+  <updated>2019-09-12T08:30:53.708Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,28 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>flume-基本原理</title>
+    <link href="http://yoursite.com/2019/09/12/flume-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/"/>
+    <id>http://yoursite.com/2019/09/12/flume-基本原理/</id>
+    <published>2019-09-12T08:25:19.000Z</published>
+    <updated>2019-09-12T08:30:53.708Z</updated>
+    
+    <content type="html"><![CDATA[<p>介绍了flume的基本原理和使用</p><a id="more"></a><h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/agent.png" alt></p><p>Flume是一种<strong>分布式</strong>，<strong>可靠且可用</strong>的服务，用于<strong>有效地收集，聚合和传输大量日志数据</strong>，是基于<strong>流式</strong>的简单灵活的架构。</p><p>它具有可靠的<strong>可靠性机制</strong>和许多<strong>故障转移和恢复机制</strong>，具有强大的容错性。</p><p>它使用简单的<strong>可扩展</strong>数据模型，允许在线分析应用程序。</p><h1 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/flume.png" alt></p><h1 id="六大组件"><a href="#六大组件" class="headerlink" title="六大组件"></a>六大组件</h1><p>3大基本组件，3个辅助组件。这些组件都支持用户自定义。</p><h2 id="Source"><a href="#Source" class="headerlink" title="Source"></a>Source</h2><p>用于数据的收集。将数据捕获后可以先进行自定义处理，然后将数据封装到事件（event） 里（如event的body），最后将事件推入Channel中。</p><p><strong>常见的source</strong>:</p><p><strong>Avro Source</strong>、<strong>Exce Source</strong>、<strong>Spooling Directory Source</strong>、<strong>NetCat Source</strong>、Syslog Source、Syslog TCP Source、Syslog UDP Source、HTTP Source、<strong>HDFS Source</strong> 等等。</p><h2 id="Channel"><a href="#Channel" class="headerlink" title="Channel"></a>Channel</h2><p>用于连接Source和Sink的组件，是数据的缓冲区。它可以将事件暂存到内存中也可以持久化到本地磁盘上， 直到Sink处理完该事件。</p><p><strong>常见的channel</strong>:</p><p><strong>Memory Channel</strong>、<strong>File Channel</strong>、<strong>Kafka Channel</strong>等等。</p><h2 id="Sink"><a href="#Sink" class="headerlink" title="Sink"></a>Sink</h2><p>从channel中取出数据，再将数据存入相应的存储文件系统，数据库，或者提交到远程服务器。</p><p><strong>常见的sink</strong>:</p><p><strong>HDFS sink</strong>、<strong>Logger sink</strong>、<strong>Avro sink</strong>、<strong>File Roll sink</strong>、Null sink、HBase sink 等等。</p><h2 id="Interceptor"><a href="#Interceptor" class="headerlink" title="Interceptor"></a>Interceptor</h2><p>对Source收集的数据，进行<strong>分类</strong>或者<strong>拦截</strong>。可以将多个Interceptor连接形成拦截器链。</p><p><strong>用法</strong></p><ul><li>分类：自定义分类逻辑，将分类属性(k,v类型)，加入event的headers中，然后使用<strong>MultiplexingChannelSelector</strong>选择器 选择放入哪个channel中。</li></ul><ul><li>拦截：自定义丢弃逻辑，将不要的event设为<strong>null</strong>即可。</li></ul><h2 id="ChannelSelector"><a href="#ChannelSelector" class="headerlink" title="ChannelSelector"></a>ChannelSelector</h2><p>将event放入指定的channel中。</p><p><strong>2种ChannelSelector</strong>:</p><ul><li><p><strong>ReplicatingChannelSelector</strong>（默认） ：将事件放入所有channel中。（用于复制，也就是备份）</p></li><li><p><strong>MultiplexingChannelSelector</strong> ：结合<strong>Interceptor</strong>使用。根据header，将event放到指定的channel中。</p></li></ul><h2 id="sinkgroups中的SinkProcessor"><a href="#sinkgroups中的SinkProcessor" class="headerlink" title="sinkgroups中的SinkProcessor"></a>sinkgroups中的SinkProcessor</h2><p>按照指定算法将event分配到sink组的sink中。需要先指定一个sink组，再选择SinkProcessor，它会根据配置的分配方式自动将event分到组里的sink中。注意默认的SinkProcessor中，没有sink组的概念，不需要配置，也就是一对一。</p><p><strong>2种SinkProcessor</strong>:</p><ul><li><p><strong>LoadBalanceSinkProcessor</strong> ：负载均衡。可选择分配方式：如随机分配、轮询分配等等</p></li><li><p><strong>FailoverSinkProcessor</strong> ：优先级分配（多用于故障转移）。指定sink的优先级，按优先级分配。</p></li></ul><h1 id="两个Transaction"><a href="#两个Transaction" class="headerlink" title="两个Transaction"></a>两个Transaction</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/transaction.png" alt></p><h2 id="Put-Transaction"><a href="#Put-Transaction" class="headerlink" title="Put Transaction"></a>Put Transaction</h2><p>它实现 source 将 event 发送至 channel，带有容错机制，可以分为以下阶段：</p><ul><li><strong>doPut</strong>: 将批数据写入临时缓冲区putList</li><li><strong>doCommit</strong>: 检查channel内存队列是否足够合并。</li><li><strong>doRollback</strong>: channel内存队列空间不足，回滚数据</li></ul><h2 id="Take-Transaction"><a href="#Take-Transaction" class="headerlink" title="Take Transaction"></a>Take Transaction</h2><p>它实现 sink 将 event 从 channel 中提取出来，带有容错机制，可以分为以下阶段：</p><ul><li><strong>doTake</strong>: 将数据提取到临时缓冲区takeList</li><li><strong>doCommit</strong>: 数据发送成功的前提下，清除临时缓冲区takeList</li><li><strong>doRollback</strong>: 数据发送过程中如果出现异常，rollback将临时缓冲区takeList中的数据归还给channel内存队列。</li></ul><h1 id="一些案例"><a href="#一些案例" class="headerlink" title="一些案例"></a>一些案例</h1><ul><li><strong>日志复制（备份）</strong></li></ul><p>单source，多channel，多sink</p><p>使用 ReplicatingChannelSelector，将每个event分到多个channel再传到sink中，实现复制（备份）。</p><ul><li><strong>日志分类</strong></li></ul><p>单source，多channel，多sink， 配置拦截器</p><p>使用 MultiplexingChannelSelector，根据拦截器将每个event，分到指定的channel中再传到sink中，实现分类。</p><ul><li><strong>负载均衡</strong></li></ul><p>单source，单channel，多sink（组成一个sink组）</p><p>使用LoadBalanceSinkProcessor，选择分配方式：如随机分配、轮询分配，将event递给相应sink。</p><ul><li><strong>故障转移</strong></li></ul><p>单source，单channel，多sink（组成一个sink组）</p><p>使用FailoverSinkProcessor，给sink组里的sink指定优先级，只有优先级最高的会接收，当它挂了，次优先级的才会接收。</p><ul><li><strong>日志聚合</strong></li></ul><p>多source，单channel，单sink</p><p>直接将多个源的数据，用一个channel接收。</p><ul><li><strong>可以使用第三方框架Ganglia对flume实现监控</strong></li></ul>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;介绍了flume的基本原理和使用&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+    
+    
+      <category term="flume" scheme="http://yoursite.com/tags/flume/"/>
+    
+  </entry>
   
   <entry>
     <title>spark-DataFrame和DataSet</title>
@@ -448,30 +470,6 @@
     <summary type="html">
     
       &lt;p&gt;本文是《java多线程编程核心技术》第三、四章的学习笔记。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="编程语言" scheme="http://yoursite.com/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/"/>
-    
-    
-      <category term="java" scheme="http://yoursite.com/tags/java/"/>
-    
-      <category term="多线程" scheme="http://yoursite.com/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>java多线程编程chap1-2</title>
-    <link href="http://yoursite.com/2019/03/11/java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8Bchap1-2/"/>
-    <id>http://yoursite.com/2019/03/11/java多线程编程chap1-2/</id>
-    <published>2019-03-11T08:24:39.000Z</published>
-    <updated>2019-03-11T08:27:26.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>本文是《java多线程编程核心技术》第一、二章的学习笔记。</p><a id="more"></a><h1 id="第一章：Java多线程技能"><a href="#第一章：Java多线程技能" class="headerlink" title="第一章：Java多线程技能"></a>第一章：Java多线程技能</h1><h2 id="使用多线程"><a href="#使用多线程" class="headerlink" title="使用多线程"></a>使用多线程</h2><ul><li>实现多线程有两种方式：继承<code>Thread</code>类、实现<code>Runnable</code>接口</li><li><code>Thread.java</code>中的<code>start()</code>方法是异步执行，<code>thread.run</code>是同步；而且<code>start()</code>方法的顺序不代表线程启动的顺序，它是随机的。</li><li>在方法前加<code>synchronized</code>可以让线程安全。</li></ul><h2 id="一些方法"><a href="#一些方法" class="headerlink" title="一些方法"></a>一些方法</h2><ul><li><code>currentThread()</code> 返回代码段正在被哪个线程调用</li><li><code>isAlive()</code> 判断当前线程是否处于活动状态</li><li><code>sleep()</code> 让线程休眠</li><li><code>getID()</code> 获得线程的唯一标志</li><li><code>yield()</code> 让当前线程放弃cpu资源，但时间不确定</li></ul><h2 id="停止线程"><a href="#停止线程" class="headerlink" title="停止线程"></a>停止线程</h2><p>方式：</p><ul><li>使用退出标识，使线程正常退出，也就是当run方法完成后线程退出</li><li>使用interrupt方法中断线程</li></ul><p>第二种方式要注意：</p><ul><li><code>interrupt()</code> 实例方法，让线程中断，再用异常法检测中断使程序停止</li><li><code>interrupted()</code>是静态方法，测试当前线程是否已经是中断状态，执行后具有将状态标志清除为false的功能。</li><li><code>isInterrupted()</code>是实例方法，测试Thread对象是否已经是中断状态，但不清除状态标志。</li><li>如果在sleep状态下停止某一线程，会进入catch语句（不需要判断是否中断），并且清除停止状态，使它变为false.</li></ul><h2 id="线程的优先级"><a href="#线程的优先级" class="headerlink" title="线程的优先级"></a>线程的优先级</h2><p><code>getPriority()</code>查看优先级，<code>setPriority()</code>设置优先级，有1～10级<br>线程优先级的特点：</p><ul><li>继承性: 如过线程A启动线程B，则B和A优先级一样</li><li>规则性: CPU尽量倾向于把资源优先级高的线程</li><li>随机性: 优先级不等同于执行顺序，优先级较高的不一定先执行完</li></ul><h2 id="守护线程"><a href="#守护线程" class="headerlink" title="守护线程"></a>守护线程</h2><p>Java的线程分为两种：User Thread(用户线程)、Daemon Thread(守护线程)。</p><p>当最后一个非守护线程结束时，守护线程随着JVM一同结束工作。Daemon作用是为其他线程提供便利服务，守护线程最典型的应用就是GC(垃圾回收器)，它就是一个很称职的守护者。</p><h1 id="第二章：对象及变量的并发访问"><a href="#第二章：对象及变量的并发访问" class="headerlink" title="第二章：对象及变量的并发访问"></a>第二章：对象及变量的并发访问</h1><h2 id="synchronized同步方法"><a href="#synchronized同步方法" class="headerlink" title="synchronized同步方法"></a>synchronized同步方法</h2><ul><li>方法内的变量为线程安全，而实例变量非线程安全。</li><li>不同线程调用<strong>同一对象</strong>里的<strong>synchronized</strong>方法时，是同步的(排队进行)。也就是必须等线程执行完<code>synchronized</code>方法时，下一线程才能执行<code>synchronized</code>方法。</li><li>可重入锁: 一个线程得到对象锁后，再次请求此对象锁时是可以得到该对象的锁的。子类也可以调用父类的同步方法。</li><li>出现异常，锁自动释放</li><li>子类方法不会继承<code>synchronized</code>关键字，需要手动在子类方法中加上。</li></ul><h2 id="synchronized同步语句块"><a href="#synchronized同步语句块" class="headerlink" title="synchronized同步语句块"></a>synchronized同步语句块</h2><ul><li>多个线程处理同一个对象的<code>synchronized(this)</code>同步语句块时，只能排队执行</li><li>同一个对象的<code>synchronized(this)</code>和<code>synchronized</code>同步方法之间也是同步的。即<strong>同一时间只有一个线程可执行synchronized代码块或方法中的代码</strong></li><li><code>synchronized(非this对象x)</code>，是将x对象作为“对象监视器”<ul><li>当多个线程同时执行<code>synchronized(x){}</code>同步代码块时呈同步效果</li><li>当其他线程执行x对象中<code>synchronizd</code>同步方法时呈同步效果</li><li>当其他线程执行x对象方法里的<code>synchronized(this)</code>代码块时呈同步效果</li></ul></li><li>静态同步    <code>synchronized</code>方法与<code>synchronized(class)</code>代码块是对Class类进行持锁。</li><li>当线程在等带根本不可能被释放的锁是，就会出现死锁。</li><li>如果同时持有相同的锁对象，线程之间就是同步的。注意对象的属性改变，运行结果还是同步的。</li></ul><h2 id="volatile关键字"><a href="#volatile关键字" class="headerlink" title="volatile关键字"></a>volatile关键字</h2><p><code>volatile</code>: 强制的从公共内存进行取值,而不是从线程私有数据栈中取得变量的值。可以使变量在多个线程间可见，但缺点是不支持原子性。</p><p><code>synchronized</code>和<code>volatile</code>比较:</p><ul><li>关键字volatile是线程同步的轻量级实现，所以volatile性能比synchronized好，并且volatile只能修饰变量，而synchronized可修饰方法和代码块。</li><li>多线程访问volatile不会发生阻塞，而synchronized会出现阻塞</li><li>volatile能保证数据可见性，不保证原子性;synchronized可以保证原子性，也可以间接保证可见性，因为synchronized会将私有内存和公共内存中的数据做同步。</li><li>volatile解决的是变量在多个线程间的可见性，synchronized解决的是多个线程访问资源的同步性（互斥加可见）。</li></ul><p>原子类:</p><p>如<code>AtomicBoolean</code>，<code>AtomicInteger</code>，<code>AtomicLong</code>等。一个原子类型就是一个原子操作可用的类型，可在没有锁的情况下做到线程安全。但原子类的方法间的调用却不是原子的，需要用同步。</p>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;本文是《java多线程编程核心技术》第一、二章的学习笔记。&lt;/p&gt;
     
     </summary>
     

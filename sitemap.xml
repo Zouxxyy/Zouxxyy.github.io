@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://yoursite.com/2019/09/12/flume-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</loc>
+    
+    <lastmod>2019-09-12T08:30:53.708Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://yoursite.com/2019/09/09/spark-DataFrame%E5%92%8CDataSet/</loc>
     
     <lastmod>2019-09-09T01:28:15.128Z</lastmod>
