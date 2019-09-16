@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2019-09-12T08:30:53.708Z</updated>
+  <updated>2019-09-16T12:03:12.405Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,28 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>hive-安装与配置</title>
+    <link href="http://yoursite.com/2019/09/16/hive-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/"/>
+    <id>http://yoursite.com/2019/09/16/hive-安装与配置/</id>
+    <published>2019-09-16T12:00:24.000Z</published>
+    <updated>2019-09-16T12:03:12.405Z</updated>
+    
+    <content type="html"><![CDATA[<p>介绍hive的安装，使用 mysql 做 hive 的元数据库</p><a id="more"></a><h1 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h1><p>我的版本：</p><p><strong>hadoop 2.7.7</strong></p><p><strong>hive 2.3.6</strong></p><p><strong>mysql 8.0.16</strong></p><p>先装好mysql（做hive的元数据库） 和 hadoop</p><h1 id="配置-Hive"><a href="#配置-Hive" class="headerlink" title="配置 Hive"></a>配置 Hive</h1><h2 id="修改-hive-env-sh"><a href="#修改-hive-env-sh" class="headerlink" title="修改 hive-env.sh"></a>修改 hive-env.sh</h2><p>修改<code>apache-hive-2.3.6-bin/conf</code>下的<code>hive-env.sh</code>，加上hadoop路径</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">HADOOP_HOME=/usr/local/hadoop-2.7.7</span><br><span class="line">export HIVE_CONF_DIR=/usr/local/apache-hive-2.3.6-bin/conf</span><br></pre></td></tr></table></figure><h2 id="创建-hive-site-xml"><a href="#创建-hive-site-xml" class="headerlink" title="创建 hive-site.xml"></a>创建 hive-site.xml</h2><p>在<code>apache-hive-2.3.6-bin/conf</code>下创建<code>hive-site.xml</code></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">    &lt;name&gt;javax.jdo.option.ConnectionURL&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;jdbc:mysql://localhost:3306/metastore?useSSL=false&lt;/value&gt;</span><br><span class="line">    &lt;description&gt;metadata is stored in a MySQL server&lt;/description&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">    &lt;name&gt;javax.jdo.option.ConnectionDriverName&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;com.mysql.cj.jdbc.Driver&lt;/value&gt;</span><br><span class="line">    &lt;description&gt;MySQL JDBC driver class&lt;/description&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">    &lt;name&gt;javax.jdo.option.ConnectionUserName&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;root&lt;/value&gt;</span><br><span class="line">    &lt;description&gt;user name for connecting to mysql server&lt;/description&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">    &lt;name&gt;javax.jdo.option.ConnectionPassword&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;你的密码&lt;/value&gt;</span><br><span class="line">    &lt;description&gt;password for connecting to mysql server&lt;/description&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure><h2 id="添加-java连接-mysql-的jar包"><a href="#添加-java连接-mysql-的jar包" class="headerlink" title="添加 java连接 mysql 的jar包"></a>添加 java连接 mysql 的jar包</h2><p>在<code>apache-hive-2.3.6-bin/lib</code>下添加 <a href="https://mvnrepository.com/artifact/mysql/mysql-connector-java" target="_blank" rel="noopener">java 连接 mysql 的jar包</a>（要对应mysql版本）。</p><p>我的是<code>mysql-connector-java-8.0.15.jar</code></p><h1 id="配置-mysql"><a href="#配置-mysql" class="headerlink" title="配置 mysql"></a>配置 mysql</h1><h2 id="配置远程登录权限-这个我没配，记着备用"><a href="#配置远程登录权限-这个我没配，记着备用" class="headerlink" title="配置远程登录权限(这个我没配，记着备用)"></a>配置远程登录权限(这个我没配，记着备用)</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 切换成mysql库</span><br><span class="line">use mysql; </span><br><span class="line"># 查询用户信息</span><br><span class="line">select User,Host,authentication_string from user; </span><br><span class="line"># 设置远程登录权限</span><br><span class="line">grant all privileges on *.* to &apos;root&apos;@&apos;%&apos; identified by &apos;xxxxxxxx&apos; with grant option; </span><br><span class="line"># 刷新配置信息</span><br><span class="line">flush privileges;</span><br><span class="line"># 退出</span><br><span class="line">exit</span><br></pre></td></tr></table></figure><h2 id="建-metastore-表"><a href="#建-metastore-表" class="headerlink" title="建 metastore 表"></a>建 metastore 表</h2><p>表的名字与之前<code>hive-site.xml</code>中配置的目录名一样</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;value&gt;jdbc:mysql://localhost:3306/metastore?useSSL=false&lt;/value&gt;</span><br></pre></td></tr></table></figure><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create database metastore</span><br></pre></td></tr></table></figure><h1 id="开始使用"><a href="#开始使用" class="headerlink" title="开始使用"></a>开始使用</h1><h2 id="初始化mysql元数据库（首次使用时）"><a href="#初始化mysql元数据库（首次使用时）" class="headerlink" title="初始化mysql元数据库（首次使用时）"></a>初始化mysql元数据库（首次使用时）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/schematool -dbType mysql -initSchema</span><br></pre></td></tr></table></figure><h2 id="使用hive"><a href="#使用hive" class="headerlink" title="使用hive"></a>使用hive</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">➜  apache-hive-2.3.6-bin bin/hive</span><br><span class="line">Logging initialized using configuration in file:/usr/local/apache-hive-2.3.6-bin/conf/hive-log4j2.properties Async: true</span><br><span class="line">Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.</span><br><span class="line">hive &gt;</span><br></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;介绍hive的安装，使用 mysql 做 hive 的元数据库&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+    
+    
+      <category term="hive" scheme="http://yoursite.com/tags/hive/"/>
+    
+  </entry>
   
   <entry>
     <title>flume-基本原理</title>
@@ -446,30 +468,6 @@
     <summary type="html">
     
       &lt;p&gt;本文是《java多线程编程核心技术》第五、六、七章的学习笔记。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="编程语言" scheme="http://yoursite.com/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/"/>
-    
-    
-      <category term="java" scheme="http://yoursite.com/tags/java/"/>
-    
-      <category term="多线程" scheme="http://yoursite.com/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>java多线程编程chap3-4</title>
-    <link href="http://yoursite.com/2019/03/13/java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8Bchap3-4/"/>
-    <id>http://yoursite.com/2019/03/13/java多线程编程chap3-4/</id>
-    <published>2019-03-13T03:24:52.000Z</published>
-    <updated>2019-03-13T03:25:33.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>本文是《java多线程编程核心技术》第三、四章的学习笔记。</p><a id="more"></a><h1 id="线程间通信"><a href="#线程间通信" class="headerlink" title="线程间通信"></a>线程间通信</h1><h2 id="等待-通知机制"><a href="#等待-通知机制" class="headerlink" title="等待/通知机制"></a>等待/通知机制</h2><p><code>wait()</code>和<code>notify()</code>: <code>wait</code>使线程停止运行，<code>notify</code>使停止的线程继续运行。</p><p>注意事项：</p><ul><li><code>wait()</code>自动锁放对象锁；<code>notify()</code>不释放；它们必须存在与同步块中。</li><li>wait 后线程会进入等待池，需要由同一对象的 notify 方法唤醒。</li><li>当线程处于wait状态时，调用<code>interrup()</code>方法会出现异常。</li><li>notify()随机唤醒线程，<code>notifyAll()</code>唤醒全部wait线程.</li><li><code>wait(n)</code>，使线程等待一段时间，如果没被唤醒，超过时间自动唤醒。 </li></ul><p>可以用<code>wait()</code>和<code>notify()</code>实现生产者和消费者</p><ul><li>假死：所有线程都呈WAITING状态。</li><li>原因：notify唤醒的是异类，如“生产者”唤醒“生产者”。</li><li>解决：将<code>notify()</code>改为<code>notifyAll()</code></li></ul><p>通过管道进行线程间通信：一个线程发送数据到输出管道，另一个线程从输入管道中读数据。</p><ul><li>字节流：<code>PipedInputStream</code>和<code>PipedOutputStream</code></li><li>字符流：<code>PipedReader</code>和<code>PipedWriter</code></li></ul><h2 id="方法join的使用"><a href="#方法join的使用" class="headerlink" title="方法join的使用"></a>方法join的使用</h2><p><code>join()</code>：使当前线程堵塞，等待线程对象销毁后，再执行当前线程后面的代码。</p><ul><li><code>join()</code>与<code>interrupt()</code>方法如果彼此遇到，则会出现异常。</li><li><code>join(long)</code>可设定等待的时间。注意：<code>join(long)</code>内部使用<code>wait(long)</code>实现，所以<code>join(long)</code>会<strong>释放锁</strong>；而<code>Thread.sleep(long)</code><strong>不会释放锁</strong>。</li></ul><h2 id="ThreadLocal的使用"><a href="#ThreadLocal的使用" class="headerlink" title="ThreadLocal的使用"></a>ThreadLocal的使用</h2><ul><li><code>ThreadLocal</code>类：让每个线程可以绑定自己的值</li><li>解决<code>get()</code>返回null的问题：覆盖    <code>initialValue()</code>方法使变量具有初始值。</li><li><code>InheritableThreadLocal</code>类可在子线程中取得父线程继承下来的值。</li><li>还可以对子线程继承下来的值进行修改。</li></ul><h1 id="Lock的使用"><a href="#Lock的使用" class="headerlink" title="Lock的使用"></a>Lock的使用</h1><h2 id="使用ReentrantLock类"><a href="#使用ReentrantLock类" class="headerlink" title="使用ReentrantLock类"></a>使用ReentrantLock类</h2><p>基本用法：</p><ul><li>同步： <code>lock()</code> 让线程持有了“对象监视器”，和synchronized一样，线程之间还是顺序执行的。</li><li>等待/通知： <code>condition.await()</code> 等待；<code>condition.siganl()</code>通知。注意调用<code>condition.await()</code>前须先调用<code>lock.lock()</code>。它比wait更灵活，因为它可以用不同的<code>condition</code>对象实现通知部分线程。</li></ul><p>公平锁和非公平锁</p><ul><li>公平锁： <code>new ReentranLock(true)</code> 获取锁是先进先得的</li><li>非公平锁： <code>new ReentranLock(false)</code> 获取锁是随机的</li></ul><p>一些方法：</p><ul><li><code>int getHoldCount()</code>    查询当前线程保持此锁定的个数，也就是调用lock()方法的次数。</li><li><code>int getQueueLength()</code>    返回正在等待获取此锁定的线程估计数</li><li><code>int getWaitQueueLength(Condition condition)</code>    返回等待与此锁定相关的给定条件Conditon的线程估计数</li><li><code>boolean hasQueueThread(Thread thread)</code>    查询指定的线程是否正在等待获取此锁定</li><li><code>boolean hasQueueThreads()</code>    查询是否有线程正在等待获取此锁定</li><li><code>boolean hasWaiters(Condition)</code>        查询是否有线程正在等待与此锁定有关的condition条件</li><li><code>boolean isFair()</code>    判断是不是公平锁</li><li><code>boolean isHeldByCurrentThread()</code>        查询当前线程是否保持此锁定</li><li><code>boolean isLocked()</code>    查询此锁定是否由任意线程保持</li><li><code>void lockInterruptibly()</code>    如果当前线程未被中断，则获取锁定，如果已经被中断则出现异常</li><li><code>boolean tryLock()</code>    仅在调用时锁定未被另一个线程保持的情况下，才获取该锁定</li><li><code>boolean tryLock(long timeout,TimeUnit unit)</code>    如果锁定在给定等待时间内没有被另一个线程保持，且当前线程未被中断，则获取该锁定</li><li><code>void awaitUninterruptibly()</code>    await状态时调用thread.interrupt()不会报错</li></ul><h2 id="使用ReentrantReadWriteLock类"><a href="#使用ReentrantReadWriteLock类" class="headerlink" title="使用ReentrantReadWriteLock类"></a>使用ReentrantReadWriteLock类</h2><p><code>ReentrantLock</code>类完全互斥，即同一时间只有一个线程可执行lock后面的任务。</p><p><code>ReentrantReadWriteLock</code>特点：</p><ul><li>读读共享</li><li>写写互斥</li><li>写读互斥</li><li>读写互斥</li></ul>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;本文是《java多线程编程核心技术》第三、四章的学习笔记。&lt;/p&gt;
     
     </summary>
     

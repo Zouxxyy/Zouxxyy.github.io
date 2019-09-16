@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="yarn,spark,">
+  <meta name="keywords" content="hive,">
 
 
 
@@ -81,20 +81,18 @@
 
 
 
-<meta name="description" content="介绍了在spark中Yarn的工作流程和一些总结">
-<meta name="keywords" content="yarn,spark">
+<meta name="description" content="介绍hive的安装，使用 mysql 做 hive 的元数据库">
+<meta name="keywords" content="hive">
 <meta property="og:type" content="article">
-<meta property="og:title" content="spark-Yarn流程解析">
-<meta property="og:url" content="http://yoursite.com/2019/09/02/spark-Yarn流程解析/index.html">
+<meta property="og:title" content="hive-安装与配置">
+<meta property="og:url" content="http://yoursite.com/2019/09/16/hive-安装与配置/index.html">
 <meta property="og:site_name" content="ZxysHexo">
-<meta property="og:description" content="介绍了在spark中Yarn的工作流程和一些总结">
+<meta property="og:description" content="介绍hive的安装，使用 mysql 做 hive 的元数据库">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png">
-<meta property="og:updated_time" content="2019-09-09T01:12:27.955Z">
+<meta property="og:updated_time" content="2019-09-16T12:03:12.405Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="spark-Yarn流程解析">
-<meta name="twitter:description" content="介绍了在spark中Yarn的工作流程和一些总结">
-<meta name="twitter:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png">
+<meta name="twitter:title" content="hive-安装与配置">
+<meta name="twitter:description" content="介绍hive的安装，使用 mysql 做 hive 的元数据库">
 
 
 
@@ -124,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/09/02/spark-Yarn流程解析/">
+  <link rel="canonical" href="http://yoursite.com/2019/09/16/hive-安装与配置/">
 
 
 
 
 
-  <title>spark-Yarn流程解析 | ZxysHexo</title>
+  <title>hive-安装与配置 | ZxysHexo</title>
   
 
 
@@ -277,7 +275,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/02/spark-Yarn流程解析/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/16/hive-安装与配置/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Zouxxyy">
@@ -294,7 +292,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">spark-Yarn流程解析</h1>
+          <h1 class="post-title" itemprop="name headline">hive-安装与配置</h1>
         
 
         <div class="post-meta">
@@ -306,8 +304,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-02T16:13:28+08:00">
-                2019-09-02
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-16T20:00:24+08:00">
+                2019-09-16
               </time>
             
 
@@ -346,7 +344,7 @@
 
           
           
-             <span id="/2019/09/02/spark-Yarn流程解析/" class="leancloud_visitors" data-flag-title="spark-Yarn流程解析">
+             <span id="/2019/09/16/hive-安装与配置/" class="leancloud_visitors" data-flag-title="hive-安装与配置">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -395,47 +393,31 @@
       
 
       
-        <p>介绍了在spark中Yarn的工作流程和一些总结</p>
+        <p>介绍hive的安装，使用 mysql 做 hive 的元数据库</p>
 <a id="more"></a>
-<h1 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png" alt="YARN-Cluster流程图" title="YARN-Cluster流程图"></p>
-<p>主要流程和<a href="https://zouxxyy.github.io/2019/08/31/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/#more" target="_blank" rel="noopener">Yarn的流程</a>一样，不同的就是紫色部分。这里采用的是spark的<strong>yarn-cluster</strong>模式，driver在APPMaster中。</p>
-<h1 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h1><h2 id="解耦思想"><a href="#解耦思想" class="headerlink" title="解耦思想"></a>解耦思想</h2><ul>
-<li><p>ResourceManager管理资源调度，与NodeManager直接联系；Driver负责执行计算，与Executor也就是一个个Task直接联系。</p>
-</li>
-<li><p><strong>计算和资源调度解耦</strong>：ResourceManager和Driver靠中间件AppMaster联系起来；Executor和NodeManager靠中间件Container联系起来</p>
-</li>
-<li><p>此时计算框架是<strong>可插拔</strong>的，如：spark计算框架（紫色部分）代替mapreduce。</p>
-</li>
-</ul>
-<h2 id="Client和Cluster模式"><a href="#Client和Cluster模式" class="headerlink" title="Client和Cluster模式"></a>Client和Cluster模式</h2><p>spark上yarn有两种管理模式，<strong>YARN-Client</strong>和<strong>YARN-Cluster</strong>。</p>
-<p>主要区别是：SparkContext初始化位置不同，也就是了Driver所在位置的不同。</p>
-<table>
-<thead>
-<tr>
-<th align="center">client</th>
-<th align="center">master</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="center">driver在Client上</td>
-<td align="center">driver在AppMaster上</td>
-</tr>
-<tr>
-<td align="center">日志可以直接在Client上看到</td>
-<td align="center">日志在某个节点上</td>
-</tr>
-<tr>
-<td align="center">Client连接不能断开</td>
-<td align="center">Client连接可以断开</td>
-</tr>
-<tr>
-<td align="center">适合交互和调试</td>
-<td align="center">适合生产环境</td>
-</tr>
-</tbody></table>
-<h1 id="其它管理模式"><a href="#其它管理模式" class="headerlink" title="其它管理模式"></a>其它管理模式</h1><h2 id="local模式"><a href="#local模式" class="headerlink" title="local模式"></a>local模式</h2><p>单机模式 <code>--master local[*]</code></p>
-<h2 id="Standalone模式"><a href="#Standalone模式" class="headerlink" title="Standalone模式"></a>Standalone模式</h2><p>不用Yarn，用Spark自带的Standalone资源管理器，它把节点分成<strong>Master</strong>和<strong>Worker</strong>。类似RM和NM，但它没有AppMaster。也分为Client模式和cluster模式。</p>
+<h1 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h1><p>我的版本：</p>
+<p><strong>hadoop 2.7.7</strong></p>
+<p><strong>hive 2.3.6</strong></p>
+<p><strong>mysql 8.0.16</strong></p>
+<p>先装好mysql（做hive的元数据库） 和 hadoop</p>
+<h1 id="配置-Hive"><a href="#配置-Hive" class="headerlink" title="配置 Hive"></a>配置 Hive</h1><h2 id="修改-hive-env-sh"><a href="#修改-hive-env-sh" class="headerlink" title="修改 hive-env.sh"></a>修改 hive-env.sh</h2><p>修改<code>apache-hive-2.3.6-bin/conf</code>下的<code>hive-env.sh</code>，加上hadoop路径</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">HADOOP_HOME=/usr/local/hadoop-2.7.7</span><br><span class="line">export HIVE_CONF_DIR=/usr/local/apache-hive-2.3.6-bin/conf</span><br></pre></td></tr></table></figure>
 
+<h2 id="创建-hive-site-xml"><a href="#创建-hive-site-xml" class="headerlink" title="创建 hive-site.xml"></a>创建 hive-site.xml</h2><p>在<code>apache-hive-2.3.6-bin/conf</code>下创建<code>hive-site.xml</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">    &lt;name&gt;javax.jdo.option.ConnectionURL&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;jdbc:mysql://localhost:3306/metastore?useSSL=false&lt;/value&gt;</span><br><span class="line">    &lt;description&gt;metadata is stored in a MySQL server&lt;/description&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">    &lt;name&gt;javax.jdo.option.ConnectionDriverName&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;com.mysql.cj.jdbc.Driver&lt;/value&gt;</span><br><span class="line">    &lt;description&gt;MySQL JDBC driver class&lt;/description&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">    &lt;name&gt;javax.jdo.option.ConnectionUserName&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;root&lt;/value&gt;</span><br><span class="line">    &lt;description&gt;user name for connecting to mysql server&lt;/description&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">    &lt;name&gt;javax.jdo.option.ConnectionPassword&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;你的密码&lt;/value&gt;</span><br><span class="line">    &lt;description&gt;password for connecting to mysql server&lt;/description&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="添加-java连接-mysql-的jar包"><a href="#添加-java连接-mysql-的jar包" class="headerlink" title="添加 java连接 mysql 的jar包"></a>添加 java连接 mysql 的jar包</h2><p>在<code>apache-hive-2.3.6-bin/lib</code>下添加 <a href="https://mvnrepository.com/artifact/mysql/mysql-connector-java" target="_blank" rel="noopener">java 连接 mysql 的jar包</a>（要对应mysql版本）。</p>
+<p>我的是<code>mysql-connector-java-8.0.15.jar</code></p>
+<h1 id="配置-mysql"><a href="#配置-mysql" class="headerlink" title="配置 mysql"></a>配置 mysql</h1><h2 id="配置远程登录权限-这个我没配，记着备用"><a href="#配置远程登录权限-这个我没配，记着备用" class="headerlink" title="配置远程登录权限(这个我没配，记着备用)"></a>配置远程登录权限(这个我没配，记着备用)</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 切换成mysql库</span><br><span class="line">use mysql; </span><br><span class="line"># 查询用户信息</span><br><span class="line">select User,Host,authentication_string from user; </span><br><span class="line"># 设置远程登录权限</span><br><span class="line">grant all privileges on *.* to &apos;root&apos;@&apos;%&apos; identified by &apos;xxxxxxxx&apos; with grant option; </span><br><span class="line"># 刷新配置信息</span><br><span class="line">flush privileges;</span><br><span class="line"># 退出</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
+<h2 id="建-metastore-表"><a href="#建-metastore-表" class="headerlink" title="建 metastore 表"></a>建 metastore 表</h2><p>表的名字与之前<code>hive-site.xml</code>中配置的目录名一样</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;value&gt;jdbc:mysql://localhost:3306/metastore?useSSL=false&lt;/value&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create database metastore</span><br></pre></td></tr></table></figure>
+
+<h1 id="开始使用"><a href="#开始使用" class="headerlink" title="开始使用"></a>开始使用</h1><h2 id="初始化mysql元数据库（首次使用时）"><a href="#初始化mysql元数据库（首次使用时）" class="headerlink" title="初始化mysql元数据库（首次使用时）"></a>初始化mysql元数据库（首次使用时）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/schematool -dbType mysql -initSchema</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用hive"><a href="#使用hive" class="headerlink" title="使用hive"></a>使用hive</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">➜  apache-hive-2.3.6-bin bin/hive</span><br><span class="line">Logging initialized using configuration in file:/usr/local/apache-hive-2.3.6-bin/conf/hive-log4j2.properties Async: true</span><br><span class="line">Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.</span><br><span class="line">hive &gt;</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -452,9 +434,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/yarn/" rel="tag"><i class="fa fa-tag"></i> yarn</a>
-          
-            <a href="/tags/spark/" rel="tag"><i class="fa fa-tag"></i> spark</a>
+            <a href="/tags/hive/" rel="tag"><i class="fa fa-tag"></i> hive</a>
           
         </div>
       
@@ -467,8 +447,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/08/31/hadoop-Yarn流程解析/" rel="next" title="hadoop-Yarn流程解析">
-                <i class="fa fa-chevron-left"></i> hadoop-Yarn流程解析
+              <a href="/2019/09/12/flume-基本原理/" rel="next" title="flume-基本原理">
+                <i class="fa fa-chevron-left"></i> flume-基本原理
               </a>
             
           </div>
@@ -476,10 +456,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/09/09/spark-窄、宽依赖和任务划分/" rel="prev" title="spark-窄、宽依赖和任务划分">
-                spark-窄、宽依赖和任务划分 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -630,7 +606,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#流程"><span class="nav-number">1.</span> <span class="nav-text">流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#细节"><span class="nav-number">2.</span> <span class="nav-text">细节</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解耦思想"><span class="nav-number">2.1.</span> <span class="nav-text">解耦思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Client和Cluster模式"><span class="nav-number">2.2.</span> <span class="nav-text">Client和Cluster模式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其它管理模式"><span class="nav-number">3.</span> <span class="nav-text">其它管理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#local模式"><span class="nav-number">3.1.</span> <span class="nav-text">local模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Standalone模式"><span class="nav-number">3.2.</span> <span class="nav-text">Standalone模式</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#准备"><span class="nav-number">1.</span> <span class="nav-text">准备</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置-Hive"><span class="nav-number">2.</span> <span class="nav-text">配置 Hive</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#修改-hive-env-sh"><span class="nav-number">2.1.</span> <span class="nav-text">修改 hive-env.sh</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-hive-site-xml"><span class="nav-number">2.2.</span> <span class="nav-text">创建 hive-site.xml</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加-java连接-mysql-的jar包"><span class="nav-number">2.3.</span> <span class="nav-text">添加 java连接 mysql 的jar包</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置-mysql"><span class="nav-number">3.</span> <span class="nav-text">配置 mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置远程登录权限-这个我没配，记着备用"><span class="nav-number">3.1.</span> <span class="nav-text">配置远程登录权限(这个我没配，记着备用)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#建-metastore-表"><span class="nav-number">3.2.</span> <span class="nav-text">建 metastore 表</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#开始使用"><span class="nav-number">4.</span> <span class="nav-text">开始使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#初始化mysql元数据库（首次使用时）"><span class="nav-number">4.1.</span> <span class="nav-text">初始化mysql元数据库（首次使用时）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用hive"><span class="nav-number">4.2.</span> <span class="nav-text">使用hive</span></a></li></ol></li></ol></div>
             
 
           </div>
