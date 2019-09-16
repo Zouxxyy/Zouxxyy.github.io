@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2019-09-16T12:03:12.405Z</updated>
+  <updated>2019-09-16T13:30:47.950Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,28 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>随笔-中秋入学有感</title>
+    <link href="http://yoursite.com/2019/09/16/%E9%9A%8F%E7%AC%94-20190916%E5%85%A5%E5%AD%A6/"/>
+    <id>http://yoursite.com/2019/09/16/随笔-20190916入学/</id>
+    <published>2019-09-16T13:27:55.000Z</published>
+    <updated>2019-09-16T13:30:47.950Z</updated>
+    
+    <content type="html"><![CDATA[<p>一年有感</p><a id="more"></a><p><strong>终于正式成为了研究生大军的一员～</strong></p><p>去年是中秋节结束进实验室的，今天亦是农历八月十六，按农历算刚好一年了呀。</p><p>这段时间，学了很多，杂七杂八的。学过人工智能，试过后台开发，如今又转战大数据。hh，可以说就差前端了（没系统学，但写后台多少会点）。。语言方面有：c++ ，Java，python ，scala。。可是，我觉得都只是会点皮毛而已。</p><p><strong>但是，我并不觉得是白学了。</strong></p><p>就拿现在大热的深度学习，我也学了可能大半年（算上大三下）。只有体验过，才知道深度学习没有那么玄乎；只有体验过，将来才可能不会说当初就应该学大热的深度学习了。毕竟，墙外的想进去，墙里面的想出来嘛。还记得，当初第一次看吴恩达的视频时，那感觉真像，发现了新大陆一样。可是渐渐也觉得有点厌倦。那时，我也喜欢在 leedcode 刷点算法题，对比我发现，比起调参，我可能更喜欢编程。比起不确定的准确率，一行行代码 让我更有成就感些～</p><p>后台开发 的学习让我对网站的整个流程有了认识。从有数据库的设计，到和前端的交互设计后台接口，再到网站部署，也算整了一个能用的东西出来。由于，后台更多是数据交互，它和大数据也是有很多联系之处的，而且主要都是基于Java的。hh，Java是很强大嘛。</p><p>一年的时光，我发现很多技术都是融合在一起的，后台和大数据都和数据打交道，集群的使用可以让人工智能的计算力更上一层楼。大数据更多的是分布式是思想，后台更专攻具体业务需求。很多后台人员可以过度到大数据，证明联系之深。同时人工智能的分布式计算环境的搭建，以后未尝不是一个热门需求呢。</p><p><strong>时光如白驹过隙。学的广，不如专精一门。</strong></p><p>如果说之前的学习，让我在几个大热领域都体验了一番，那么接下来要做的就是，在自己最喜欢的一个领域，专研下去。</p><p><strong>先定些小目标</strong></p><p>在第一个学期的前半个学期，把大数据的实用热门框架都过一遍，有个系统性的认识。后半个学期，看看是进阶下java，还是钻研下spark。在第二个学期，巩固大数据的几个最重要的框架，多研究java以及数据库。语言还是要学的精点好，学长说的好，就算你啥都不会，java玩的出神入化，照样抢着要。至于研二，到时再说吧～</p><p><strong>结尾了，打波鸡血</strong></p><p>《阿甘正传》里有个让我感触很深的情节。阿甘不知道该干什么，开始了一段跑步生涯。在这三年里，他做的仅仅只是不停的往前跑呀跑，跑呀跑。但是他的追随者从一个变两个，两个变三个，后面越来越多，越来越多，报道者也越来越多。你可能会说，这就是演电影吧？不！我觉得就算发生在现实，我相信结果同样会如此！</p><p><strong>可以说最容易的事是坚持，最难的也是坚持。</strong>不管你学的是什么，只要你肯一直坚持下去，即使只是简单的每天跑，你也绝对会成功的！前提是<strong>坚持</strong>！</p><p><img src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1568649098110&di=9c138a4f9097ca8373cfeba8edf1bdab&imgtype=0&src=http%3A%2F%2Fpic.rmb.bdstatic.com%2Fe61012997dcaf9d2ca611c60bfa03db7.jpg" alt></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;一年有感&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="随笔" scheme="http://yoursite.com/categories/%E9%9A%8F%E7%AC%94/"/>
+    
+    
+      <category term="随笔" scheme="http://yoursite.com/tags/%E9%9A%8F%E7%AC%94/"/>
+    
+  </entry>
   
   <entry>
     <title>hive-安装与配置</title>
@@ -453,30 +475,6 @@
       <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
       <category term="jvm" scheme="http://yoursite.com/tags/jvm/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>java多线程编程chap5-7</title>
-    <link href="http://yoursite.com/2019/03/14/java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8Bchap5-7/"/>
-    <id>http://yoursite.com/2019/03/14/java多线程编程chap5-7/</id>
-    <published>2019-03-14T02:54:58.000Z</published>
-    <updated>2019-03-14T02:58:20.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>本文是《java多线程编程核心技术》第五、六、七章的学习笔记。</p><a id="more"></a><h1 id="定时器-Timer"><a href="#定时器-Timer" class="headerlink" title="定时器 Timer"></a>定时器 Timer</h1><p>Timer类主要负责计划任务的功能</p><p>一些方法：</p><ul><li><code>schedule(TimerTask task, Date time)</code> 在指定的日期执行某一次任务。</li><li><code>schedule(TimerTask task, long delay)</code>    以执行此方法的当前时间为参考时间，在此时间基础上延迟指定的毫秒数后执行一次TimerTask任务</li><li><code>schedule(TimerTask task, long delay, long period)</code>    以执行此方法的当前时间为参考时间，在此时间基础上延迟指定的毫秒数，再以某一间隔时间无限次数地执行某一TimerTask任务</li><li><code>scheduleAtFixedRate(TimerTask task, Date firstTime, long period)</code>    在指定的日期之后，按指定的间隔周期，无限循环的执行某一任务</li></ul><p><code>schedule</code>和<code>scheduleAtFixedRate</code>的异同：</p><p>同：</p><ul><li>多次调用<code>schedule</code>或<code>scheduleAtFixedRate</code>执行多个任务的话，则都是以队列的方式一个一个的被顺序执行。所以不用考虑非线程安全的问题。</li><li>如果任务延时了，那么下一次任务的执行时间都是上一次任务结束的时间（都带<code>period</code>参数时）</li></ul><p>异：</p><ul><li>不延时时，<code>schedule</code>下一次任务的执行时间是上一次任务开始加上<code>period</code>的时间，<code>scheduleAtFixedRate</code>下一次任务的执行时间是上一次任务结束的时间。</li></ul><h1 id="单例模式与多线程"><a href="#单例模式与多线程" class="headerlink" title="单例模式与多线程"></a>单例模式与多线程</h1><p>单例模式是23个设计模式中的一种，本章将它与多线程结合考虑</p><ul><li>立即加载/“饿汉模式”：调用方法前，实例已经被创建了。</li><li>延迟加载/“懒汉模式”：调用get()方法时实例才被创建。最常见的实现办法是在get()方法中进行new实例化。可是在多线程环境中会出问题，即创建多个实例。</li></ul><p>解决方案</p><ul><li><p>声明synchronized关键字，但运行效率非常低</p></li><li><p>同步代码块，但效率也非常低</p></li><li><p>针对某些重要代码单独的同步，效率提升，但是会创建多个实例</p></li><li><p>使用DCL双检查锁</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyObject</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> MyObject myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">MyObject</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> MyObject <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (myObject != <span class="keyword">null</span>) &#123;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                Thread.sleep(<span class="number">3000</span>);</span><br><span class="line">                <span class="keyword">synchronized</span> (MyObject.class) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (myObject == <span class="keyword">null</span>) myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> myObject;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li><li><p>使用静态内置类</p></li><li><p>使用static代码块</p></li><li><p>使用enum枚举数据类型</p></li></ul><h1 id="拾遗增补"><a href="#拾遗增补" class="headerlink" title="拾遗增补"></a>拾遗增补</h1><p>线程状态：<br><img src="https://user-gold-cdn.xitu.io/2019/3/14/16979f1bac8b4b94?w=843&h=634&f=png&s=182243" alt="方法与线程状态的转换图" title="方法与线程状态的转换图"><br>线程组：</p><ul><li>线程组中可以有线程对象，也可以有线程组，组中还可以有线程。作用是可批量管理线程或线程组对象，有效地对线程或线程组对象进行组织。</li><li>实例化一个线程组时如果不指定所属的线程组，它会自动归属到当前线程对象所属的线程组中。</li></ul><p>线程中出现异常的处理：</p><ul><li><code>setUncaughtExceptionHandler()</code>给指定线程对线设置异常处理器</li><li><code>setDefaultUncaughtExceptionHandler()</code>对指定线程类的所有线程对象设置异常处理器</li></ul><br><br><p><font size="6"><center><strong>完结撒花！</strong></center></font></p>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;本文是《java多线程编程核心技术》第五、六、七章的学习笔记。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="编程语言" scheme="http://yoursite.com/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/"/>
-    
-    
-      <category term="java" scheme="http://yoursite.com/tags/java/"/>
-    
-      <category term="多线程" scheme="http://yoursite.com/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
   </entry>
   
