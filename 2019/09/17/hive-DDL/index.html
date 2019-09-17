@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="hadoop,">
+  <meta name="keywords" content="sql,">
 
 
 
@@ -81,18 +81,18 @@
 
 
 
-<meta name="description" content="在mac上搭建hadoop伪分布式">
-<meta name="keywords" content="hadoop">
+<meta name="description" content="hive中一些DDL的操作">
+<meta name="keywords" content="sql">
 <meta property="og:type" content="article">
-<meta property="og:title" content="hadoop-单节点伪分布式搭建">
-<meta property="og:url" content="http://yoursite.com/2019/08/24/hadoop-单节点伪分布式搭建/index.html">
+<meta property="og:title" content="hive-DDL">
+<meta property="og:url" content="http://yoursite.com/2019/09/17/hive-DDL/index.html">
 <meta property="og:site_name" content="ZxysHexo">
-<meta property="og:description" content="在mac上搭建hadoop伪分布式">
+<meta property="og:description" content="hive中一些DDL的操作">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-08-24T03:45:18.483Z">
+<meta property="og:updated_time" content="2019-09-17T12:32:00.831Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="hadoop-单节点伪分布式搭建">
-<meta name="twitter:description" content="在mac上搭建hadoop伪分布式">
+<meta name="twitter:title" content="hive-DDL">
+<meta name="twitter:description" content="hive中一些DDL的操作">
 
 
 
@@ -122,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/08/24/hadoop-单节点伪分布式搭建/">
+  <link rel="canonical" href="http://yoursite.com/2019/09/17/hive-DDL/">
 
 
 
 
 
-  <title>hadoop-单节点伪分布式搭建 | ZxysHexo</title>
+  <title>hive-DDL | ZxysHexo</title>
   
 
 
@@ -275,7 +275,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/24/hadoop-单节点伪分布式搭建/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/17/hive-DDL/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Zouxxyy">
@@ -292,7 +292,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">hadoop-单节点伪分布式搭建</h1>
+          <h1 class="post-title" itemprop="name headline">hive-DDL</h1>
         
 
         <div class="post-meta">
@@ -304,8 +304,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-24T11:43:32+08:00">
-                2019-08-24
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-17T20:29:08+08:00">
+                2019-09-17
               </time>
             
 
@@ -327,8 +327,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/大数据/" itemprop="url" rel="index">
-                    <span itemprop="name">大数据</span>
+                  <a href="/categories/hive/" itemprop="url" rel="index">
+                    <span itemprop="name">hive</span>
                   </a>
                 </span>
 
@@ -344,7 +344,7 @@
 
           
           
-             <span id="/2019/08/24/hadoop-单节点伪分布式搭建/" class="leancloud_visitors" data-flag-title="hadoop-单节点伪分布式搭建">
+             <span id="/2019/09/17/hive-DDL/" class="leancloud_visitors" data-flag-title="hive-DDL">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -393,100 +393,43 @@
       
 
       
-        <p>在mac上搭建hadoop伪分布式</p>
+        <p>hive中一些DDL的操作</p>
 <a id="more"></a>
-<p>操作系统： macOS Mojave 10.14.5</p>
-<p>JDK : 1.8</p>
-<p>hadoop: 2.7.7</p>
-<h2 id="1-Java和Hadoop安装"><a href="#1-Java和Hadoop安装" class="headerlink" title="1. Java和Hadoop安装"></a>1. Java和Hadoop安装</h2><p>下载和安装相信都没问题</p>
-<p>注意的就是：</p>
+<h1 id="DDL"><a href="#DDL" class="headerlink" title="DDL"></a>DDL</h1><p>DDL（数据定义语言）用来处理数据库中的各种对象，如数据库、表等</p>
+<h2 id="数据库-database"><a href="#数据库-database" class="headerlink" title="数据库(database)"></a>数据库(database)</h2><h3 id="增"><a href="#增" class="headerlink" title="增"></a>增</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建一个数据库，它在HDFS上的默认存储路径是/user/hive/warehouse/db_hive.db</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">database</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="keyword">exists</span> db_hive;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 并 指定数据库在HDFS上存放的位置</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">database</span> db_hive2 location <span class="string">'/db_hive2.db'</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="查"><a href="#查" class="headerlink" title="查"></a>查</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 显示数据库</span></span><br><span class="line"><span class="keyword">show</span> <span class="keyword">databases</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示数据库详细信息</span></span><br><span class="line">desc database extended db_hive;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 切换数据库</span></span><br><span class="line"><span class="keyword">use</span> db_hive;</span><br></pre></td></tr></table></figure>
+
+<h3 id="改"><a href="#改" class="headerlink" title="改"></a>改</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 修改数据库</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">database</span> db_hive <span class="keyword">set</span> dbproperties(<span class="string">'createtime'</span>=<span class="string">'20190917'</span>);</span><br></pre></td></tr></table></figure>
+
+<p>注意：数据库的其他元数据信息都是不可更改的，包括数据库名和数据库所在的目录位置。这个修改只是修改<code>DBPROPERTIES</code>里的键值对。</p>
+<h3 id="删"><a href="#删" class="headerlink" title="删"></a>删</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">database</span> <span class="keyword">if</span> <span class="keyword">exists</span> db_hive;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 强制删除非空数据库</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">database</span> db_hive <span class="keyword">cascade</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="表-table"><a href="#表-table" class="headerlink" title="表(table)"></a>表(table)</h2><h3 id="增-1"><a href="#增-1" class="headerlink" title="增"></a>增</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> [<span class="keyword">EXTERNAL</span>] <span class="keyword">TABLE</span> [<span class="keyword">IF</span> <span class="keyword">NOT</span> <span class="keyword">EXISTS</span>] table_name </span><br><span class="line">[(col_name data_type [<span class="keyword">COMMENT</span> col_comment], ...)] </span><br><span class="line">[<span class="keyword">COMMENT</span> table_comment] <span class="comment">-- 注释</span></span><br><span class="line">[PARTITIONED <span class="keyword">BY</span> (col_name data_type [<span class="keyword">COMMENT</span> col_comment], ...)] <span class="comment">-- 分区表</span></span><br><span class="line">[CLUSTERED <span class="keyword">BY</span> (col_name, col_name, ...) <span class="comment">-- 分桶表</span></span><br><span class="line">[SORTED <span class="keyword">BY</span> (col_name [<span class="keyword">ASC</span>|<span class="keyword">DESC</span>], ...)] <span class="keyword">INTO</span> num_buckets BUCKETS] <span class="comment">-- 不常用</span></span><br><span class="line">[<span class="keyword">ROW</span> <span class="keyword">FORMAT</span> row_format] <span class="comment">-- 定义每行的格式</span></span><br><span class="line">[<span class="keyword">STORED</span> <span class="keyword">AS</span> file_format] <span class="comment">-- 指定存储文件类型</span></span><br><span class="line">[LOCATION hdfs_path] <span class="comment">-- 指定表在HDFS上的存储位置</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>一些细节：</strong></p>
 <ul>
-<li>环境变量设置好，我是mac所以javahome是$(/usr/libexec/java_home);我是zsh所以修改.zshrc，修改完别忘了source。</li>
+<li><strong>内部表与外部表</strong></li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#JAVA_HOME</span><br><span class="line">export JAVA_HOME=$(/usr/libexec/java_home)</span><br><span class="line">export PATH=$JAVA_HOME/bin:$PATH</span><br><span class="line">#HADOOP_HOME</span><br><span class="line">export HADOOP_HOME=/usr/local/hadoop-2.7.7</span><br><span class="line">export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin</span><br></pre></td></tr></table></figure>
-
+<p><code>CREATE EXTERNAL TABLE</code> 用于创建外部表，默认是内部表（管理表）。它们的区别是 删除外部表并不会删除HDFS中的的数据，只会删除mysql中的元数据；而删除内部表都会删除。</p>
+<p>可以这样理解外部表：HDFS上的数据是公有的，某个客户端建一了个hive表关联使用它，生成元数据，当该客户不用时，只删除他的元数据和hive表就行，公有数据仍然存在。</p>
 <ul>
-<li>由于我将hadoop放在<code>/usr/local/</code>目录下，所以需要更改hadoop文件夹权限</li>
+<li><strong>分区表</strong></li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chown -R zxy:admin /usr/local/hadoop-2.7.7</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-配置SSH"><a href="#2-配置SSH" class="headerlink" title="2. 配置SSH"></a>2. 配置SSH</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -P <span class="string">""</span></span><br><span class="line">cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line"><span class="comment"># 测试</span></span><br><span class="line">ssh localhost</span><br></pre></td></tr></table></figure>
-
-<h2 id="3-伪分布式配置"><a href="#3-伪分布式配置" class="headerlink" title="3. 伪分布式配置"></a>3. 伪分布式配置</h2><h3 id="core-site-xml"><a href="#core-site-xml" class="headerlink" title="core-site.xml"></a>core-site.xml</h3><p>修改 <code>/usr/local/hadoop-2.7.7/etc/hadoop/core-site.xml</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;fs.defaultFS&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;hdfs://localhost:9000&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;hadoop.tmp.dir&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;/usr/local/hadoop-2.7.7/data/tmp&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><strong>fs.defaultFS</strong>  HDFS 的NameNode地址</p>
-</li>
-<li><p><strong>hadoop.tmp.dir</strong>  hadoop 临时文件地址，自己指定</p>
-</li>
-</ul>
-<h3 id="hdfs-site-xml"><a href="#hdfs-site-xml" class="headerlink" title="hdfs-site.xml"></a>hdfs-site.xml</h3><p>修改 <code>/usr/local/hadoop-2.7.7/etc/hadoop/hdfs-site.xml</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">        &lt;property&gt;</span><br><span class="line">            &lt;name&gt;dfs.replication&lt;/name&gt;</span><br><span class="line">            &lt;value&gt;1&lt;/value&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<p>每个分区 对应一个HDFS文件系统上的独立的文件夹，该文件夹里包含该分区所有的数据。在查询时，可通过 WHERE 指定查询所需要的分区，查询效率会提高很多。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 建表：</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test1(<span class="keyword">id</span> <span class="built_in">int</span>, <span class="keyword">name</span> <span class="keyword">string</span>)</span><br><span class="line">partitioned <span class="keyword">by</span> (<span class="keyword">month</span> <span class="keyword">string</span>)</span><br><span class="line"><span class="keyword">row</span> <span class="keyword">format</span> <span class="keyword">delimited</span> <span class="keyword">fields</span> <span class="keyword">terminated</span> <span class="keyword">by</span> <span class="string">'\t'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 插入数据到指定分区：</span></span><br><span class="line"><span class="keyword">load</span> <span class="keyword">data</span> <span class="keyword">local</span> inpath <span class="string">'/xxxx'</span> <span class="keyword">into</span> <span class="keyword">table</span> test1 <span class="keyword">partition</span>(<span class="keyword">month</span>=<span class="string">'201909'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment"># 此时，会数据会保存在 /user/hive/warehouse/test1/month=201909 中</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询指定分区的数据（可以直接将分区作为字段用）</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> test1 <span class="keyword">where</span> <span class="keyword">month</span>=<span class="string">'201909'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 二级分区表</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test2(<span class="keyword">id</span> <span class="built_in">int</span>, <span class="keyword">name</span> <span class="keyword">string</span>)</span><br><span class="line">partitioned <span class="keyword">by</span> (<span class="keyword">month</span> <span class="keyword">string</span>, <span class="keyword">day</span> <span class="keyword">string</span>)</span><br><span class="line"><span class="keyword">row</span> <span class="keyword">format</span> <span class="keyword">delimited</span> <span class="keyword">fields</span> <span class="keyword">terminated</span> <span class="keyword">by</span> <span class="string">'\t'</span>;</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><strong>dfs.replication</strong>  HDFS文件存储的副本个数，默认3。因为我们这只有一个节点，所以设置1.（单一节点至多存一份节点）</li>
+<li><strong>元数据和真实数据</strong></li>
 </ul>
-<h3 id="yarn-site-xml"><a href="#yarn-site-xml" class="headerlink" title="yarn-site.xml"></a>yarn-site.xml</h3><p>修改 <code>/usr/local/hadoop-2.7.7/etc/hadoop/yarn-site.xml</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.resourcemanager.hostname&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;localhost&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.nodemanager.aux-services&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;mapreduce_shuffle&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;!-- 开启聚合日志 --&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.log-aggregation-enable&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;true&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.log.server.url&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;http://localhost:19888/jobhistory/logs&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<p>元数据存在mysql中，包含数据库信息：ID、描述、HDFS路径、数据库名、所有者；分区信息；字段信息等等。而真实数据都存在HDFS中。</p>
+<p><strong>它们可以自由独立存在</strong>，如外部表可以直接删除元数据。因此，创建数据时，如果直接放入分区中，由于元数据中没有分区信息，无法用where查到它，虽然数据存在。可以通过补充分区信息 或者 执行修复命令，让分区表和数据产生关联。</p>
+<p>我的理解：先有数据，后有hive。hive要做的事就是关联到数据（生成元数据），然后CRUD它。</p>
+<h3 id="改-1"><a href="#改-1" class="headerlink" title="改"></a>改</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 重命名</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> table_name <span class="keyword">rename</span> <span class="keyword">to</span> new_table_name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test1 <span class="keyword">add</span> <span class="keyword">columns</span>(newdesc <span class="keyword">string</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新列</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test1 <span class="keyword">change</span> <span class="keyword">column</span> <span class="keyword">id</span> <span class="keyword">desc</span> <span class="built_in">int</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换列</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test1 <span class="keyword">replace</span> <span class="keyword">columns</span>(<span class="keyword">name</span> <span class="keyword">string</span>, loc <span class="keyword">string</span>);</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li><strong>arn.log-aggregation-enable</strong> 开启日志聚合</li>
-<li><strong>yarn.resourcemanager.hostname</strong>  yarn的ResourceManager地址</li>
-</ul>
-<h3 id="mapred-site-xml"><a href="#mapred-site-xml" class="headerlink" title="mapred-site.xml"></a>mapred-site.xml</h3><p>修改 <code>/usr/local/hadoop-2.7.7/etc/hadoop/mapred-site.xml</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;mapreduce.framework.name&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;yarn&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;mapreduce.jobhistory.address&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;localhost:10020&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;mapreduce.jobhistory.webapp.address&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;localhost:19888&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="查-1"><a href="#查-1" class="headerlink" title="查"></a>查</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 显示表</span></span><br><span class="line"><span class="keyword">show</span> <span class="keyword">tables</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示表信息</span></span><br><span class="line">desc tablename;</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li><strong>mapreduce.framework.name</strong>  采用yarn管理MR</li>
-<li><strong>mapreduce.jobhistory.address</strong>  历史服务器端口地址</li>
-<li><strong>mapreduce.jobhistory.webapp.address</strong>  历史服务器web端地址</li>
-</ul>
-<h3 id="检查JAVA-HOME"><a href="#检查JAVA-HOME" class="headerlink" title="检查JAVA_HOME"></a>检查JAVA_HOME</h3><p>hadoop-env.sh、mapred-env.sh、yarn-env.sh，在这三个文件检查是否添加JAVA_HOME路径，如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=$JAVA_HOME</span><br></pre></td></tr></table></figure>
-
-<h2 id="4-使用"><a href="#4-使用" class="headerlink" title="4. 使用"></a>4. 使用</h2><ul>
-<li>开HDFS</li>
-</ul>
-<p>第一次使用要格式化(仅限第一次使用时，以后要格式化需删除log、data目录下的文件)</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop namenode -format</span><br></pre></td></tr></table></figure>
-
-<p>开启namenode、datanode</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hadoop-daemon.sh start namenode</span><br><span class="line">hadoop-daemon.sh start datanode</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>开yarn</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yarn-daemon.sh start resourcemanager</span><br><span class="line">yarn-daemon.sh start nodemanager</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>开historyserver</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mr-jobhistory-daemon.sh start historyserver</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>可以用jps查看效果</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">jps</span><br><span class="line">35953 JobHistoryServer</span><br><span class="line">32930</span><br><span class="line">35682 NodeManager</span><br><span class="line">35990 Jps</span><br><span class="line">35559 DataNode</span><br><span class="line">35624 ResourceManager</span><br><span class="line">35502 NameNode</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>测试</li>
-</ul>
-<p>创建一个文件夹zxytest，里面随便放一个文件，上传到hdfs测试wordcount</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hdfs dfs -put zxytest /</span><br><span class="line">hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.7.jar wordcount /zxytest /zxyout</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>关闭    </li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mr-jobhistory-daemon.sh stop historyserver</span><br><span class="line">yarn-daemon.sh stop resourcemanager</span><br><span class="line">yarn-daemon.sh stop nodemanager</span><br><span class="line">hadoop-daemon.sh stop namenode</span><br><span class="line">hadoop-daemon.sh stop datanode</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>可视化地址</li>
-</ul>
-<p>所有任务: <a href="http://localhost:8088/" target="_blank" rel="noopener">http://localhost:8088/</a></p>
-<p>DataNode: <a href="http://localhost:50070/" target="_blank" rel="noopener">http://localhost:50070/</a></p>
-<p>历史服务器: <a href="http://localhost:19888/" target="_blank" rel="noopener">http://localhost:19888/</a></p>
-
+<h3 id="删-1"><a href="#删-1" class="headerlink" title="删"></a>删</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> test1;</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -503,7 +446,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/hadoop/" rel="tag"><i class="fa fa-tag"></i> hadoop</a>
+            <a href="/tags/sql/" rel="tag"><i class="fa fa-tag"></i> sql</a>
           
         </div>
       
@@ -516,8 +459,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/06/26/3种Linux命令后台执行方法：-、nohup、tmux/" rel="next" title="3种Linux命令后台执行方法：&、nohup、tmux">
-                <i class="fa fa-chevron-left"></i> 3种Linux命令后台执行方法：&、nohup、tmux
+              <a href="/2019/09/16/随笔-20190916入学/" rel="next" title="随笔-中秋入学有感">
+                <i class="fa fa-chevron-left"></i> 随笔-中秋入学有感
               </a>
             
           </div>
@@ -525,10 +468,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/08/30/hadoop-MapReduce流程解析/" rel="prev" title="hadoop-MapReduce流程解析">
-                hadoop-MapReduce流程解析 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -679,7 +618,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Java和Hadoop安装"><span class="nav-number">1.</span> <span class="nav-text">1. Java和Hadoop安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-配置SSH"><span class="nav-number">2.</span> <span class="nav-text">2. 配置SSH</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-伪分布式配置"><span class="nav-number">3.</span> <span class="nav-text">3. 伪分布式配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#core-site-xml"><span class="nav-number">3.1.</span> <span class="nav-text">core-site.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#hdfs-site-xml"><span class="nav-number">3.2.</span> <span class="nav-text">hdfs-site.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#yarn-site-xml"><span class="nav-number">3.3.</span> <span class="nav-text">yarn-site.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mapred-site-xml"><span class="nav-number">3.4.</span> <span class="nav-text">mapred-site.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#检查JAVA-HOME"><span class="nav-number">3.5.</span> <span class="nav-text">检查JAVA_HOME</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-使用"><span class="nav-number">4.</span> <span class="nav-text">4. 使用</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#DDL"><span class="nav-number">1.</span> <span class="nav-text">DDL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库-database"><span class="nav-number">1.1.</span> <span class="nav-text">数据库(database)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#增"><span class="nav-number">1.1.1.</span> <span class="nav-text">增</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查"><span class="nav-number">1.1.2.</span> <span class="nav-text">查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#改"><span class="nav-number">1.1.3.</span> <span class="nav-text">改</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删"><span class="nav-number">1.1.4.</span> <span class="nav-text">删</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#表-table"><span class="nav-number">1.2.</span> <span class="nav-text">表(table)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#增-1"><span class="nav-number">1.2.1.</span> <span class="nav-text">增</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#改-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">改</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查-1"><span class="nav-number">1.2.3.</span> <span class="nav-text">查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删-1"><span class="nav-number">1.2.4.</span> <span class="nav-text">删</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>

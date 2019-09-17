@@ -92,7 +92,7 @@
 <meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/MapTask.png?raw=true">
 <meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/ReduceTask.png?raw=true">
 <meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/Shuffer.png?raw=true">
-<meta property="og:updated_time" content="2019-08-31T11:10:05.944Z">
+<meta property="og:updated_time" content="2019-09-17T09:22:42.855Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hadoop-MapReduce流程解析">
 <meta name="twitter:description" content="介绍了MapReduce的详细流程和一些总结">
@@ -427,6 +427,7 @@
 <h1 id="一些总结"><a href="#一些总结" class="headerlink" title="一些总结"></a>一些总结</h1><h3 id="1个逻辑"><a href="#1个逻辑" class="headerlink" title="1个逻辑"></a><strong>1个逻辑</strong></h3><p><strong>先分区 -&gt; 再排序 -&gt; 再分组</strong></p>
 <p>分区：用户定义分区数后，默认按hash分区。用户也可以继承<code>Partitioner</code>，自定义分区规则。ReduceTask的个数一般等于分区数。</p>
 <p>排序：默认对key排序，key必须实现<code>WritableComparable</code>接口。用户可以重写<code>WritableComparable</code>接口的<code>compareTo()</code>方法，定义自己的排序规则。</p>
+<p>分组：默认把key相同的数据分到一组。用户也可以继承WritableComparator，自定义分组规则。用于reduce阶段，一次读取一组.</p>
 <h3 id="2次合并"><a href="#2次合并" class="headerlink" title="2次合并"></a><strong>2次合并</strong></h3><p>Combiner的父类就是Reducer，它可以通过对Map阶段的局部结果进行汇总，减少输出。</p>
 <p>时机： 2次，<strong>分区排序后、MapTask的归并排序时</strong>。</p>
 <p>条件：不能影响业务逻辑 且 输入输出的范型一致</p>
@@ -560,7 +561,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">30</span>
+                  <span class="site-state-item-count">31</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -571,7 +572,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -582,7 +583,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-count">18</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
