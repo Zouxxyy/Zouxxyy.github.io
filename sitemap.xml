@@ -2,16 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://yoursite.com/2019/09/19/hive-DML/</loc>
+    <loc>http://yoursite.com/2019/09/24/zookeeper-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</loc>
     
-    <lastmod>2019-09-19T09:08:54.727Z</lastmod>
+    <lastmod>2019-09-24T08:36:42.582Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://yoursite.com/2019/09/17/hive-DDL/</loc>
     
-    <lastmod>2019-09-17T12:51:51.410Z</lastmod>
+    <lastmod>2019-09-21T03:54:54.275Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2019/09/19/hive-DML/</loc>
+    
+    <lastmod>2019-09-21T03:54:42.372Z</lastmod>
     
   </url>
   
