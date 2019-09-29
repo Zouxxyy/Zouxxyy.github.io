@@ -2,9 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://yoursite.com/2019/09/29/hbase-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</loc>
+    
+    <lastmod>2019-09-29T09:30:49.379Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://yoursite.com/2019/09/28/hbase-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/</loc>
     
-    <lastmod>2019-09-28T08:22:19.557Z</lastmod>
+    <lastmod>2019-09-29T09:23:27.889Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2019/09/16/hive-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/</loc>
+    
+    <lastmod>2019-09-29T09:23:12.914Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2019/08/24/hadoop-%E5%8D%95%E8%8A%82%E7%82%B9%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA/</loc>
+    
+    <lastmod>2019-09-29T09:22:55.207Z</lastmod>
     
   </url>
   
@@ -40,13 +61,6 @@
     <loc>http://yoursite.com/2019/08/30/hadoop-MapReduce%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</loc>
     
     <lastmod>2019-09-17T09:22:42.855Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://yoursite.com/2019/09/16/hive-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/</loc>
-    
-    <lastmod>2019-09-16T12:03:12.405Z</lastmod>
     
   </url>
   
@@ -89,13 +103,6 @@
     <loc>http://yoursite.com/2019/08/31/hadoop-HDFS%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</loc>
     
     <lastmod>2019-08-31T07:12:19.630Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://yoursite.com/2019/08/24/hadoop-%E5%8D%95%E8%8A%82%E7%82%B9%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA/</loc>
-    
-    <lastmod>2019-08-24T03:45:18.483Z</lastmod>
     
   </url>
   
