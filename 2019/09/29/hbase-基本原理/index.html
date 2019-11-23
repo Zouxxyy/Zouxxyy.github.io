@@ -93,7 +93,7 @@
 <meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/wuli.png">
 <meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/write.png">
 <meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/read.png">
-<meta property="og:updated_time" content="2019-09-29T09:30:49.379Z">
+<meta property="og:updated_time" content="2019-10-08T02:10:35.843Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hbase-基本原理">
 <meta name="twitter:description" content="简单介绍了hbase的基本原理：数据结构、读写操作、flush、合并与切分">
@@ -417,9 +417,10 @@
 </ul>
 <p><strong>Flush细节</strong></p>
 <ul>
-<li><strong>flush会删除过期的数据</strong>。假设内存中有两条数据，它们只有时间戳不同，那么flush会干掉那个旧的（建表时数据版本数设置为1），写入磁盘的HFile中只有最新的那条数据。</li>
-<li><strong>flush不会删除标记delete的数据</strong>。原因：设想，我们原本想删除一条数据，给它打上delete标记。如果flush删除了，假如磁盘中的其它HFile中有该数据的旧版本，那么它们在<strong>合并操作</strong>（后面会讲）时就不会被删除了。</li>
+<li><strong>flush会删除过期的数据</strong>。假设建表时数据版本数设置为1，那么写入磁盘的的数据最多只有一个版本；如果删除标记是DeleteColumn，那么会删除比它低版本的数据。(<strong>删除标记有多种</strong>，如 Delete：只删自己；DeleteColumn：删除自己与比自己低的)</li>
+<li><strong>flush不会删除带删除标记的数据</strong>。原因：设想，我们原本想删除一条数据，给它打上删除标记。如果flush删除了，假如磁盘中的其它HFile中有该数据的旧版本，那么它们在<strong>合并操作</strong>（后面会讲）时就不会被删除了。</li>
 </ul>
+<p>反正记住这里会干掉不要的数据（版本数与删除标记决定），但<strong>不会干掉带删除标记的数据</strong>。</p>
 <h1 id="读数据流程"><a href="#读数据流程" class="headerlink" title="读数据流程"></a>读数据流程</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/read.png" alt></p>
 <ol>
 <li>找到数据所在RS服务器的流程和写数据基本一样。</li>
@@ -432,13 +433,13 @@
 <p><strong>时间戳的缘故</strong>：我们用户自然是查找最新的数据，内存中的数据的时间戳不能保证一定比磁盘中的新，所有要把它们都找到，然后比较返回最新的数据。因此，这导致了<strong>hbase读数据比写数据还慢</strong>。所以，<strong>用cache缓存查到的数据</strong>，可以一定程度提高读数据的速度。</p>
 <h1 id="compact-合并-与split-切分"><a href="#compact-合并-与split-切分" class="headerlink" title="compact(合并)与split(切分)"></a>compact(合并)与split(切分)</h1><h2 id="compact-合并"><a href="#compact-合并" class="headerlink" title="compact(合并)"></a>compact(合并)</h2><p>合并是<strong>将若干个小的HFile，合并成一个大的HFile</strong>。分<strong>Minor Compaction</strong> 和 <strong>Major Compaction</strong>。</p>
 <ul>
-<li><p><strong>Minor Compaction</strong> <strong>不会</strong>清理过期的数据和删除标记的数据</p>
+<li><p><strong>Minor Compaction</strong> <strong>不会</strong>清理不要的数据和带删除标记的数据</p>
 </li>
-<li><p><strong>Major Compaction</strong> <strong>会</strong>清理过期的数据和标记删除的数据。当HFile数大于等于3时，执行<code>compact</code>时执行的是它。</p>
+<li><p><strong>Major Compaction</strong> <strong>会</strong>清理不要的数据和带标记删除的数据。当HFile数大于等于3时，执行<code>compact</code>时执行的是它。</p>
 </li>
 </ul>
 <p><strong>清理细节</strong></p>
-<p>与flush不同，这里的清理不仅会清除过期的数据，还会<strong>清理标记删除的数据</strong>（干掉它，和比它旧的数据）。</p>
+<p>与flush不同，这里的清理不仅会清除不要的数据，还会<strong>清理带删除标记的数据</strong>（干掉它，和比它旧的数据）。</p>
 <h2 id="split-切分"><a href="#split-切分" class="headerlink" title="split(切分)"></a>split(切分)</h2><p><strong>切分是将大的region切分成若干个小的region</strong>。可以预分区（推荐）或者当一个region过大时会自动触发切分。</p>
 <p><strong>为什么推荐只用一个列族呢？</strong></p>
 <p><strong>多个列族可能导致小文件过多。</strong>假设一个列族的数据的很密集，另一列族很稀疏，那么在触发<strong>flush或者split</strong>时，密集的列族形成的HFile文件足够大没问题，但是稀疏的生成的就是小文件了，久而久之会形成过多小文件使效率降低。</p>
@@ -481,6 +482,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/23/CentOS根目录扩容/" rel="prev" title="CentOS根目录扩容">
+                CentOS根目录扩容 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -559,7 +564,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">36</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -581,7 +586,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
