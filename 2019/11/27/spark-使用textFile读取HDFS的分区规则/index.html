@@ -81,18 +81,18 @@
 
 
 
-<meta name="description" content="使用 textFile 读取HDFS的数据分区规则，spark 版本 2.4.3">
+<meta name="description" content="使用 textFile 读取HDFS的数据分区规则">
 <meta name="keywords" content="spark">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spark-使用textFile读取HDFS的分区规则">
 <meta property="og:url" content="http://yoursite.com/2019/11/27/spark-使用textFile读取HDFS的分区规则/index.html">
 <meta property="og:site_name" content="ZxysHexo">
-<meta property="og:description" content="使用 textFile 读取HDFS的数据分区规则，spark 版本 2.4.3">
+<meta property="og:description" content="使用 textFile 读取HDFS的数据分区规则">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-11-27T07:00:30.205Z">
+<meta property="og:updated_time" content="2019-11-28T01:52:08.508Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark-使用textFile读取HDFS的分区规则">
-<meta name="twitter:description" content="使用 textFile 读取HDFS的数据分区规则，spark 版本 2.4.3">
+<meta name="twitter:description" content="使用 textFile 读取HDFS的数据分区规则">
 
 
 
@@ -383,8 +383,9 @@
       
 
       
-        <p>使用 textFile 读取HDFS的数据分区规则，spark 版本 2.4.3</p>
+        <p>使用 textFile 读取HDFS的数据分区规则</p>
 <a id="more"></a>
+<p>spark 版本 2.4.3</p>
 <h1 id="跟着源码走"><a href="#跟着源码走" class="headerlink" title="跟着源码走"></a>跟着源码走</h1><p>测试文件：大小 516.06 MB ，54个 block，blockSize 大小是128M，但每个 block 里面的数据只有10M 左右</p>
 <p><strong>1. 进入 <code>sc.textFile()</code></strong></p>
 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> textFile: <span class="type">RDD</span>[<span class="type">String</span>] = sc.textFile(<span class="string">"hdfs://xxxx"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// textFile() 有个默认值：minPartitions</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">textFile</span></span>(</span><br><span class="line">    path: <span class="type">String</span>,</span><br><span class="line">    minPartitions: <span class="type">Int</span> = defaultMinPartitions)</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 它是取 defaultParallelism 和 2 的最小值 </span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">defaultMinPartitions</span></span>: <span class="type">Int</span> = math.min(defaultParallelism, <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这个 defaultParallelism 不指定就是 totalCores，我这里是4</span></span><br><span class="line">scheduler.conf.getInt(<span class="string">"spark.default.parallelism"</span>, totalCores)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 所以 defaultMinPartitions 最终为2</span></span><br></pre></td></tr></table></figure>
@@ -464,6 +465,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2019/11/28/spark-Partitioner学习/" rel="prev" title="spark-Partitioner学习">
+                spark-Partitioner学习 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -541,7 +546,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">38</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
