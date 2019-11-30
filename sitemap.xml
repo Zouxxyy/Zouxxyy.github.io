@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://yoursite.com/2019/11/30/spark-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/</loc>
+    
+    <lastmod>2019-11-30T10:58:06.412Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://yoursite.com/2019/11/29/spark-shuffle%E4%B9%8BShuffleManager/</loc>
     
     <lastmod>2019-11-29T06:50:21.706Z</lastmod>
