@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="spark 三大ShuffleWriter 之 BypassMergeSortShuffleWriter">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark源码-shuffle之BypassMergeSortShuffleWriter">
+<meta property="og:url" content="http://yoursite.com/2019/11/30/spark源码-shuffle之BypassMergeSortShuffleWriter/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="spark 三大ShuffleWriter 之 BypassMergeSortShuffleWriter">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/shuffle/BypassMergeSortShuffleWriter.jpg">
+<meta property="og:updated_time" content="2019-12-20T03:17:36.238Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark源码-shuffle之BypassMergeSortShuffleWriter">
+<meta name="twitter:description" content="spark 三大ShuffleWriter 之 BypassMergeSortShuffleWriter">
+<meta name="twitter:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/shuffle/BypassMergeSortShuffleWriter.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2019/11/30/spark源码-shuffle之BypassMergeSortShuffleWriter/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>spark源码-shuffle之BypassMergeSortShuffleWriter | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/30/spark源码-shuffle之BypassMergeSortShuffleWriter/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spark源码-shuffle之BypassMergeSortShuffleWriter
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-30 18:54:59" itemprop="dateCreated datePublished" datetime="2019-11-30T18:54:59+08:00">2019-11-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-12-20 11:17:36" itemprop="dateModified" datetime="2019-12-20T11:17:36+08:00">2019-12-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/11/30/spark源码-shuffle之BypassMergeSortShuffleWriter/" class="post-meta-item leancloud_visitors" data-flag-title="spark源码-shuffle之BypassMergeSortShuffleWriter" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/11/30/spark源码-shuffle之BypassMergeSortShuffleWriter/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/11/30/spark源码-shuffle之BypassMergeSortShuffleWriter/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>spark 三大ShuffleWriter 之 BypassMergeSortShuffleWriter</p>
+<a id="more"></a>
+<p>spark 版本 2.4.3</p>
+<h1 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h1><ul>
+<li><p>它<strong>只适用不需要 map-side aggregation</strong>的Shuffle操作，且<strong>Reducer任务数量比较少</strong>（默认200）</p>
+</li>
+<li><p>数据是直接写入文件，数据量较大的时候，网络I/O和内存负担较重</p>
+</li>
+<li><p>写分区文件时开了多个<code>DiskBlockObjectWriter</code>，对<strong>内存消耗比较大</strong></p>
+</li>
+</ul>
+<h1 id="大致流程"><a href="#大致流程" class="headerlink" title="大致流程"></a>大致流程</h1><ol>
+<li><p>为每个分区都创建一个<code>DiskBlockObjectWriter</code></p>
+</li>
+<li><p>遍历数据，使用<code>DiskBlockObjectWriter</code>的<code>write</code>方法将数据写入到不同分区文件中</p>
+</li>
+<li><p>刷写分区文件到磁盘</p>
+</li>
+<li><p>合并分区文件成一个大文件，并返回记录每个分区文件的长度的数组</p>
+</li>
+<li><p>根据分区长度数组生成索引文件</p>
+</li>
+<li><p>封装信息到<code>MapStatus</code>返回</p>
+</li>
+</ol>
+<p>总的来说就是生成了一个<strong>由分区文件合并形成的大文件</strong>和一个<strong>索引文件</strong>（上面流程是主要流程，重命名什么的就不写了）。</p>
+<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/shuffle/BypassMergeSortShuffleWriter.jpg" alt></p>
+<h1 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h1><h2 id="write-…"><a href="#write-…" class="headerlink" title="write(…)"></a>write(…)</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">public void write(<span class="type">Iterator</span>&lt;<span class="type">Product2</span>&lt;<span class="type">K</span>, <span class="type">V</span>&gt;&gt; records) <span class="keyword">throws</span> <span class="type">IOException</span> &#123;</span><br><span class="line">  assert (partitionWriters == <span class="literal">null</span>);</span><br><span class="line">  <span class="keyword">if</span> (!records.hasNext()) &#123;</span><br><span class="line">    partitionLengths = <span class="keyword">new</span> long[numPartitions];</span><br><span class="line">    shuffleBlockResolver.writeIndexFileAndCommit(shuffleId, mapId, partitionLengths, <span class="literal">null</span>);</span><br><span class="line">    mapStatus = <span class="type">MapStatus</span>$.<span class="type">MODULE</span>$.apply(blockManager.shuffleServerId(), partitionLengths);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">final</span> <span class="type">SerializerInstance</span> serInstance = serializer.newInstance();</span><br><span class="line">  <span class="keyword">final</span> long openStartTime = <span class="type">System</span>.nanoTime();</span><br><span class="line">  <span class="comment">// partitionWriter 数组：分区号即是数组偏移量。它们将数据按分区号分别写入不同的个文件，有多少个分区就形成多少个文件</span></span><br><span class="line">  <span class="comment">// 这里的 numPartitions 是分区后的数量</span></span><br><span class="line">  partitionWriters = <span class="keyword">new</span> <span class="type">DiskBlockObjectWriter</span>[numPartitions];</span><br><span class="line">  partitionWriterSegments = <span class="keyword">new</span> <span class="type">FileSegment</span>[numPartitions];</span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; numPartitions; i++) &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Tuple2</span>&lt;<span class="type">TempShuffleBlockId</span>, <span class="type">File</span>&gt; tempShuffleBlockIdPlusFile =</span><br><span class="line">      blockManager.diskBlockManager().createTempShuffleBlock();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">File</span> file = tempShuffleBlockIdPlusFile._2();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">BlockId</span> blockId = tempShuffleBlockIdPlusFile._1();</span><br><span class="line">    partitionWriters[i] =</span><br><span class="line">      blockManager.getDiskWriter(blockId, file, serInstance, fileBufferSize, writeMetrics);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// Creating the file to write to and creating a disk writer both involve interacting with</span></span><br><span class="line">  <span class="comment">// the disk, and can take a long time in aggregate when we open many files, so should be</span></span><br><span class="line">  <span class="comment">// included in the shuffle write time.</span></span><br><span class="line">  writeMetrics.incWriteTime(<span class="type">System</span>.nanoTime() - openStartTime);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (records.hasNext()) &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Product2</span>&lt;<span class="type">K</span>, <span class="type">V</span>&gt; record = records.next();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">K</span> key = record._1();</span><br><span class="line">    <span class="comment">// 按分区器的规则写入数据</span></span><br><span class="line">    partitionWriters[partitioner.getPartition(key)].write(key, record._2());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; numPartitions; i++) &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">DiskBlockObjectWriter</span> writer = partitionWriters[i];</span><br><span class="line">    <span class="comment">// 刷写数据到磁盘</span></span><br><span class="line">    partitionWriterSegments[i] = writer.commitAndGet();</span><br><span class="line">    writer.close();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 文件名："shuffle_" + shuffleId + "_" + mapId + "_" + reduceId + ".data"</span></span><br><span class="line">  <span class="type">File</span> output = shuffleBlockResolver.getDataFile(shuffleId, mapId);</span><br><span class="line">  <span class="type">File</span> tmp = <span class="type">Utils</span>.tempFileWith(output);</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 合并生成的分区文件，并返回每个分区文件的大小，用于计算偏移量</span></span><br><span class="line">    partitionLengths = writePartitionedFile(tmp);</span><br><span class="line">    <span class="comment">// 生成索引文件</span></span><br><span class="line">    shuffleBlockResolver.writeIndexFileAndCommit(shuffleId, mapId, partitionLengths, tmp);</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">// 这里可以删除是因为 writeIndexFileAndCommit 中重命名了它</span></span><br><span class="line">    <span class="keyword">if</span> (tmp.exists() &amp;&amp; !tmp.delete()) &#123;</span><br><span class="line">      logger.error(<span class="string">"Error while deleting temp file &#123;&#125;"</span>, tmp.getAbsolutePath());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  mapStatus = <span class="type">MapStatus</span>$.<span class="type">MODULE</span>$.apply(blockManager.shuffleServerId(), partitionLengths);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="writePartitionedFile-…"><a href="#writePartitionedFile-…" class="headerlink" title="writePartitionedFile(…)"></a>writePartitionedFile(…)</h2><p>合并生成的分区文件，并返回每个分区文件的大小，用于计算偏移量</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> long[] writePartitionedFile(<span class="type">File</span> outputFile) <span class="keyword">throws</span> <span class="type">IOException</span> &#123;</span><br><span class="line">  <span class="comment">// Track location of the partition starts in the output file</span></span><br><span class="line">  <span class="comment">// lengths数组：记录每个分区文件的大小</span></span><br><span class="line">  <span class="keyword">final</span> long[] lengths = <span class="keyword">new</span> long[numPartitions];</span><br><span class="line">  <span class="keyword">if</span> (partitionWriters == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">// We were passed an empty iterator</span></span><br><span class="line">    <span class="keyword">return</span> lengths;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 合并文件</span></span><br><span class="line">  <span class="keyword">final</span> <span class="type">FileOutputStream</span> out = <span class="keyword">new</span> <span class="type">FileOutputStream</span>(outputFile, <span class="literal">true</span>);</span><br><span class="line">  <span class="keyword">final</span> long writeStartTime = <span class="type">System</span>.nanoTime();</span><br><span class="line">  boolean threwException = <span class="literal">true</span>;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; numPartitions; i++) &#123;</span><br><span class="line">      <span class="keyword">final</span> <span class="type">File</span> file = partitionWriterSegments[i].file();</span><br><span class="line">      <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">FileInputStream</span> in = <span class="keyword">new</span> <span class="type">FileInputStream</span>(file);</span><br><span class="line">        boolean copyThrewException = <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="comment">// 把分区文件 拷贝到 合并文件 中，存入文件大小到lengths数组中</span></span><br><span class="line">          lengths[i] = <span class="type">Utils</span>.copyStream(in, out, <span class="literal">false</span>, transferToEnabled);</span><br><span class="line">          copyThrewException = <span class="literal">false</span>;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">          <span class="type">Closeables</span>.close(in, copyThrewException);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 删除分区文件</span></span><br><span class="line">        <span class="keyword">if</span> (!file.delete()) &#123;</span><br><span class="line">          logger.error(<span class="string">"Unable to delete file for partition &#123;&#125;"</span>, i);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    threwException = <span class="literal">false</span>;</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="type">Closeables</span>.close(out, threwException);</span><br><span class="line">    writeMetrics.incWriteTime(<span class="type">System</span>.nanoTime() - writeStartTime);</span><br><span class="line">  &#125;</span><br><span class="line">  partitionWriters = <span class="literal">null</span>;</span><br><span class="line">  <span class="keyword">return</span> lengths;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="writeIndexFileAndCommit-…"><a href="#writeIndexFileAndCommit-…" class="headerlink" title="writeIndexFileAndCommit(…)"></a>writeIndexFileAndCommit(…)</h2><p>生成索引文件</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">writeIndexFileAndCommit</span></span>(</span><br><span class="line">    shuffleId: <span class="type">Int</span>,</span><br><span class="line">    mapId: <span class="type">Int</span>,</span><br><span class="line">    lengths: <span class="type">Array</span>[<span class="type">Long</span>],</span><br><span class="line">    dataTmp: <span class="type">File</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> indexFile = getIndexFile(shuffleId, mapId)</span><br><span class="line">  <span class="keyword">val</span> indexTmp = <span class="type">Utils</span>.tempFileWith(indexFile)</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> dataFile = getDataFile(shuffleId, mapId)</span><br><span class="line">    <span class="comment">// There is only one IndexShuffleBlockResolver per executor, this synchronization make sure</span></span><br><span class="line">    <span class="comment">// the following check and rename are atomic.</span></span><br><span class="line">    synchronized &#123;</span><br><span class="line">      <span class="keyword">val</span> existingLengths = checkIndexAndDataFile(indexFile, dataFile, lengths.length)</span><br><span class="line">      <span class="keyword">if</span> (existingLengths != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// Another attempt for the same task has already written our map outputs successfully,</span></span><br><span class="line">        <span class="comment">// so just use the existing partition lengths and delete our temporary map outputs.</span></span><br><span class="line">        <span class="type">System</span>.arraycopy(existingLengths, <span class="number">0</span>, lengths, <span class="number">0</span>, lengths.length)</span><br><span class="line">        <span class="keyword">if</span> (dataTmp != <span class="literal">null</span> &amp;&amp; dataTmp.exists()) &#123;</span><br><span class="line">          dataTmp.delete()</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// This is the first successful attempt in writing the map outputs for this task,</span></span><br><span class="line">        <span class="comment">// so override any existing index and data files with the ones we wrote.</span></span><br><span class="line">        <span class="keyword">val</span> out = <span class="keyword">new</span> <span class="type">DataOutputStream</span>(<span class="keyword">new</span> <span class="type">BufferedOutputStream</span>(<span class="keyword">new</span> <span class="type">FileOutputStream</span>(indexTmp)))</span><br><span class="line">        <span class="type">Utils</span>.tryWithSafeFinally &#123;</span><br><span class="line">          <span class="comment">// We take in lengths of each block, need to convert it to offsets.</span></span><br><span class="line">          <span class="comment">// 索引其实就是按 分区文件大小 叠上去而已</span></span><br><span class="line">          <span class="keyword">var</span> offset = <span class="number">0</span>L</span><br><span class="line">          out.writeLong(offset)</span><br><span class="line">          <span class="keyword">for</span> (length &lt;- lengths) &#123;</span><br><span class="line">            offset += length</span><br><span class="line">            out.writeLong(offset)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; &#123;</span><br><span class="line">          out.close()</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (indexFile.exists()) &#123;</span><br><span class="line">          indexFile.delete()</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (dataFile.exists()) &#123;</span><br><span class="line">          dataFile.delete()</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 重命名 indexTmp</span></span><br><span class="line">        <span class="keyword">if</span> (!indexTmp.renameTo(indexFile)) &#123;</span><br><span class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IOException</span>(<span class="string">"fail to rename file "</span> + indexTmp + <span class="string">" to "</span> + indexFile)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 重命名 dataTmp</span></span><br><span class="line">        <span class="keyword">if</span> (dataTmp != <span class="literal">null</span> &amp;&amp; dataTmp.exists() &amp;&amp; !dataTmp.renameTo(dataFile)) &#123;</span><br><span class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IOException</span>(<span class="string">"fail to rename file "</span> + dataTmp + <span class="string">" to "</span> + dataFile)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (indexTmp.exists() &amp;&amp; !indexTmp.delete()) &#123;</span><br><span class="line">      logError(<span class="string">s"Failed to delete temporary index file at <span class="subst">$&#123;indexTmp.getAbsolutePath&#125;</span>"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/spark/" rel="tag"># spark</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/29/spark源码-shuffle之ShuffleManager/" rel="prev" title="spark源码-shuffle之ShuffleManager">
+      <i class="fa fa-chevron-left"></i> spark源码-shuffle之ShuffleManager
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/12/02/spark源码-shuffle之UnsafeShuffleWriter/" rel="next" title="spark源码-shuffle之UnsafeShuffleWriter">
+      spark源码-shuffle之UnsafeShuffleWriter <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#特点"><span class="nav-number">1.</span> <span class="nav-text">特点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#大致流程"><span class="nav-number">2.</span> <span class="nav-text">大致流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#源码"><span class="nav-number">3.</span> <span class="nav-text">源码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#write-…"><span class="nav-number">3.1.</span> <span class="nav-text">write(…)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#writePartitionedFile-…"><span class="nav-number">3.2.</span> <span class="nav-text">writePartitionedFile(…)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#writeIndexFileAndCommit-…"><span class="nav-number">3.3.</span> <span class="nav-text">writeIndexFileAndCommit(…)</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="/images/me.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (let item of results) {
+            let { url, time } = item;
+            leancloudSelector(url).innerText = time;
+          }
+          for (let url of entries) {
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=G1bFfkUMYRTXlrr0SNXbphTW-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'G1bFfkUMYRTXlrr0SNXbphTW-gzGzoHsz',
+            'X-LC-Key': 'tz0WhQGqoJP6Jrkvun74ykph',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: false,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
