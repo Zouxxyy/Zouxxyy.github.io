@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -156,9 +156,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -273,8 +303,8 @@
 <p>在第一个学期的前半个学期，把大数据的实用热门框架都过一遍，有个系统性的认识。后半个学期，看看是进阶下java，还是钻研下spark。在第二个学期，巩固大数据的几个最重要的框架，多研究java以及数据库。语言还是要学的精点好，学长说的好，就算你啥都不会，java玩的出神入化，照样抢着要。至于研二，到时再说吧～</p>
 <p><strong>结尾了，打波鸡血</strong></p>
 <p>《阿甘正传》里有个让我感触很深的情节。阿甘不知道该干什么，开始了一段跑步生涯。在这三年里，他做的仅仅只是不停的往前跑呀跑，跑呀跑。但是他的追随者从一个变两个，两个变三个，后面越来越多，越来越多，报道者也越来越多。你可能会说，这就是演电影吧？不！我觉得就算发生在现实，我相信结果同样会如此！</p>
-<p><strong>可以说最容易的事是坚持，最难的也是坚持。</strong>不管你学的是什么，只要你肯一直坚持下去，即使只是简单的每天跑，你也绝对会成功的！</p>
-<p><img src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1568649098110&di=9c138a4f9097ca8373cfeba8edf1bdab&imgtype=0&src=http%3A%2F%2Fpic.rmb.bdstatic.com%2Fe61012997dcaf9d2ca611c60bfa03db7.jpg" alt></p>
+<p>**可以说最容易的事是坚持，最难的也是坚持。**不管你学的是什么，只要你肯一直坚持下去，即使只是简单的每天跑，你也绝对会成功的！</p>
+<p><img src="https://timgsa.baidu.com/timg?image&amp;quality=80&amp;size=b9999_10000&amp;sec=1568649098110&amp;di=9c138a4f9097ca8373cfeba8edf1bdab&amp;imgtype=0&amp;src=http%3A%2F%2Fpic.rmb.bdstatic.com%2Fe61012997dcaf9d2ca611c60bfa03db7.jpg" alt></p>
 
     </div>
 
@@ -545,6 +575,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

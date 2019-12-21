@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -156,9 +156,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -260,44 +290,56 @@
       
         <p>介绍了在spark中Yarn的工作流程和一些总结</p>
 <a id="more"></a>
-<h1 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h1><p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png" alt="YARN-Cluster流程图" title="YARN-Cluster流程图"></p>
+<h1>流程</h1>
+<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png" alt="YARN-Cluster流程图" title="YARN-Cluster流程图"></p>
 <p>主要流程和<a href="https://zouxxyy.github.io/2019/08/31/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/#more" target="_blank" rel="noopener">Yarn的流程</a>一样，不同的就是紫色部分。这里采用的是spark的<strong>yarn-cluster</strong>模式，driver在APPMaster中。</p>
-<h1 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h1><h2 id="解耦思想"><a href="#解耦思想" class="headerlink" title="解耦思想"></a>解耦思想</h2><ul>
-<li><p>ResourceManager管理资源调度，与NodeManager直接联系；Driver负责执行计算，与Executor也就是一个个Task直接联系。</p>
+<h1>细节</h1>
+<h2 id="解耦思想"><a class="header-anchor" href="#解耦思想">¶</a>解耦思想</h2>
+<ul>
+<li>
+<p>ResourceManager管理资源调度，与NodeManager直接联系；Driver负责执行计算，与Executor也就是一个个Task直接联系。</p>
 </li>
-<li><p><strong>计算和资源调度解耦</strong>：ResourceManager和Driver靠中间件AppMaster联系起来；Executor和NodeManager靠中间件Container联系起来</p>
+<li>
+<p><strong>计算和资源调度解耦</strong>：ResourceManager和Driver靠中间件AppMaster联系起来；Executor和NodeManager靠中间件Container联系起来</p>
 </li>
-<li><p>此时计算框架是<strong>可插拔</strong>的，如：spark计算框架（紫色部分）代替mapreduce。</p>
+<li>
+<p>此时计算框架是<strong>可插拔</strong>的，如：spark计算框架（紫色部分）代替mapreduce。</p>
 </li>
 </ul>
-<h2 id="Client和Cluster模式"><a href="#Client和Cluster模式" class="headerlink" title="Client和Cluster模式"></a>Client和Cluster模式</h2><p>spark上yarn有两种管理模式，<strong>YARN-Client</strong>和<strong>YARN-Cluster</strong>。</p>
+<h2 id="Client和Cluster模式"><a class="header-anchor" href="#Client和Cluster模式">¶</a>Client和Cluster模式</h2>
+<p>spark上yarn有两种管理模式，<strong>YARN-Client</strong>和<strong>YARN-Cluster</strong>。</p>
 <p>主要区别是：SparkContext初始化位置不同，也就是了Driver所在位置的不同。</p>
 <table>
 <thead>
 <tr>
-<th align="center">client</th>
-<th align="center">master</th>
+<th style="text-align:center">client</th>
+<th style="text-align:center">master</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">driver在Client上</td>
-<td align="center">driver在AppMaster上</td>
+<tbody>
+<tr>
+<td style="text-align:center">driver在Client上</td>
+<td style="text-align:center">driver在AppMaster上</td>
 </tr>
 <tr>
-<td align="center">日志可以直接在Client上看到</td>
-<td align="center">日志在某个节点上</td>
+<td style="text-align:center">日志可以直接在Client上看到</td>
+<td style="text-align:center">日志在某个节点上</td>
 </tr>
 <tr>
-<td align="center">Client连接不能断开</td>
-<td align="center">Client连接可以断开</td>
+<td style="text-align:center">Client连接不能断开</td>
+<td style="text-align:center">Client连接可以断开</td>
 </tr>
 <tr>
-<td align="center">适合交互和调试</td>
-<td align="center">适合生产环境</td>
+<td style="text-align:center">适合交互和调试</td>
+<td style="text-align:center">适合生产环境</td>
 </tr>
-</tbody></table>
-<h1 id="其它管理模式"><a href="#其它管理模式" class="headerlink" title="其它管理模式"></a>其它管理模式</h1><h2 id="local模式"><a href="#local模式" class="headerlink" title="local模式"></a>local模式</h2><p>单机模式 <code>--master local[*]</code></p>
-<h2 id="Standalone模式"><a href="#Standalone模式" class="headerlink" title="Standalone模式"></a>Standalone模式</h2><p>不用Yarn，用Spark自带的Standalone资源管理器，它把节点分成<strong>Master</strong>和<strong>Worker</strong>。类似RM和NM，但它没有AppMaster。也分为Client模式和cluster模式。</p>
+</tbody>
+</table>
+<h1>其它管理模式</h1>
+<h2 id="local模式"><a class="header-anchor" href="#local模式">¶</a>local模式</h2>
+<p>单机模式 <code>--master local[*] </code></p>
+<h2 id="Standalone模式"><a class="header-anchor" href="#Standalone模式">¶</a>Standalone模式</h2>
+<p>不用Yarn，用Spark自带的Standalone资源管理器，它把节点分成<strong>Master</strong>和<strong>Worker</strong>。类似RM和NM，但它没有AppMaster。也分为Client模式和cluster模式。</p>
 
     </div>
 
@@ -384,7 +426,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#流程"><span class="nav-number">1.</span> <span class="nav-text">流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#细节"><span class="nav-number">2.</span> <span class="nav-text">细节</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解耦思想"><span class="nav-number">2.1.</span> <span class="nav-text">解耦思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Client和Cluster模式"><span class="nav-number">2.2.</span> <span class="nav-text">Client和Cluster模式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其它管理模式"><span class="nav-number">3.</span> <span class="nav-text">其它管理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#local模式"><span class="nav-number">3.1.</span> <span class="nav-text">local模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Standalone模式"><span class="nav-number">3.2.</span> <span class="nav-text">Standalone模式</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">细节</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解耦思想"><span class="nav-number">2.1.</span> <span class="nav-text">¶解耦思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Client和Cluster模式"><span class="nav-number">2.2.</span> <span class="nav-text">¶Client和Cluster模式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">其它管理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#local模式"><span class="nav-number">3.1.</span> <span class="nav-text">¶local模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Standalone模式"><span class="nav-number">3.2.</span> <span class="nav-text">¶Standalone模式</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -570,6 +612,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

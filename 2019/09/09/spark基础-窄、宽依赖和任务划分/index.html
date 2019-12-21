@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -158,9 +158,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -262,17 +292,21 @@
       
         <p>介绍了在spark中窄、宽依赖的划分以及任务划分</p>
 <a id="more"></a>
-<h1 id="窄依赖和宽依赖"><a href="#窄依赖和宽依赖" class="headerlink" title="窄依赖和宽依赖"></a>窄依赖和宽依赖</h1><h2 id="窄依赖"><a href="#窄依赖" class="headerlink" title="窄依赖"></a>窄依赖</h2><ul>
+<h1>窄依赖和宽依赖</h1>
+<h2 id="窄依赖"><a class="header-anchor" href="#窄依赖">¶</a>窄依赖</h2>
+<ul>
 <li>每一个父RDD的Partition最多被子RDD的一个Partition使用</li>
 <li>独生子女：一个爹RDD只有一个子</li>
 </ul>
 <p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/Narrow-dependence.png" alt></p>
-<h2 id="宽依赖"><a href="#宽依赖" class="headerlink" title="宽依赖"></a>宽依赖</h2><ul>
+<h2 id="宽依赖"><a class="header-anchor" href="#宽依赖">¶</a>宽依赖</h2>
+<ul>
 <li>每一个父RDD的Partition被子RDD的多个Partition使用，伴随shuffle</li>
 <li>超生：一个爹RDD有多个子</li>
 </ul>
 <p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/Wide.jpg" alt></p>
-<h2 id="个人理解"><a href="#个人理解" class="headerlink" title="个人理解"></a>个人理解</h2><p>由于还没学shuffle，所以从宏观简单思考。学一个东西不能死记硬背，最好的理解就是：问问自己<strong>为啥要分窄依赖和宽依赖？</strong></p>
+<h2 id="个人理解"><a class="header-anchor" href="#个人理解">¶</a>个人理解</h2>
+<p>由于还没学shuffle，所以从宏观简单思考。学一个东西不能死记硬背，最好的理解就是：问问自己<strong>为啥要分窄依赖和宽依赖？</strong></p>
 <p>先分析例子：</p>
 <ul>
 <li>例1：用map时，一个分区里的数据经过函数，形成新的数据，大家你搞你的我搞我的，互不干扰。</li>
@@ -282,14 +316,17 @@
 <p>因此我觉得这就是所谓的宽依赖：<strong>别的分区没跑完，不能执行下一步，需要等待</strong>。只有当大家都准备好了，才可以一起进行洗牌。由于分区里的数据顺序之前是乱的，所以shuffle时一般都会拆开，然后送到不同的子分区。这就造成了结果——超生。说实话，如果你从结果出发去思考，是不好区分例2例3的。</p>
 <p>接着，划分窄依赖（<strong>别的分区没跑完，可以执行下一步</strong>）和宽依赖（<strong>别的分区没跑完，不可以执行下一步</strong>）的原因显而易见。我们可以把窄依赖的步骤划分到一起，它可以一路执行，不需要等待，直到宽依赖步骤卡住（必须等其它分区执行完）。这个从窄依赖一路执行到宽依赖的过程，可以在逻辑上划分成一个<strong>stage</strong>。这也就是常说的<strong>宽依赖是划分Stage的依据</strong>。</p>
 <p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/stage.jpg" alt></p>
-<h1 id="任务划分"><a href="#任务划分" class="headerlink" title="任务划分"></a>任务划分</h1><p>RDD任务的切分，分为：Application、Job、Stage和Task，而且每一层都是<strong>1对n</strong>的关系</p>
-<h2 id="4个名词"><a href="#4个名词" class="headerlink" title="4个名词"></a>4个名词</h2><ul>
+<h1>任务划分</h1>
+<p>RDD任务的切分，分为：Application、Job、Stage和Task，而且每一层都是<strong>1对n</strong>的关系</p>
+<h2 id="4个名词"><a class="header-anchor" href="#4个名词">¶</a>4个名词</h2>
+<ul>
 <li><strong>Application</strong>：初始化一个SparkContext即生成一个Application</li>
 <li><strong>Job</strong>：一个Action算子就会生成一个Job</li>
 <li><strong>Stage</strong>：根据RDD之间的依赖关系的不同将Job划分成不同的Stage，遇到一个宽依赖则划分一个Stage。</li>
 <li><strong>Task</strong>：Stage是一个TaskSet，将Stage划分的结果发送到不同的Executor执行即为一个Task。</li>
 </ul>
-<h2 id="个人理解-1"><a href="#个人理解-1" class="headerlink" title="个人理解"></a>个人理解</h2><p>同样思考为啥要划分这么多东西？</p>
+<h2 id="个人理解-v2"><a class="header-anchor" href="#个人理解-v2">¶</a>个人理解</h2>
+<p>同样思考为啥要划分这么多东西？</p>
 <ul>
 <li><strong>Application</strong></li>
 </ul>
@@ -391,7 +428,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#窄依赖和宽依赖"><span class="nav-number">1.</span> <span class="nav-text">窄依赖和宽依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#窄依赖"><span class="nav-number">1.1.</span> <span class="nav-text">窄依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#宽依赖"><span class="nav-number">1.2.</span> <span class="nav-text">宽依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#个人理解"><span class="nav-number">1.3.</span> <span class="nav-text">个人理解</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#任务划分"><span class="nav-number">2.</span> <span class="nav-text">任务划分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4个名词"><span class="nav-number">2.1.</span> <span class="nav-text">4个名词</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#个人理解-1"><span class="nav-number">2.2.</span> <span class="nav-text">个人理解</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">窄依赖和宽依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#窄依赖"><span class="nav-number">1.1.</span> <span class="nav-text">¶窄依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#宽依赖"><span class="nav-number">1.2.</span> <span class="nav-text">¶宽依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#个人理解"><span class="nav-number">1.3.</span> <span class="nav-text">¶个人理解</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">任务划分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4个名词"><span class="nav-number">2.1.</span> <span class="nav-text">¶4个名词</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#个人理解-v2"><span class="nav-number">2.2.</span> <span class="nav-text">¶个人理解</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -577,6 +614,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

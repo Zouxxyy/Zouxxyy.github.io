@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -154,9 +154,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -258,7 +288,8 @@
       
         <p>IntelliJ IDEA 的小技巧 （ mac 版）</p>
 <a id="more"></a>
-<h1 id="码代码"><a href="#码代码" class="headerlink" title="码代码"></a>码代码</h1><ol>
+<h1>码代码</h1>
+<ol>
 <li><strong>缩写功能</strong></li>
 </ol>
 <p>一般取首字母即可</p>
@@ -275,11 +306,12 @@
 <li><strong>删除一行</strong></li>
 </ol>
 <p><code>command + d</code></p>
-<h1 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h1><ol>
+<h1>调试</h1>
+<ol>
 <li><strong>跳转到上（下）一次位置</strong></li>
 </ol>
-<p>上一次 <code>command + option + ←</code></p>
-<p>下一次 <code>command + option + →</code></p>
+<p>上一次 <code>command + option + ← </code></p>
+<p>下一次 <code>command + option + → </code></p>
 <ol start="2">
 <li><strong>查看类继承关系</strong></li>
 </ol>
@@ -382,7 +414,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#码代码"><span class="nav-number">1.</span> <span class="nav-text">码代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#调试"><span class="nav-number">2.</span> <span class="nav-text">调试</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">码代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">调试</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -568,6 +600,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

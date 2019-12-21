@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -154,9 +154,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -252,14 +282,16 @@
       
         <p>本文是《java多线程编程核心技术》第三、四章的学习笔记。</p>
 <a id="more"></a>
-<h1 id="线程间通信"><a href="#线程间通信" class="headerlink" title="线程间通信"></a>线程间通信</h1><h2 id="等待-通知机制"><a href="#等待-通知机制" class="headerlink" title="等待/通知机制"></a>等待/通知机制</h2><p><code>wait()</code>和<code>notify()</code>: <code>wait</code>使线程停止运行，<code>notify</code>使停止的线程继续运行。</p>
+<h1>线程间通信</h1>
+<h2 id="等待-通知机制"><a class="header-anchor" href="#等待-通知机制">¶</a>等待/通知机制</h2>
+<p><code>wait()</code>和<code>notify()</code>: <code>wait</code>使线程停止运行，<code>notify</code>使停止的线程继续运行。</p>
 <p>注意事项：</p>
 <ul>
 <li><code>wait()</code>自动锁放对象锁；<code>notify()</code>不释放；它们必须存在与同步块中。</li>
 <li>wait 后线程会进入等待池，需要由同一对象的 notify 方法唤醒。</li>
 <li>当线程处于wait状态时，调用<code>interrup()</code>方法会出现异常。</li>
 <li>notify()随机唤醒线程，<code>notifyAll()</code>唤醒全部wait线程.</li>
-<li><code>wait(n)</code>，使线程等待一段时间，如果没被唤醒，超过时间自动唤醒。 </li>
+<li><code>wait(n)</code>，使线程等待一段时间，如果没被唤醒，超过时间自动唤醒。</li>
 </ul>
 <p>可以用<code>wait()</code>和<code>notify()</code>实现生产者和消费者</p>
 <ul>
@@ -272,18 +304,22 @@
 <li>字节流：<code>PipedInputStream</code>和<code>PipedOutputStream</code></li>
 <li>字符流：<code>PipedReader</code>和<code>PipedWriter</code></li>
 </ul>
-<h2 id="方法join的使用"><a href="#方法join的使用" class="headerlink" title="方法join的使用"></a>方法join的使用</h2><p><code>join()</code>：使当前线程堵塞，等待线程对象销毁后，再执行当前线程后面的代码。</p>
+<h2 id="方法join的使用"><a class="header-anchor" href="#方法join的使用">¶</a>方法join的使用</h2>
+<p><code>join()</code>：使当前线程堵塞，等待线程对象销毁后，再执行当前线程后面的代码。</p>
 <ul>
 <li><code>join()</code>与<code>interrupt()</code>方法如果彼此遇到，则会出现异常。</li>
 <li><code>join(long)</code>可设定等待的时间。注意：<code>join(long)</code>内部使用<code>wait(long)</code>实现，所以<code>join(long)</code>会<strong>释放锁</strong>；而<code>Thread.sleep(long)</code><strong>不会释放锁</strong>。</li>
 </ul>
-<h2 id="ThreadLocal的使用"><a href="#ThreadLocal的使用" class="headerlink" title="ThreadLocal的使用"></a>ThreadLocal的使用</h2><ul>
+<h2 id="ThreadLocal的使用"><a class="header-anchor" href="#ThreadLocal的使用">¶</a>ThreadLocal的使用</h2>
+<ul>
 <li><code>ThreadLocal</code>类：让每个线程可以绑定自己的值</li>
-<li>解决<code>get()</code>返回null的问题：覆盖    <code>initialValue()</code>方法使变量具有初始值。</li>
+<li>解决<code>get()</code>返回null的问题：覆盖	<code>initialValue()</code>方法使变量具有初始值。</li>
 <li><code>InheritableThreadLocal</code>类可在子线程中取得父线程继承下来的值。</li>
 <li>还可以对子线程继承下来的值进行修改。</li>
 </ul>
-<h1 id="Lock的使用"><a href="#Lock的使用" class="headerlink" title="Lock的使用"></a>Lock的使用</h1><h2 id="使用ReentrantLock类"><a href="#使用ReentrantLock类" class="headerlink" title="使用ReentrantLock类"></a>使用ReentrantLock类</h2><p>基本用法：</p>
+<h1>Lock的使用</h1>
+<h2 id="使用ReentrantLock类"><a class="header-anchor" href="#使用ReentrantLock类">¶</a>使用ReentrantLock类</h2>
+<p>基本用法：</p>
 <ul>
 <li>同步： <code>lock()</code> 让线程持有了“对象监视器”，和synchronized一样，线程之间还是顺序执行的。</li>
 <li>等待/通知： <code>condition.await()</code> 等待；<code>condition.siganl()</code>通知。注意调用<code>condition.await()</code>前须先调用<code>lock.lock()</code>。它比wait更灵活，因为它可以用不同的<code>condition</code>对象实现通知部分线程。</li>
@@ -295,21 +331,22 @@
 </ul>
 <p>一些方法：</p>
 <ul>
-<li><code>int getHoldCount()</code>    查询当前线程保持此锁定的个数，也就是调用lock()方法的次数。</li>
-<li><code>int getQueueLength()</code>    返回正在等待获取此锁定的线程估计数</li>
-<li><code>int getWaitQueueLength(Condition condition)</code>    返回等待与此锁定相关的给定条件Conditon的线程估计数</li>
-<li><code>boolean hasQueueThread(Thread thread)</code>    查询指定的线程是否正在等待获取此锁定</li>
-<li><code>boolean hasQueueThreads()</code>    查询是否有线程正在等待获取此锁定</li>
-<li><code>boolean hasWaiters(Condition)</code>        查询是否有线程正在等待与此锁定有关的condition条件</li>
-<li><code>boolean isFair()</code>    判断是不是公平锁</li>
-<li><code>boolean isHeldByCurrentThread()</code>        查询当前线程是否保持此锁定</li>
-<li><code>boolean isLocked()</code>    查询此锁定是否由任意线程保持</li>
-<li><code>void lockInterruptibly()</code>    如果当前线程未被中断，则获取锁定，如果已经被中断则出现异常</li>
-<li><code>boolean tryLock()</code>    仅在调用时锁定未被另一个线程保持的情况下，才获取该锁定</li>
-<li><code>boolean tryLock(long timeout,TimeUnit unit)</code>    如果锁定在给定等待时间内没有被另一个线程保持，且当前线程未被中断，则获取该锁定</li>
-<li><code>void awaitUninterruptibly()</code>    await状态时调用thread.interrupt()不会报错</li>
+<li><code>int getHoldCount()</code>	查询当前线程保持此锁定的个数，也就是调用lock()方法的次数。</li>
+<li><code>int getQueueLength()</code>	返回正在等待获取此锁定的线程估计数</li>
+<li><code>int getWaitQueueLength(Condition condition)</code>	返回等待与此锁定相关的给定条件Conditon的线程估计数</li>
+<li><code>boolean hasQueueThread(Thread thread)</code>	查询指定的线程是否正在等待获取此锁定</li>
+<li><code>boolean hasQueueThreads()</code>	查询是否有线程正在等待获取此锁定</li>
+<li><code>boolean hasWaiters(Condition)</code>		查询是否有线程正在等待与此锁定有关的condition条件</li>
+<li><code>boolean isFair()</code>	判断是不是公平锁</li>
+<li><code>boolean isHeldByCurrentThread()</code>		查询当前线程是否保持此锁定</li>
+<li><code>boolean isLocked()</code>	查询此锁定是否由任意线程保持</li>
+<li><code>void lockInterruptibly()</code>	如果当前线程未被中断，则获取锁定，如果已经被中断则出现异常</li>
+<li><code>boolean tryLock()</code>	仅在调用时锁定未被另一个线程保持的情况下，才获取该锁定</li>
+<li><code>boolean tryLock(long timeout,TimeUnit unit)</code>	如果锁定在给定等待时间内没有被另一个线程保持，且当前线程未被中断，则获取该锁定</li>
+<li><code>void awaitUninterruptibly()</code>	await状态时调用thread.interrupt()不会报错</li>
 </ul>
-<h2 id="使用ReentrantReadWriteLock类"><a href="#使用ReentrantReadWriteLock类" class="headerlink" title="使用ReentrantReadWriteLock类"></a>使用ReentrantReadWriteLock类</h2><p><code>ReentrantLock</code>类完全互斥，即同一时间只有一个线程可执行lock后面的任务。</p>
+<h2 id="使用ReentrantReadWriteLock类"><a class="header-anchor" href="#使用ReentrantReadWriteLock类">¶</a>使用ReentrantReadWriteLock类</h2>
+<p><code>ReentrantLock</code>类完全互斥，即同一时间只有一个线程可执行lock后面的任务。</p>
 <p><code>ReentrantReadWriteLock</code>特点：</p>
 <ul>
 <li>读读共享</li>
@@ -403,7 +440,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#线程间通信"><span class="nav-number">1.</span> <span class="nav-text">线程间通信</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#等待-通知机制"><span class="nav-number">1.1.</span> <span class="nav-text">等待/通知机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法join的使用"><span class="nav-number">1.2.</span> <span class="nav-text">方法join的使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadLocal的使用"><span class="nav-number">1.3.</span> <span class="nav-text">ThreadLocal的使用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Lock的使用"><span class="nav-number">2.</span> <span class="nav-text">Lock的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用ReentrantLock类"><span class="nav-number">2.1.</span> <span class="nav-text">使用ReentrantLock类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用ReentrantReadWriteLock类"><span class="nav-number">2.2.</span> <span class="nav-text">使用ReentrantReadWriteLock类</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">线程间通信</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#等待-通知机制"><span class="nav-number">1.1.</span> <span class="nav-text">¶等待/通知机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法join的使用"><span class="nav-number">1.2.</span> <span class="nav-text">¶方法join的使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadLocal的使用"><span class="nav-number">1.3.</span> <span class="nav-text">¶ThreadLocal的使用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">Lock的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用ReentrantLock类"><span class="nav-number">2.1.</span> <span class="nav-text">¶使用ReentrantLock类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用ReentrantReadWriteLock类"><span class="nav-number">2.2.</span> <span class="nav-text">¶使用ReentrantReadWriteLock类</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -589,6 +626,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

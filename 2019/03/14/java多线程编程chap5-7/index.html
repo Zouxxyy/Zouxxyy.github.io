@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -156,9 +156,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -254,13 +284,14 @@
       
         <p>本文是《java多线程编程核心技术》第五、六、七章的学习笔记。</p>
 <a id="more"></a>
-<h1 id="定时器-Timer"><a href="#定时器-Timer" class="headerlink" title="定时器 Timer"></a>定时器 Timer</h1><p>Timer类主要负责计划任务的功能</p>
+<h1>定时器 Timer</h1>
+<p>Timer类主要负责计划任务的功能</p>
 <p>一些方法：</p>
 <ul>
 <li><code>schedule(TimerTask task, Date time)</code> 在指定的日期执行某一次任务。</li>
-<li><code>schedule(TimerTask task, long delay)</code>    以执行此方法的当前时间为参考时间，在此时间基础上延迟指定的毫秒数后执行一次TimerTask任务</li>
-<li><code>schedule(TimerTask task, long delay, long period)</code>    以执行此方法的当前时间为参考时间，在此时间基础上延迟指定的毫秒数，再以某一间隔时间无限次数地执行某一TimerTask任务</li>
-<li><code>scheduleAtFixedRate(TimerTask task, Date firstTime, long period)</code>    在指定的日期之后，按指定的间隔周期，无限循环的执行某一任务</li>
+<li><code>schedule(TimerTask task, long delay)</code>	以执行此方法的当前时间为参考时间，在此时间基础上延迟指定的毫秒数后执行一次TimerTask任务</li>
+<li><code>schedule(TimerTask task, long delay, long period)</code>	以执行此方法的当前时间为参考时间，在此时间基础上延迟指定的毫秒数，再以某一间隔时间无限次数地执行某一TimerTask任务</li>
+<li><code>scheduleAtFixedRate(TimerTask task, Date firstTime, long period)</code>	在指定的日期之后，按指定的间隔周期，无限循环的执行某一任务</li>
 </ul>
 <p><code>schedule</code>和<code>scheduleAtFixedRate</code>的异同：</p>
 <p>同：</p>
@@ -272,30 +303,29 @@
 <ul>
 <li>不延时时，<code>schedule</code>下一次任务的执行时间是上一次任务开始加上<code>period</code>的时间，<code>scheduleAtFixedRate</code>下一次任务的执行时间是上一次任务结束的时间。</li>
 </ul>
-<h1 id="单例模式与多线程"><a href="#单例模式与多线程" class="headerlink" title="单例模式与多线程"></a>单例模式与多线程</h1><p>单例模式是23个设计模式中的一种，本章将它与多线程结合考虑</p>
+<h1>单例模式与多线程</h1>
+<p>单例模式是23个设计模式中的一种，本章将它与多线程结合考虑</p>
 <ul>
 <li>立即加载/“饿汉模式”：调用方法前，实例已经被创建了。</li>
 <li>延迟加载/“懒汉模式”：调用get()方法时实例才被创建。最常见的实现办法是在get()方法中进行new实例化。可是在多线程环境中会出问题，即创建多个实例。</li>
 </ul>
 <p>解决方案</p>
 <ul>
-<li><p>声明synchronized关键字，但运行效率非常低</p>
-</li>
-<li><p>同步代码块，但效率也非常低</p>
-</li>
-<li><p>针对某些重要代码单独的同步，效率提升，但是会创建多个实例</p>
-</li>
-<li><p>使用DCL双检查锁</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyObject</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> MyObject myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">MyObject</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> MyObject <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (myObject != <span class="keyword">null</span>) &#123;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                Thread.sleep(<span class="number">3000</span>);</span><br><span class="line">                <span class="keyword">synchronized</span> (MyObject.class) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (myObject == <span class="keyword">null</span>) myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> myObject;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>使用静态内置类</p>
-</li>
-<li><p>使用static代码块</p>
-</li>
-<li><p>使用enum枚举数据类型</p>
-</li>
+<li>声明synchronized关键字，但运行效率非常低</li>
+<li>同步代码块，但效率也非常低</li>
+<li>针对某些重要代码单独的同步，效率提升，但是会创建多个实例</li>
+<li>使用DCL双检查锁</li>
 </ul>
-<h1 id="拾遗增补"><a href="#拾遗增补" class="headerlink" title="拾遗增补"></a>拾遗增补</h1><p>线程状态：<br><img src="https://user-gold-cdn.xitu.io/2019/3/14/16979f1bac8b4b94?w=843&h=634&f=png&s=182243" alt="方法与线程状态的转换图" title="方法与线程状态的转换图"><br>线程组：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyObject</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> MyObject myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">MyObject</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> MyObject <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (myObject != <span class="keyword">null</span>) &#123;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                Thread.sleep(<span class="number">3000</span>);</span><br><span class="line">                <span class="keyword">synchronized</span> (MyObject.class) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (myObject == <span class="keyword">null</span>) myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> myObject;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用静态内置类</li>
+<li>使用static代码块</li>
+<li>使用enum枚举数据类型</li>
+</ul>
+<h1>拾遗增补</h1>
+<p>线程状态：<br>
+<img src="https://user-gold-cdn.xitu.io/2019/3/14/16979f1bac8b4b94?w=843&amp;h=634&amp;f=png&amp;s=182243" alt="方法与线程状态的转换图" title="方法与线程状态的转换图"><br>
+线程组：</p>
 <ul>
 <li>线程组中可以有线程对象，也可以有线程组，组中还可以有线程。作用是可批量管理线程或线程组对象，有效地对线程或线程组对象进行组织。</li>
 <li>实例化一个线程组时如果不指定所属的线程组，它会自动归属到当前线程对象所属的线程组中。</li>
@@ -307,7 +337,6 @@
 </ul>
 <br>
 <br>
-
 <p><font size="6"><center><strong>完结撒花！</strong></center></font></p>
 
     </div>
@@ -395,7 +424,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#定时器-Timer"><span class="nav-number">1.</span> <span class="nav-text">定时器 Timer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#单例模式与多线程"><span class="nav-number">2.</span> <span class="nav-text">单例模式与多线程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#拾遗增补"><span class="nav-number">3.</span> <span class="nav-text">拾遗增补</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">定时器 Timer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">单例模式与多线程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">拾遗增补</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -581,6 +610,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

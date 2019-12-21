@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -156,9 +156,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -260,11 +290,13 @@
       
         <p>介绍了Yarn的工作流程和一些总结</p>
 <a id="more"></a>
-<h1 id="Yarn运行机制流程图"><a href="#Yarn运行机制流程图" class="headerlink" title="Yarn运行机制流程图"></a>Yarn运行机制流程图</h1><p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/Yarn.png?raw=true" alt="Yarn运行机制流程图" title="Yarn运行机制流程图"></p>
-<h1 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h1><p>（1）作业提交</p>
+<h1>Yarn运行机制流程图</h1>
+<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/Yarn.png?raw=true" alt="Yarn运行机制流程图" title="Yarn运行机制流程图"></p>
+<h1>具体步骤</h1>
+<p>（1）作业提交</p>
 <ol start="0">
 <li>Client调用<code>job.waitForCompletion</code>方法，向整个集群提交MapReduce作业。</li>
-<li>Client向RM申请一个作业id。 </li>
+<li>Client向RM申请一个作业id。</li>
 <li>RM给Client返回该job资源的提交路径(<code>hdfs://.../.staging/</code>)和作业<code>application_id</code>。</li>
 <li>Client在该路径提交jar包、切片信息和配置文件。</li>
 <li>Client提交完资源后，向RM申请运行MrAppMaster。</li>
@@ -288,18 +320,22 @@
 <li>ReduceTask向MapTask获取相应分区的数据。</li>
 <li>程序运行完毕后，MR会向RM申请注销自己。</li>
 </ol>
-<h1 id="一些细节"><a href="#一些细节" class="headerlink" title="一些细节"></a>一些细节</h1><h2 id="4大组件"><a href="#4大组件" class="headerlink" title="4大组件"></a>4大组件</h2><ul>
+<h1>一些细节</h1>
+<h2 id="4大组件"><a class="header-anchor" href="#4大组件">¶</a>4大组件</h2>
+<ul>
 <li><strong>ResourceManager</strong>：总的老大：处理客户端请求，监控NodeManager，启动或监控ApplicationMaster，资源的分配与调度</li>
 <li><strong>NodeManager</strong>：单个节点的老大：管理单个节点的资源，处理来自ResourceManager、ApplicationMaster的命令</li>
 <li><strong>ApplicationMaster</strong>：单个job的老大：负责数据切分，为应用程序申请资源并分配内部的任务，任务的监控与容错</li>
 <li><strong>Container</strong>：资源抽象：如内存、cpu、磁盘、网络等</li>
 </ul>
-<h2 id="3种资源调度器"><a href="#3种资源调度器" class="headerlink" title="3种资源调度器"></a>3种资源调度器</h2><ul>
+<h2 id="3种资源调度器"><a class="header-anchor" href="#3种资源调度器">¶</a>3种资源调度器</h2>
+<ul>
 <li><strong>FIFO</strong>：先进先出</li>
 <li><strong>Capacity Scheduler</strong>：多FIFO队列，会对同一用户提交资源进行限定，会把任务分配给更闲的队列。</li>
 <li><strong>Fair Scheduler</strong>：多队列，按缺额排序，缺额大者优先执行</li>
 </ul>
-<h2 id="任务推测执行机制"><a href="#任务推测执行机制" class="headerlink" title="任务推测执行机制"></a>任务推测执行机制</h2><ul>
+<h2 id="任务推测执行机制"><a class="header-anchor" href="#任务推测执行机制">¶</a>任务推测执行机制</h2>
+<ul>
 <li>问题：系统中有99%的Map任务都完成了，只有少数几个Map老是进度很慢，完不成。</li>
 <li>办法：为拖后腿任务启动一个备份任务，同时运行。谁先运行完，则采用谁的结果。</li>
 <li>前提：每个Task只能有一个备份任务，当前Job已完成的Task必须不小于0.05（5%）。</li>
@@ -391,7 +427,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Yarn运行机制流程图"><span class="nav-number">1.</span> <span class="nav-text">Yarn运行机制流程图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#具体步骤"><span class="nav-number">2.</span> <span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一些细节"><span class="nav-number">3.</span> <span class="nav-text">一些细节</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4大组件"><span class="nav-number">3.1.</span> <span class="nav-text">4大组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3种资源调度器"><span class="nav-number">3.2.</span> <span class="nav-text">3种资源调度器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务推测执行机制"><span class="nav-number">3.3.</span> <span class="nav-text">任务推测执行机制</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">Yarn运行机制流程图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">一些细节</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4大组件"><span class="nav-number">3.1.</span> <span class="nav-text">¶4大组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3种资源调度器"><span class="nav-number">3.2.</span> <span class="nav-text">¶3种资源调度器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务推测执行机制"><span class="nav-number">3.3.</span> <span class="nav-text">¶任务推测执行机制</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -577,6 +613,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -164,9 +164,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -264,8 +294,8 @@
 <a id="more"></a>
 <p>我的JDK工具地址</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">zxysMac:~ elwg$ <span class="built_in">cd</span> /Library/Java/JavaVirtualMachines/jdk1.8.0_161.jdk/Contents/Home/bin</span><br><span class="line">zxysMac:bin elwg$ ls</span><br><span class="line">appletviewer	javah		jjs		jvisualvm	schemagen</span><br><span class="line">extcheck	javap		jmap		keytool		serialver</span><br><span class="line">idlj		javapackager	jmc		native2ascii	servertool</span><br><span class="line">jar		jcmd		jps		orbd		tnameserv</span><br><span class="line">jarsigner	jconsole	jrunscript	pack200		unpack200</span><br><span class="line">java		jdb		jsadebugd	policytool	wsgen</span><br><span class="line">javac		jdeps		jstack		rmic		wsimport</span><br><span class="line">javadoc		jhat		jstat		rmid		xjc</span><br><span class="line">javafxpackager	jinfo		jstatd		rmiregistry</span><br></pre></td></tr></table></figure>
-
-<h1 id="JDK的命令行工具"><a href="#JDK的命令行工具" class="headerlink" title="JDK的命令行工具"></a>JDK的命令行工具</h1><table>
+<h1>JDK的命令行工具</h1>
+<table>
 <thead>
 <tr>
 <th>名称</th>
@@ -273,7 +303,8 @@
 <th>主要功能</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>jps</td>
 <td>JVM Process Status</td>
 <td>显示指定系统的所有的虚拟机进程</td>
@@ -303,72 +334,82 @@
 <td>Stack Trace for Java</td>
 <td>显示虚拟机的线程快照</td>
 </tr>
-<tr>
-<td>## jps：虚拟机进程状况工具</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>- 功能：可以列出运行的虚拟机进程、看到虚拟机执行的主类、本地虚拟机唯一ID</td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
+</tbody>
+</table>
+<h2 id="jps：虚拟机进程状况工具"><a class="header-anchor" href="#jps：虚拟机进程状况工具">¶</a>jps：虚拟机进程状况工具</h2>
 <ul>
-<li>命令格式：<br><code>jps [ option ] [ hostid ]</code></li>
-<li>主要选项：</li>
-</ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9a09b0013234?w=918&h=205&f=png&s=96305" alt></p>
-<ul>
-<li>例子：我在IDEA中运行列一个java文件，测试如下：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(base) zxysMac:~ elwg$ jps -l</span><br><span class="line">16387 org.jetbrains.idea.maven.server.RemoteMavenServer</span><br><span class="line">44422 sun.tools.jps.Jps</span><br><span class="line">44392 com.zouxxyy.jvm.chap4.JpsTest</span><br><span class="line">31368 org.jetbrains.kotlin.daemon.KotlinCompileDaemon</span><br><span class="line">16217</span><br><span class="line">44393 org.jetbrains.jps.cmdline.Launcher</span><br></pre></td></tr></table></figure>
-
+<li>
+<p>功能：可以列出运行的虚拟机进程、看到虚拟机执行的主类、本地虚拟机唯一ID</p>
+</li>
+<li>
+<p>命令格式：<br>
+<code>jps [ option ] [ hostid ]</code></p>
+</li>
+<li>
+<p>主要选项：</p>
 </li>
 </ul>
-<h2 id="jstat：虚拟机统计信息监视工具"><a href="#jstat：虚拟机统计信息监视工具" class="headerlink" title="jstat：虚拟机统计信息监视工具"></a>jstat：虚拟机统计信息监视工具</h2><ul>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9a09b0013234?w=918&amp;h=205&amp;f=png&amp;s=96305" alt></p>
+<ul>
+<li>例子：我在IDEA中运行列一个java文件，测试如下：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(base) zxysMac:~ elwg$ jps -l</span><br><span class="line">16387 org.jetbrains.idea.maven.server.RemoteMavenServer</span><br><span class="line">44422 sun.tools.jps.Jps</span><br><span class="line">44392 com.zouxxyy.jvm.chap4.JpsTest</span><br><span class="line">31368 org.jetbrains.kotlin.daemon.KotlinCompileDaemon</span><br><span class="line">16217</span><br><span class="line">44393 org.jetbrains.jps.cmdline.Launcher</span><br></pre></td></tr></table></figure>
+<h2 id="jstat：虚拟机统计信息监视工具"><a class="header-anchor" href="#jstat：虚拟机统计信息监视工具">¶</a>jstat：虚拟机统计信息监视工具</h2>
+<ul>
 <li>功能：可以显示本地或远程虚拟机进程中的类装载、内存、垃圾收集、JIT编译等运行数据</li>
 <li>命令格式：<code>jstat [ option vmid [interval[s|ms] [count]] ]</code></li>
 <li>主要选项：</li>
 </ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9aa3cfd87699?w=923&h=459&f=png&s=275718" alt></p>
-<h2 id="jinfo：Java配置信息工具"><a href="#jinfo：Java配置信息工具" class="headerlink" title="jinfo：Java配置信息工具"></a>jinfo：Java配置信息工具</h2><ul>
-<li><p>功能：实时查看和调整虚拟机各项参数</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9aa3cfd87699?w=923&amp;h=459&amp;f=png&amp;s=275718" alt></p>
+<h2 id="jinfo：Java配置信息工具"><a class="header-anchor" href="#jinfo：Java配置信息工具">¶</a>jinfo：Java配置信息工具</h2>
+<ul>
+<li>
+<p>功能：实时查看和调整虚拟机各项参数</p>
 </li>
-<li><p>命令格式：<code>jinfo [ option ] pid</code></p>
+<li>
+<p>命令格式：<code>jinfo [ option ] pid</code></p>
 </li>
-<li><p>例子：看有没有用SerialGC</p>
+<li>
+<p>例子：看有没有用SerialGC</p>
 </li>
 </ul>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(base) zxysMac:~ elwg$ jinfo -flag UseSerialGC 46521</span><br><span class="line">-XX:-UseSerialGC</span><br></pre></td></tr></table></figure>
-
-<h2 id="jmap：Java内存映像工具"><a href="#jmap：Java内存映像工具" class="headerlink" title="jmap：Java内存映像工具"></a>jmap：Java内存映像工具</h2><ul>
+<h2 id="jmap：Java内存映像工具"><a class="header-anchor" href="#jmap：Java内存映像工具">¶</a>jmap：Java内存映像工具</h2>
+<ul>
 <li>功能：生成虚拟机堆存转储快照（heapdump文件）</li>
 <li>命令格式：<code>jmap [ option] vmid</code></li>
 <li>主要选项：</li>
 </ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9b5409980aff?w=933&h=403&f=png&s=202391" alt></p>
-<h2 id="jhat：虚拟机堆快照分析工具"><a href="#jhat：虚拟机堆快照分析工具" class="headerlink" title="jhat：虚拟机堆快照分析工具"></a>jhat：虚拟机堆快照分析工具</h2><p>与jmap配合使用，也就是分析堆存转储快照（heapdump文件）。</p>
-<h2 id="jstack：Java堆栈跟踪工具"><a href="#jstack：Java堆栈跟踪工具" class="headerlink" title="jstack：Java堆栈跟踪工具"></a>jstack：Java堆栈跟踪工具</h2><ul>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9b5409980aff?w=933&amp;h=403&amp;f=png&amp;s=202391" alt></p>
+<h2 id="jhat：虚拟机堆快照分析工具"><a class="header-anchor" href="#jhat：虚拟机堆快照分析工具">¶</a>jhat：虚拟机堆快照分析工具</h2>
+<p>与jmap配合使用，也就是分析堆存转储快照（heapdump文件）。</p>
+<h2 id="jstack：Java堆栈跟踪工具"><a class="header-anchor" href="#jstack：Java堆栈跟踪工具">¶</a>jstack：Java堆栈跟踪工具</h2>
+<ul>
 <li>功能：用于生成虚拟机的线程快照</li>
 <li>命令格式：<code>jstack [ option ] vmid</code></li>
 <li>主要选项：</li>
 </ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9b95790bdcd5?w=920&h=188&f=png&s=81541" alt></p>
-<h1 id="JDK的可视化工具"><a href="#JDK的可视化工具" class="headerlink" title="JDK的可视化工具"></a>JDK的可视化工具</h1><h2 id="JConsole：Java监视与管理控制台"><a href="#JConsole：Java监视与管理控制台" class="headerlink" title="JConsole：Java监视与管理控制台"></a>JConsole：Java监视与管理控制台</h2><p><strong>内存监控，相当于可视化的<code>jstat</code>命令</strong></p>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b291ef7f36929?w=858&h=628&f=png&s=106536" alt><br><strong>线程监控，相当于可视化的<code>jstack</code>命令</strong>，以下举几个简单的例子</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a9b95790bdcd5?w=920&amp;h=188&amp;f=png&amp;s=81541" alt></p>
+<h1>JDK的可视化工具</h1>
+<h2 id="JConsole：Java监视与管理控制台"><a class="header-anchor" href="#JConsole：Java监视与管理控制台">¶</a>JConsole：Java监视与管理控制台</h2>
+<p><strong>内存监控，相当于可视化的<code>jstat</code>命令</strong></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b291ef7f36929?w=858&amp;h=628&amp;f=png&amp;s=106536" alt><br>
+<strong>线程监控，相当于可视化的<code>jstack</code>命令</strong>，以下举几个简单的例子</p>
 <ul>
 <li>监听用户键盘输入</li>
 </ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2a74ba142acd?w=811&h=134&f=png&s=29000" alt></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2a74ba142acd?w=811&amp;h=134&amp;f=png&amp;s=29000" alt></p>
 <ul>
 <li>监听wait()</li>
 </ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2a7c8556a816?w=819&h=206&f=png&s=45681" alt></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2a7c8556a816?w=819&amp;h=206&amp;f=png&amp;s=45681" alt></p>
 <ul>
 <li>监听死锁</li>
 </ul>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2bdcdb14d52d?w=844&h=306&f=png&s=35573" alt></p>
-<h2 id="VisualVM：多合一故障处理工具"><a href="#VisualVM：多合一故障处理工具" class="headerlink" title="VisualVM：多合一故障处理工具"></a>VisualVM：多合一故障处理工具</h2><p>书上说它很强大，我还没下载成功。它几乎集成里上面的所有功能啊。</p>
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2e570ebb1cc5?w=1239&h=665&f=png&s=126621" alt></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2bdcdb14d52d?w=844&amp;h=306&amp;f=png&amp;s=35573" alt></p>
+<h2 id="VisualVM：多合一故障处理工具"><a class="header-anchor" href="#VisualVM：多合一故障处理工具">¶</a>VisualVM：多合一故障处理工具</h2>
+<p>书上说它很强大，我还没下载成功。它几乎集成里上面的所有功能啊。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/25/169b2e570ebb1cc5?w=1239&amp;h=665&amp;f=png&amp;s=126621" alt></p>
 
     </div>
 
@@ -455,7 +496,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JDK的命令行工具"><span class="nav-number">1.</span> <span class="nav-text">JDK的命令行工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#jstat：虚拟机统计信息监视工具"><span class="nav-number">1.1.</span> <span class="nav-text">jstat：虚拟机统计信息监视工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jinfo：Java配置信息工具"><span class="nav-number">1.2.</span> <span class="nav-text">jinfo：Java配置信息工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jmap：Java内存映像工具"><span class="nav-number">1.3.</span> <span class="nav-text">jmap：Java内存映像工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jhat：虚拟机堆快照分析工具"><span class="nav-number">1.4.</span> <span class="nav-text">jhat：虚拟机堆快照分析工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jstack：Java堆栈跟踪工具"><span class="nav-number">1.5.</span> <span class="nav-text">jstack：Java堆栈跟踪工具</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JDK的可视化工具"><span class="nav-number">2.</span> <span class="nav-text">JDK的可视化工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#JConsole：Java监视与管理控制台"><span class="nav-number">2.1.</span> <span class="nav-text">JConsole：Java监视与管理控制台</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VisualVM：多合一故障处理工具"><span class="nav-number">2.2.</span> <span class="nav-text">VisualVM：多合一故障处理工具</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">JDK的命令行工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#jps：虚拟机进程状况工具"><span class="nav-number">1.1.</span> <span class="nav-text">¶jps：虚拟机进程状况工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jstat：虚拟机统计信息监视工具"><span class="nav-number">1.2.</span> <span class="nav-text">¶jstat：虚拟机统计信息监视工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jinfo：Java配置信息工具"><span class="nav-number">1.3.</span> <span class="nav-text">¶jinfo：Java配置信息工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jmap：Java内存映像工具"><span class="nav-number">1.4.</span> <span class="nav-text">¶jmap：Java内存映像工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jhat：虚拟机堆快照分析工具"><span class="nav-number">1.5.</span> <span class="nav-text">¶jhat：虚拟机堆快照分析工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jstack：Java堆栈跟踪工具"><span class="nav-number">1.6.</span> <span class="nav-text">¶jstack：Java堆栈跟踪工具</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">JDK的可视化工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#JConsole：Java监视与管理控制台"><span class="nav-number">2.1.</span> <span class="nav-text">¶JConsole：Java监视与管理控制台</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VisualVM：多合一故障处理工具"><span class="nav-number">2.2.</span> <span class="nav-text">¶VisualVM：多合一故障处理工具</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -641,6 +682,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

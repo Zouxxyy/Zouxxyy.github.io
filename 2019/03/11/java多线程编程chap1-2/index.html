@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -154,9 +154,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -252,19 +282,23 @@
       
         <p>本文是《java多线程编程核心技术》第一、二章的学习笔记。</p>
 <a id="more"></a>
-<h1 id="第一章：Java多线程技能"><a href="#第一章：Java多线程技能" class="headerlink" title="第一章：Java多线程技能"></a>第一章：Java多线程技能</h1><h2 id="使用多线程"><a href="#使用多线程" class="headerlink" title="使用多线程"></a>使用多线程</h2><ul>
+<h1>第一章：Java多线程技能</h1>
+<h2 id="使用多线程"><a class="header-anchor" href="#使用多线程">¶</a>使用多线程</h2>
+<ul>
 <li>实现多线程有两种方式：继承<code>Thread</code>类、实现<code>Runnable</code>接口</li>
 <li><code>Thread.java</code>中的<code>start()</code>方法是异步执行，<code>thread.run</code>是同步；而且<code>start()</code>方法的顺序不代表线程启动的顺序，它是随机的。</li>
 <li>在方法前加<code>synchronized</code>可以让线程安全。</li>
 </ul>
-<h2 id="一些方法"><a href="#一些方法" class="headerlink" title="一些方法"></a>一些方法</h2><ul>
+<h2 id="一些方法"><a class="header-anchor" href="#一些方法">¶</a>一些方法</h2>
+<ul>
 <li><code>currentThread()</code> 返回代码段正在被哪个线程调用</li>
 <li><code>isAlive()</code> 判断当前线程是否处于活动状态</li>
 <li><code>sleep()</code> 让线程休眠</li>
 <li><code>getID()</code> 获得线程的唯一标志</li>
 <li><code>yield()</code> 让当前线程放弃cpu资源，但时间不确定</li>
 </ul>
-<h2 id="停止线程"><a href="#停止线程" class="headerlink" title="停止线程"></a>停止线程</h2><p>方式：</p>
+<h2 id="停止线程"><a class="header-anchor" href="#停止线程">¶</a>停止线程</h2>
+<p>方式：</p>
 <ul>
 <li>使用退出标识，使线程正常退出，也就是当run方法完成后线程退出</li>
 <li>使用interrupt方法中断线程</li>
@@ -276,35 +310,43 @@
 <li><code>isInterrupted()</code>是实例方法，测试Thread对象是否已经是中断状态，但不清除状态标志。</li>
 <li>如果在sleep状态下停止某一线程，会进入catch语句（不需要判断是否中断），并且清除停止状态，使它变为false.</li>
 </ul>
-<h2 id="线程的优先级"><a href="#线程的优先级" class="headerlink" title="线程的优先级"></a>线程的优先级</h2><p><code>getPriority()</code>查看优先级，<code>setPriority()</code>设置优先级，有1～10级<br>线程优先级的特点：</p>
+<h2 id="线程的优先级"><a class="header-anchor" href="#线程的优先级">¶</a>线程的优先级</h2>
+<p><code>getPriority()</code>查看优先级，<code>setPriority()</code>设置优先级，有1～10级<br>
+线程优先级的特点：</p>
 <ul>
 <li>继承性: 如过线程A启动线程B，则B和A优先级一样</li>
 <li>规则性: CPU尽量倾向于把资源优先级高的线程</li>
 <li>随机性: 优先级不等同于执行顺序，优先级较高的不一定先执行完</li>
 </ul>
-<h2 id="守护线程"><a href="#守护线程" class="headerlink" title="守护线程"></a>守护线程</h2><p>Java的线程分为两种：User Thread(用户线程)、Daemon Thread(守护线程)。</p>
+<h2 id="守护线程"><a class="header-anchor" href="#守护线程">¶</a>守护线程</h2>
+<p>Java的线程分为两种：User Thread(用户线程)、Daemon Thread(守护线程)。</p>
 <p>当最后一个非守护线程结束时，守护线程随着JVM一同结束工作。Daemon作用是为其他线程提供便利服务，守护线程最典型的应用就是GC(垃圾回收器)，它就是一个很称职的守护者。</p>
-<h1 id="第二章：对象及变量的并发访问"><a href="#第二章：对象及变量的并发访问" class="headerlink" title="第二章：对象及变量的并发访问"></a>第二章：对象及变量的并发访问</h1><h2 id="synchronized同步方法"><a href="#synchronized同步方法" class="headerlink" title="synchronized同步方法"></a>synchronized同步方法</h2><ul>
+<h1>第二章：对象及变量的并发访问</h1>
+<h2 id="synchronized同步方法"><a class="header-anchor" href="#synchronized同步方法">¶</a>synchronized同步方法</h2>
+<ul>
 <li>方法内的变量为线程安全，而实例变量非线程安全。</li>
 <li>不同线程调用<strong>同一对象</strong>里的<strong>synchronized</strong>方法时，是同步的(排队进行)。也就是必须等线程执行完<code>synchronized</code>方法时，下一线程才能执行<code>synchronized</code>方法。</li>
 <li>可重入锁: 一个线程得到对象锁后，再次请求此对象锁时是可以得到该对象的锁的。子类也可以调用父类的同步方法。</li>
 <li>出现异常，锁自动释放</li>
 <li>子类方法不会继承<code>synchronized</code>关键字，需要手动在子类方法中加上。</li>
 </ul>
-<h2 id="synchronized同步语句块"><a href="#synchronized同步语句块" class="headerlink" title="synchronized同步语句块"></a>synchronized同步语句块</h2><ul>
+<h2 id="synchronized同步语句块"><a class="header-anchor" href="#synchronized同步语句块">¶</a>synchronized同步语句块</h2>
+<ul>
 <li>多个线程处理同一个对象的<code>synchronized(this)</code>同步语句块时，只能排队执行</li>
 <li>同一个对象的<code>synchronized(this)</code>和<code>synchronized</code>同步方法之间也是同步的。即<strong>同一时间只有一个线程可执行synchronized代码块或方法中的代码</strong></li>
-<li><code>synchronized(非this对象x)</code>，是将x对象作为“对象监视器”<ul>
+<li><code>synchronized(非this对象x)</code>，是将x对象作为“对象监视器”
+<ul>
 <li>当多个线程同时执行<code>synchronized(x){}</code>同步代码块时呈同步效果</li>
 <li>当其他线程执行x对象中<code>synchronizd</code>同步方法时呈同步效果</li>
 <li>当其他线程执行x对象方法里的<code>synchronized(this)</code>代码块时呈同步效果</li>
 </ul>
 </li>
-<li>静态同步    <code>synchronized</code>方法与<code>synchronized(class)</code>代码块是对Class类进行持锁。</li>
+<li>静态同步	<code>synchronized</code>方法与<code>synchronized(class)</code>代码块是对Class类进行持锁。</li>
 <li>当线程在等带根本不可能被释放的锁是，就会出现死锁。</li>
 <li>如果同时持有相同的锁对象，线程之间就是同步的。注意对象的属性改变，运行结果还是同步的。</li>
 </ul>
-<h2 id="volatile关键字"><a href="#volatile关键字" class="headerlink" title="volatile关键字"></a>volatile关键字</h2><p><code>volatile</code>: 强制的从公共内存进行取值,而不是从线程私有数据栈中取得变量的值。可以使变量在多个线程间可见，但缺点是不支持原子性。</p>
+<h2 id="volatile关键字"><a class="header-anchor" href="#volatile关键字">¶</a>volatile关键字</h2>
+<p><code>volatile</code>: 强制的从公共内存进行取值,而不是从线程私有数据栈中取得变量的值。可以使变量在多个线程间可见，但缺点是不支持原子性。</p>
 <p><code>synchronized</code>和<code>volatile</code>比较:</p>
 <ul>
 <li>关键字volatile是线程同步的轻量级实现，所以volatile性能比synchronized好，并且volatile只能修饰变量，而synchronized可修饰方法和代码块。</li>
@@ -400,7 +442,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第一章：Java多线程技能"><span class="nav-number">1.</span> <span class="nav-text">第一章：Java多线程技能</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用多线程"><span class="nav-number">1.1.</span> <span class="nav-text">使用多线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些方法"><span class="nav-number">1.2.</span> <span class="nav-text">一些方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#停止线程"><span class="nav-number">1.3.</span> <span class="nav-text">停止线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程的优先级"><span class="nav-number">1.4.</span> <span class="nav-text">线程的优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#守护线程"><span class="nav-number">1.5.</span> <span class="nav-text">守护线程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二章：对象及变量的并发访问"><span class="nav-number">2.</span> <span class="nav-text">第二章：对象及变量的并发访问</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#synchronized同步方法"><span class="nav-number">2.1.</span> <span class="nav-text">synchronized同步方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#synchronized同步语句块"><span class="nav-number">2.2.</span> <span class="nav-text">synchronized同步语句块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#volatile关键字"><span class="nav-number">2.3.</span> <span class="nav-text">volatile关键字</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">第一章：Java多线程技能</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用多线程"><span class="nav-number">1.1.</span> <span class="nav-text">¶使用多线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些方法"><span class="nav-number">1.2.</span> <span class="nav-text">¶一些方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#停止线程"><span class="nav-number">1.3.</span> <span class="nav-text">¶停止线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程的优先级"><span class="nav-number">1.4.</span> <span class="nav-text">¶线程的优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#守护线程"><span class="nav-number">1.5.</span> <span class="nav-text">¶守护线程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">第二章：对象及变量的并发访问</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#synchronized同步方法"><span class="nav-number">2.1.</span> <span class="nav-text">¶synchronized同步方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#synchronized同步语句块"><span class="nav-number">2.2.</span> <span class="nav-text">¶synchronized同步语句块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#volatile关键字"><span class="nav-number">2.3.</span> <span class="nav-text">¶volatile关键字</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -586,6 +628,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -154,9 +154,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -252,21 +282,24 @@
       
         <p>让命令在后台跑起来！</p>
 <a id="more"></a>
-<h1 id="amp"><a href="#amp" class="headerlink" title="&amp;"></a>&amp;</h1><p>用法：<code>指令 &amp;</code></p>
+<h1>&amp;</h1>
+<p>用法：<code>指令 &amp;</code></p>
 <p>说明： 将指令放入后台执行，会将输出打印到前台，<strong>当执行该指令的终端gg时，它也gg</strong></p>
 <p>终止方法：</p>
 <ul>
 <li><code>jobs</code> 查看它 -&gt; <code>fg %num</code> 取出它 -&gt; <code>Ctrl+c</code>终止它</li>
 <li>直接退出终端</li>
 </ul>
-<h1 id="nohup"><a href="#nohup" class="headerlink" title="nohup"></a>nohup</h1><p>用法：<code>nohup 指令 &amp;</code></p>
+<h1>nohup</h1>
+<p>用法：<code>nohup 指令 &amp;</code></p>
 <p>说明： 将指令放入后台执行，不会将输出打印到前台，<strong>当执行该指令的终端gg时，它不gg</strong></p>
 <p>终止方法：</p>
 <ul>
 <li>未退出终端时：<code>jobs</code> 查看它 -&gt; <code>fg %num</code> 取出它 -&gt; <code>Ctrl+c</code>终止它</li>
 <li>退出终端时：在新终端连接中，找到PID号，kill它</li>
 </ul>
-<h1 id="tmux"><a href="#tmux" class="headerlink" title="tmux"></a>tmux</h1><p>简介：</p>
+<h1>tmux</h1>
+<p>简介：</p>
 <p>tmux可以在后台新建一个终端，并且用户退出后创建的终端仍然存在</p>
 <p>用法：</p>
 <ul>
@@ -280,7 +313,7 @@
 <ul>
 <li>临时退出session</li>
 </ul>
-<p><code>Ctrl+b d</code> </p>
+<p><code>Ctrl+b d</code></p>
 <ul>
 <li>进入已存在的session</li>
 </ul>
@@ -289,12 +322,16 @@
 <li>删除指定session</li>
 </ul>
 <p><code>tmux kill-session -t $session_name</code></p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
-<li><p>&amp;  简单，安全，退出终端，程序自动结束</p>
+<h1>总结</h1>
+<ul>
+<li>
+<p>&amp;  简单，安全，退出终端，程序自动结束</p>
 </li>
-<li><p>nohup 退出终端后，必须通过pid号杀程序</p>
+<li>
+<p>nohup 退出终端后，必须通过pid号杀程序</p>
 </li>
-<li><p>tmux 谁用谁知道，一般情况，时间长的程序，我都用它 </p>
+<li>
+<p>tmux 谁用谁知道，一般情况，时间长的程序，我都用它</p>
 </li>
 </ul>
 
@@ -382,7 +419,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#amp"><span class="nav-number">1.</span> <span class="nav-text">&amp;</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#nohup"><span class="nav-number">2.</span> <span class="nav-text">nohup</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#tmux"><span class="nav-number">3.</span> <span class="nav-text">tmux</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">&amp;</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">nohup</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">tmux</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -568,6 +605,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 

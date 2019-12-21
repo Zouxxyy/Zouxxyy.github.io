@@ -40,8 +40,8 @@
       hits: {"per_page":10},
       labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     },
-    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
-    path: '',
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
   };
 </script>
@@ -161,9 +161,39 @@
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 
 </nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
 </div>
     </header>
 
@@ -260,27 +290,37 @@
         <p>本文是 JDK1.8 String常量池详解，带图哦</p>
 <a id="more"></a>
 <p><strong>jdk 1.8</strong></p>
-<h1 id="先抛结论"><a href="#先抛结论" class="headerlink" title="先抛结论"></a>先抛结论</h1><h2 id="1-只在常量池上创建常量"><a href="#1-只在常量池上创建常量" class="headerlink" title="1.只在常量池上创建常量"></a>1.只在常量池上创建常量</h2><p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a32568b4c1f09?w=531&h=366&f=png&s=15995" alt></p>
-<h2 id="2-只在堆上创建对象"><a href="#2-只在堆上创建对象" class="headerlink" title="2.只在堆上创建对象"></a>2.只在堆上创建对象</h2><p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a32d01c0c56b4?w=577&h=389&f=png&s=19131" alt></p>
-<h2 id="3-在堆上创建对象，在常量池上创建常量"><a href="#3-在堆上创建对象，在常量池上创建常量" class="headerlink" title="3.在堆上创建对象，在常量池上创建常量"></a>3.在堆上创建对象，在常量池上创建常量</h2><p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a32fd14b320a8?w=553&h=362&f=png&s=18505" alt></p>
-<h2 id="4-在堆上创建对象，在常量池上创建引用"><a href="#4-在堆上创建对象，在常量池上创建引用" class="headerlink" title="4.在堆上创建对象，在常量池上创建引用"></a>4.在堆上创建对象，在常量池上创建引用</h2><p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a331a8ed3ecb4?w=561&h=362&f=png&s=20883" alt></p>
+<h1>先抛结论</h1>
+<h2 id="1-只在常量池上创建常量"><a class="header-anchor" href="#1-只在常量池上创建常量">¶</a>1.只在常量池上创建常量</h2>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a32568b4c1f09?w=531&amp;h=366&amp;f=png&amp;s=15995" alt></p>
+<h2 id="2-只在堆上创建对象"><a class="header-anchor" href="#2-只在堆上创建对象">¶</a>2.只在堆上创建对象</h2>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a32d01c0c56b4?w=577&amp;h=389&amp;f=png&amp;s=19131" alt></p>
+<h2 id="3-在堆上创建对象，在常量池上创建常量"><a class="header-anchor" href="#3-在堆上创建对象，在常量池上创建常量">¶</a>3.在堆上创建对象，在常量池上创建常量</h2>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a32fd14b320a8?w=553&amp;h=362&amp;f=png&amp;s=18505" alt></p>
+<h2 id="4-在堆上创建对象，在常量池上创建引用"><a class="header-anchor" href="#4-在堆上创建对象，在常量池上创建引用">¶</a>4.在堆上创建对象，在常量池上创建引用</h2>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a331a8ed3ecb4?w=561&amp;h=362&amp;f=png&amp;s=20883" alt></p>
 <p>注意：</p>
 <ul>
-<li><p>常量池有两种情况：引用（指针） 或 常量。<strong>如果该位置已经是引用或常量了，之后的操作都不会改变里面的情况！！！</strong></p>
+<li>
+<p>常量池有两种情况：引用（指针） 或 常量。<strong>如果该位置已经是引用或常量了，之后的操作都不会改变里面的情况！！！</strong></p>
 </li>
-<li><p>调用<code>intern()</code>（jdk1.8）: <strong>如果常量池里是空的，就创建引用（指向堆，参考结论4）；非空，不操作。返回值都是常量池里的内容。</strong></p>
+<li>
+<p>调用<code>intern()</code>（jdk1.8）: <strong>如果常量池里是空的，就创建引用（指向堆，参考结论4）；非空，不操作。返回值都是常量池里的内容。</strong></p>
 </li>
-<li><p>堆中可以有任意个相同的字符串，常量池只能有一个（引用 或 常量）。</p>
+<li>
+<p>堆中可以有任意个相同的字符串，常量池只能有一个（引用 或 常量）。</p>
 </li>
-<li><p>“ “ 和intern() 其实很像。区别就是在常量池为空时，“ ”是把值加进去，intern()是把引用加进去。</p>
+<li>
+<p>&quot; &quot; 和intern() 其实很像。区别就是在常量池为空时，“ ”是把值加进去，intern()是把引用加进去。</p>
 </li>
 </ul>
-<h1 id="根据结论解决例子"><a href="#根据结论解决例子" class="headerlink" title="根据结论解决例子"></a>根据结论解决例子</h1><h2 id="例一"><a href="#例一" class="headerlink" title="例一"></a>例一</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String s1 = <span class="keyword">new</span> String(<span class="string">"zxy"</span>);    <span class="comment">// 结论3</span></span><br><span class="line">s1.intern(); <span class="comment">// 常量池非空，返回值是常量池里的内容</span></span><br><span class="line">String s2 = <span class="string">"zxy"</span>; <span class="comment">// 常量池非空，返回值是常量池里的内容</span></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">//false</span></span><br><span class="line">System.out.println(s1.intern() == s2); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a351b50cc98d6?w=569&h=355&f=png&s=18514" alt></p>
-<h2 id="例二"><a href="#例二" class="headerlink" title="例二"></a>例二</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">String s1 = <span class="string">"zxy"</span>; <span class="comment">// 加到常量池</span></span><br><span class="line">String s2 = <span class="keyword">new</span> String(<span class="string">"zxy"</span>); <span class="comment">// 加到堆，常量池有东西所以啥也不干</span></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">// false</span></span><br><span class="line">System.out.println(s1 == s2.intern()); <span class="comment">// true 常量池非空，intern返回常量池里的内容</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a35d23404be5b?w=468&h=373&f=png&s=16487" alt></p>
+<h1>根据结论解决例子</h1>
+<h2 id="例一"><a class="header-anchor" href="#例一">¶</a>例一</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String s1 = <span class="keyword">new</span> String(<span class="string">"zxy"</span>);    <span class="comment">// 结论3</span></span><br><span class="line">s1.intern(); <span class="comment">// 常量池非空，返回值是常量池里的内容</span></span><br><span class="line">String s2 = <span class="string">"zxy"</span>; <span class="comment">// 常量池非空，返回值是常量池里的内容</span></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">//false</span></span><br><span class="line">System.out.println(s1.intern() == s2); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a351b50cc98d6?w=569&amp;h=355&amp;f=png&amp;s=18514" alt></p>
+<h2 id="例二"><a class="header-anchor" href="#例二">¶</a>例二</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">String s1 = <span class="string">"zxy"</span>; <span class="comment">// 加到常量池</span></span><br><span class="line">String s2 = <span class="keyword">new</span> String(<span class="string">"zxy"</span>); <span class="comment">// 加到堆，常量池有东西所以啥也不干</span></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">// false</span></span><br><span class="line">System.out.println(s1 == s2.intern()); <span class="comment">// true 常量池非空，intern返回常量池里的内容</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a35d23404be5b?w=468&amp;h=373&amp;f=png&amp;s=16487" alt></p>
 
     </div>
 
@@ -367,7 +407,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#先抛结论"><span class="nav-number">1.</span> <span class="nav-text">先抛结论</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-只在常量池上创建常量"><span class="nav-number">1.1.</span> <span class="nav-text">1.只在常量池上创建常量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-只在堆上创建对象"><span class="nav-number">1.2.</span> <span class="nav-text">2.只在堆上创建对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-在堆上创建对象，在常量池上创建常量"><span class="nav-number">1.3.</span> <span class="nav-text">3.在堆上创建对象，在常量池上创建常量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-在堆上创建对象，在常量池上创建引用"><span class="nav-number">1.4.</span> <span class="nav-text">4.在堆上创建对象，在常量池上创建引用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#根据结论解决例子"><span class="nav-number">2.</span> <span class="nav-text">根据结论解决例子</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例一"><span class="nav-number">2.1.</span> <span class="nav-text">例一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例二"><span class="nav-number">2.2.</span> <span class="nav-text">例二</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">先抛结论</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-只在常量池上创建常量"><span class="nav-number">1.1.</span> <span class="nav-text">¶1.只在常量池上创建常量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-只在堆上创建对象"><span class="nav-number">1.2.</span> <span class="nav-text">¶2.只在堆上创建对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-在堆上创建对象，在常量池上创建常量"><span class="nav-number">1.3.</span> <span class="nav-text">¶3.在堆上创建对象，在常量池上创建常量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-在堆上创建对象，在常量池上创建引用"><span class="nav-number">1.4.</span> <span class="nav-text">¶4.在堆上创建对象，在常量池上创建引用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">根据结论解决例子</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例一"><span class="nav-number">2.1.</span> <span class="nav-text">¶例一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例二"><span class="nav-number">2.2.</span> <span class="nav-text">¶例二</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -553,6 +593,8 @@
 
 
 
+
+  <script src="/js/local-search.js"></script>
 
 
 
