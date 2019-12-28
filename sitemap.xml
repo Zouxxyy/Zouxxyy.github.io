@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://yoursite.com/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/</loc>
+    
+    <lastmod>2019-12-28T07:31:22.339Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2019/12/28/spark%E6%9D%82%E8%B0%88-%E6%8C%87%E5%AE%9A%E6%96%87%E4%BB%B6%E5%9C%A8HDFS%E4%B8%AD%E7%9A%84%E5%86%99%E5%85%A5%E8%8A%82%E7%82%B9/</loc>
+    
+    <lastmod>2019-12-28T06:56:53.632Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://yoursite.com/2019/02/26/hello-hexo/</loc>
     
     <lastmod>2019-12-24T08:35:41.377Z</lastmod>
@@ -61,13 +75,6 @@
     <loc>http://yoursite.com/2019/12/04/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BSortShuffleWriter/</loc>
     
     <lastmod>2019-12-20T03:17:51.257Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://yoursite.com/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/</loc>
-    
-    <lastmod>2019-12-20T03:17:43.810Z</lastmod>
     
   </url>
   

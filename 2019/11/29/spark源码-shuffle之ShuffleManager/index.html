@@ -54,7 +54,7 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="spark shuffle 学习起始篇，涉及源码中shuffle的相关概念 加 SortShuffleManager">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-12-20T03:17:43.810Z">
+<meta property="og:updated_time" content="2019-12-28T07:31:22.339Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark源码-shuffle之ShuffleManager">
 <meta name="twitter:description" content="spark shuffle 学习起始篇，涉及源码中shuffle的相关概念 加 SortShuffleManager">
@@ -240,7 +240,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-12-20 11:17:43" itemprop="dateModified" datetime="2019-12-20T11:17:43+08:00">2019-12-20</time>
+                <time title="修改时间：2019-12-28 15:31:22" itemprop="dateModified" datetime="2019-12-28T15:31:22+08:00">2019-12-28</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -301,10 +301,13 @@
 <p>如果把 spark 整个流程看成一辆火车，那么除了最后一节是<code>ResultStage </code>，其它每一节车厢就是一个<code>ShuffleMapStage </code>，连接车厢的部分就是<code>shuffle</code>。</p>
 </li>
 <li>
-<p>车厢头进行 <strong>read</strong>，车厢尾进行 <strong>write</strong>。很容易理解<code>ShuffleMapStage</code>需要读前一个stage内容，也需要把输出写入下一个stage；而<code>ResultStage </code>只需要读。这些可以在源码中发现。</p>
+<p>车厢头进行 <strong>read</strong>，车厢尾进行 <strong>write</strong>。很容易理解<code>ShuffleMapStage</code>需要读前一个stage内容，也需要把输出写入下一个stage；而<code>ResultStage</code>只需要读。这些可以在源码中发现。</p>
 </li>
 <li>
-<p><strong>read</strong> 实质是<code>ShuffleReader</code>里的 <code>read()</code>方法；<strong>write</strong> 是实质是<code>ShuffleReader</code>里的 <code>write()</code>方法。</p>
+<p><code>ShuffleMapStage</code>对应 <code>ShuffleMapTask</code>，<code>ResultStage</code> 对应 <code>ResultTask</code>。</p>
+</li>
+<li>
+<p><strong>read</strong> 实质是<code>ShuffleReader</code>里的 <code>read()</code>方法；<strong>write</strong> 是实质是<code>ShuffleWriter</code>里的 <code>write()</code>方法。</p>
 </li>
 <li>
 <p><code>ShuffleReader</code> 和 <code>ShuffleWriter</code> 这两大组件都由<code>ShuffleManager</code>进行选择。</p>
@@ -442,7 +445,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
