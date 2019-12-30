@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://yoursite.com/2019/12/30/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBlockStoreShuffleReader/</loc>
+    
+    <lastmod>2019-12-30T01:42:59.921Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://yoursite.com/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/</loc>
     
     <lastmod>2019-12-28T07:31:22.339Z</lastmod>
