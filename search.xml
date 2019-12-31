@@ -1,6 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>我的2019</title>
+    <url>/2019/12/31/%E6%88%91%E7%9A%842019/</url>
+    <content><![CDATA[<p>2019小结，多图慎点</p>
+<a id="more"></a>
+<h1>github</h1>
+<p>一度执着commit，一度觉得太水，一度又执着，一度又… <strong>希望明年加油，争取贡献PR</strong></p>
+<p><img src="https://i.loli.net/2019/12/31/UtnVwE4IDSa1cZe.png" alt></p>
+<h1>Hexo</h1>
+<p>2019年，在小破站写(shui)了<strong>49篇文(shui)章(wen)</strong>。学习上，打60分吧，勉强及格，明年要更加努力！</p>
+<p><img src="https://i.loli.net/2019/12/31/ZuN1XwA7nH8ylsf.png" alt></p>
+<h1>读书</h1>
+<p>欣赏来自豆瓣的蜜汁黑色散点图，一次更新后变成了这样，实在无力吐槽</p>
+<p><img src="https://i.loli.net/2019/12/31/PLiUoA8uN4nfsBb.png" alt></p>
+<p>微信读书的2019成绩单，<strong>勉强超过平均水平?!</strong> 今年相比去年热情降低了不少，感觉很难遇到让人眼前一亮的书了。</p>
+<p>今年看过最好看的3本是：<strong>《平凡的世界》 《霍乱时期的爱情》 《追风筝的人》</strong>。经典不愧是经典～</p>
+<p>夸夸<strong>良心</strong>的微信读书：开局一条狗，<strong>无线卡全靠白嫖</strong>；倘若收费，我必奉陪。</p>
+<p><img src="https://i.loli.net/2019/12/31/IKZmn3JNlhv8BT7.jpg" alt></p>
+<h1>billbill</h1>
+<p>9月开始玩的，投了9篇，自娱自乐加朋友圈形成完美闭环。奈何画(A)质(V)不忍直视，真想放弃，希望<strong>王者的自动剪辑画质能提升点</strong>！</p>
+<p>也夸夸B站，在B站上也学习了很多免费学习资源，而且用户体验也挺不错的，果然程(si)序(fei)员(zai)懂二次元。至于大会员嘛，下次一定，ヾﾉ≧∀≦)o</p>
+<p><img src="https://i.loli.net/2019/12/31/sZIMtDVLfSniEPd.png" alt></p>
+<h1>音乐</h1>
+<p>2020年，也要<strong>将非主流贯彻到底</strong>！年度听的最多竟然是嵩哥的，是不是计算错了？？</p>
+<p><img src="https://i.loli.net/2019/12/31/Oq9WUB1KQ3gMj7s.jpg" alt></p>
+<h1>王者荣耀</h1>
+<p>人老了反应跟不上了，混混王者就行。话说，我的<strong>李白荣耀典藏又跳票了</strong>，<strong>韩信的鼠年传说被伽罗抢了</strong>，🐶 策划。转战隔壁lol手游！</p>
+<p><img src="https://i.loli.net/2019/12/31/y9G4En6eDrL2vHh.jpg" alt></p>
+<h1>2020 加油！</h1>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+  </entry>
+  <entry>
     <title>分布式版本控制系统-Git</title>
     <url>/2019/12/31/%E5%88%86%E5%B8%83%E5%BC%8F%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F-Git/</url>
     <content><![CDATA[<p>本文主要包括Git的用法加底层</p>
@@ -909,8 +943,8 @@
         <category>大数据</category>
       </categories>
       <tags>
-        <tag>hbase</tag>
         <tag>配置</tag>
+        <tag>hbase</tag>
       </tags>
   </entry>
   <entry>
