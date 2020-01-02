@@ -26,9 +26,8 @@
 <p>2020年，也要<strong>将非主流贯彻到底</strong>！年度听的最多竟然是嵩哥的，是不是计算错了？？</p>
 <p><img src="https://i.loli.net/2019/12/31/Oq9WUB1KQ3gMj7s.jpg" alt></p>
 <h1>王者荣耀</h1>
-<p>人老了反应跟不上了，混混王者就行。话说，我的<strong>李白荣耀典藏又跳票了</strong>，<strong>韩信的鼠年传说被伽罗抢了</strong>。🐶 策划，我要转战隔壁lol手游！</p>
+<p>人老了反应跟不上了，混混王者就行，以后玩的时间越来越少了。话说，我的<strong>李白荣耀典藏又跳票了</strong>，<strong>韩信的鼠年传说被伽罗抢了</strong>。🐶 策划，我要转战隔壁lol手游！</p>
 <p>貌似没找到王者的2019年报，也太偷懒了吧？？</p>
-<p><img src="https://i.loli.net/2019/12/31/y9G4En6eDrL2vHh.jpg" alt></p>
 <h1>2020 加油！</h1>
 ]]></content>
       <categories>
@@ -372,6 +371,33 @@
 <li><strong>查看磁盘使用情况</strong></li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ df -h</span><br></pre></td></tr></table></figure>
+<h1>vim</h1>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gg</td>
+<td>跳转到文件头</td>
+</tr>
+<tr>
+<td>Shift+g</td>
+<td>跳转到文件末尾</td>
+</tr>
+<tr>
+<td>/字符串</td>
+<td>从开头查找，n下一个，N上一个</td>
+</tr>
+<tr>
+<td>?字符串</td>
+<td>从底部查找</td>
+</tr>
+</tbody>
+</table>
 <h1>服务器</h1>
 <ol>
 <li><strong>添加用户</strong></li>
