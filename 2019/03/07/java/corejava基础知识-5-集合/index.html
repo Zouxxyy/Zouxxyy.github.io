@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="本文是对 java 集合的总结。书的思路是将接口与实现分开讲；然后从父讲起，再讲子对父的提升。我觉得这种方式很好理解加记忆，所以本文也是这样整理的。">
+<meta name="keywords" content="java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="corejava基础知识(5)-集合">
+<meta property="og:url" content="http://yoursite.com/2019/03/07/java/corejava基础知识-5-集合/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="本文是对 java 集合的总结。书的思路是将接口与实现分开讲；然后从父讲起，再讲子对父的提升。我觉得这种方式很好理解加记忆，所以本文也是这样整理的。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://i.loli.net/2020/01/10/1GljYX6Bu3D8qJU.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/10/sr8g2VMGUb6kDu9.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/10/RjoyvpBwYmJIldU.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/10/Vk8HwoeMAu2v5rf.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/10/1dk29Jrt5H4Yvqe.png">
+<meta property="og:updated_time" content="2020-01-10T09:03:21.407Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="corejava基础知识(5)-集合">
+<meta name="twitter:description" content="本文是对 java 集合的总结。书的思路是将接口与实现分开讲；然后从父讲起，再讲子对父的提升。我觉得这种方式很好理解加记忆，所以本文也是这样整理的。">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/10/1GljYX6Bu3D8qJU.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/03/07/java/corejava基础知识-5-集合/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>corejava基础知识(5)-集合 | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/07/java/corejava基础知识-5-集合/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          corejava基础知识(5)-集合
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-03-07 11:29:01" itemprop="dateCreated datePublished" datetime="2019-03-07T11:29:01+08:00">2019-03-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-01-10 17:03:21" itemprop="dateModified" datetime="2020-01-10T17:03:21+08:00">2020-01-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程语言/" itemprop="url" rel="index">
+                    <span itemprop="name">编程语言</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/03/07/java/corejava基础知识-5-集合/" class="post-meta-item leancloud_visitors" data-flag-title="corejava基础知识(5)-集合" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/03/07/java/corejava基础知识-5-集合/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/03/07/java/corejava基础知识-5-集合/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文是对 java 集合的总结。书的思路是将接口与实现分开讲；然后从父讲起，再讲子对父的提升。我觉得这种方式很好理解加记忆，所以本文也是这样整理的。</p>
+<a id="more"></a>
+<h1>集合框架</h1>
+<p>主要思路是让<strong>接口与实现分离</strong></p>
+<p>集合框架的接口：两个基本接口 <code>Collection</code> 和 <code>Map</code></p>
+<img src="https://i.loli.net/2020/01/10/1GljYX6Bu3D8qJU.png" alt="interface.png" style="zoom:67%;">
+<p>集合框架的类：</p>
+<img src="https://i.loli.net/2020/01/10/sr8g2VMGUb6kDu9.png" alt="me.png" style="zoom:67%;">
+<img src="https://i.loli.net/2020/01/10/RjoyvpBwYmJIldU.png" alt="shixian.png" style="zoom:67%;">
+<h1>接口</h1>
+<h2 id="两个基本接口：Collection-和-Map"><a class="header-anchor" href="#两个基本接口：Collection-和-Map">¶</a>两个基本接口：<code>Collection</code> 和 <code>Map</code></h2>
+<h3 id="Collection"><a class="header-anchor" href="#Collection">¶</a>Collection</h3>
+<p>以下是<code>Collection</code>接口内的一些方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">interface</span> <span class="title">class</span> <span class="title">java</span>.<span class="title">util</span>.<span class="title">Collection</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">add</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">remove</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">contains</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">abstract</span> java.util.<span class="function">Iterator <span class="title">iterator</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">addAll</span><span class="params">(java.util.Collection)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">containsAll</span><span class="params">(java.util.Collection)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">removeAll</span><span class="params">(java.util.Collection)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">retainAll</span><span class="params">(java.util.Collection)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">removeIf</span><span class="params">(java.util.function.Predicate)</span></span>;</span><br><span class="line">  ...</span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出来就是 <strong>大小，加，删，是否含某个元素，是否空 等等</strong>，这些集合最基础的功能</p>
+<p><code>Collection</code>中有<code>Iterator</code>接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">interface</span> <span class="title">class</span> <span class="title">java</span>.<span class="title">util</span>.<span class="title">Iterator</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">abstract</span> java.lang.<span class="function">Object <span class="title">next</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">forEachRemaining</span><span class="params">(java.util.function.Consumer)</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Map"><a class="header-anchor" href="#Map">¶</a>Map</h3>
+<p>以下是<code>Map</code>接口内的一些方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">interface</span> <span class="title">class</span> <span class="title">java</span>.<span class="title">util</span>.<span class="title">Map</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">remove</span><span class="params">(java.lang.Object, java.lang.Object)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">abstract</span> java.lang.<span class="function">Object <span class="title">get</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">abstract</span> java.lang.<span class="function">Object <span class="title">put</span><span class="params">(java.lang.Object, java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">replace</span><span class="params">(java.lang.Object, java.lang.Object, java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">replaceAll</span><span class="params">(java.util.function.BiFunction)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">putAll</span><span class="params">(java.util.Map)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> java.lang.<span class="function">Object <span class="title">putIfAbsent</span><span class="params">(java.lang.Object, java.lang.Object)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">abstract</span> java.util.<span class="function">Set <span class="title">keySet</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">containsValue</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">containsKey</span><span class="params">(java.lang.Object)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> java.lang.<span class="function">Object <span class="title">getOrDefault</span><span class="params">(java.lang.Object, java.lang.Object)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">forEach</span><span class="params">(java.util.function.BiConsumer)</span></span>;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出来就是 <strong>大小，加映射，删映射，用键查值，是否空</strong> 等等，这些映射最基础的功能。还有些视图的部分，下篇文章具体讲</p>
+<h2 id="Collection的子接口"><a class="header-anchor" href="#Collection的子接口">¶</a>Collection的子接口</h2>
+<h3 id="List"><a class="header-anchor" href="#List">¶</a>List</h3>
+<p>有序集合，新加支持随机访问功能：</p>
+<ul>
+<li>add(n, 元素)</li>
+<li>remove(n)</li>
+<li>get(n)</li>
+<li>set(n, 元素)</li>
+</ul>
+<h3 id="Set"><a class="header-anchor" href="#Set">¶</a>Set</h3>
+<ol>
+<li>元素不重复，所以要适当的定义<code>equals</code>方法；</li>
+<li>子接口<code>SortedSet</code>，故名思义是排好序的，所以要适当的定义比较器</li>
+<li><code>SortedSet</code>的子接口<code>NavigableSet</code>中设计了一些搜素，遍历的方法</li>
+</ol>
+<h3 id="Queue"><a class="header-anchor" href="#Queue">¶</a>Queue</h3>
+<ol>
+<li>入队尾，出对头</li>
+<li>子接口<code>Qeque</code>双端队列，两头都可以出入</li>
+</ol>
+<h2 id="Map的子接口"><a class="header-anchor" href="#Map的子接口">¶</a>Map的子接口</h2>
+<p>其实和<code>Set</code>差不多</p>
+<ol>
+<li>子接口<code>SortedMap</code>，故名思义是排好序的，所以要适当的定义比较器</li>
+<li><code>SortedMap</code>的子接口<code>NavigableMap</code>中设计了一些搜素，遍历的方法</li>
+</ol>
+<h1>对接口的实现</h1>
+<h2 id="List-v2"><a class="header-anchor" href="#List-v2">¶</a>List</h2>
+<h3 id="LinkedList-链表"><a class="header-anchor" href="#LinkedList-链表">¶</a>LinkedList(链表)</h3>
+<p>java中的链表都是双向的（有前驱后驱）。重点讲下它的迭代器<code>ListIterator</code></p>
+<ul>
+<li>初始位置： |ABCD</li>
+<li><code>iter.next</code>:  A|BCD</li>
+<li><code>iter.previous</code>: |ABCD</li>
+<li><code>iter.add</code> : 把元素加到光标<code>|</code>之前，注意是之前</li>
+<li><code>iter.remove</code>必须在<code>it.next</code>或<code>it.previous</code>使用之后使用，把光标<strong>经过</strong>的元素删除</li>
+</ul>
+<p>链表使用注意：</p>
+<ul>
+<li>使用链表是可以减少在列表中间插入删除元素所付出的代价。</li>
+<li>避免使用以整数索引链表中的位置，这样效率很低</li>
+</ul>
+<h3 id="ArrayList-数组列表"><a class="header-anchor" href="#ArrayList-数组列表">¶</a>ArrayList(数组列表)</h3>
+<p><code>ArrayList</code>： 动态泛型数组列表，可以自动调节数组容量。当需要随机访问时使用它效率更高，不用链表。<br>
+讲下<code>capacity</code>和<code>size</code>的区别：</p>
+<ul>
+<li><code>new ArrayList&lt;&gt;(100)</code>	100 是<code>capacity</code>，是初始容量，如果实际size超过它，容量会自动增加</li>
+<li><code>array.size()</code>返回的是数组列表内元素实际的个数。</li>
+</ul>
+<p>p.s. 这和c++的 <code>vector</code> 很像</p>
+<h2 id="Set-v2"><a class="header-anchor" href="#Set-v2">¶</a>Set</h2>
+<h3 id="HashSet-散列集"><a class="header-anchor" href="#HashSet-散列集">¶</a>HashSet(散列集)</h3>
+<p><img src="https://i.loli.net/2020/01/10/Vk8HwoeMAu2v5rf.png" alt="hash.png"></p>
+<ul>
+<li><code>HashSet</code>: 基于散列表的Set，内部用链表数组实现。初始化时可以指定容量和装填因子。</li>
+<li>由于HashSet访问是随机的，所以当不需要关心集合中的顺序时才使用它。</li>
+<li>子类<code>LinkedHashSet</code>，里面的元素之间是双向链表，迭代器是按<strong>插入顺序</strong>进行访问的。</li>
+</ul>
+<h3 id="TreeSet-树集"><a class="header-anchor" href="#TreeSet-树集">¶</a>TreeSet(树集)</h3>
+<p>-<code>TreeSet</code>: 实现<code>SortedSet</code>接口，内部基于<strong>红黑树</strong>。由于是有顺序的，所以用户一般要自定义比较器。迭代器是按<strong>排序顺序</strong>进行访问的。</p>
+<ul>
+<li>当不需要顺序时，用<code>HashSet</code>，因为它更快。</li>
+<li>可以实现升级版<code>NavigableSet</code>接口，higher(v),lower(v),pollFirst(),pollLast(),反向迭代 等等。</li>
+</ul>
+<h2 id="Queue-v2"><a class="header-anchor" href="#Queue-v2">¶</a>Queue</h2>
+<p>一般用它的升级版<code>Deque</code>，而<code>Deque</code>可以由<code>ArrayDeque</code>和<code>LinkedList</code>实现。下面主要介绍<code>PriorityQueue</code></p>
+<h3 id="PriorityQueue-优先级队列"><a class="header-anchor" href="#PriorityQueue-优先级队列">¶</a>PriorityQueue(优先级队列)</h3>
+<ul>
+<li><code>PriorityQueue</code>：优先级队列，内部基于<strong>堆</strong>（heap）。</li>
+<li>按任意顺序插入，却总是按排序顺序输出<strong>最小值</strong>。</li>
+<li><code>PriorityQueue&lt;Type&gt; pq = new PriorityQueue();</code>，从左边可以看出这货是类。</li>
+</ul>
+<h2 id="Map-v2"><a class="header-anchor" href="#Map-v2">¶</a>Map</h2>
+<h3 id="HashMap"><a class="header-anchor" href="#HashMap">¶</a>HashMap</h3>
+<ul>
+<li>顾名思义和<code>HashSet</code>差不多，只不过是对建进行散列。</li>
+<li>子类<code>LinkedHashMap</code>，注意链表散射映射，迭代器是按<strong>访问顺序</strong>进行访问的。每次调用 get 或 put, 受到影响的条目将从当前的位置删除，并放到条目链表的尾部。</li>
+</ul>
+<h3 id="TreeMap"><a class="header-anchor" href="#TreeMap">¶</a>TreeMap</h3>
+<ul>
+<li>顾名思义和<code>HashMap</code>差不多，只不过是对建进行<strong>红黑树</strong>排序。</li>
+<li>同样 当不需要顺序时，用<code>HashMap</code>，因为它更快.</li>
+</ul>
+<p>一些技巧：</p>
+<ul>
+<li>遍历Map：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scores.forEach((k, v) -&gt; <span class="comment">// 访问 k, v 的最快方法</span></span><br><span class="line">        System.out.println(<span class="string">"key="</span> + k + <span class="string">", value"</span> + v));</span><br></pre></td></tr></table></figure>
+<ul>
+<li>用 Map 计数：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scores.put(<span class="string">"Jack"</span>, scores.getOrDefault(<span class="string">"Jack"</span>, <span class="number">0</span>) + <span class="number">1</span>); <span class="comment">// 方法1</span></span><br><span class="line">scores.merge(<span class="string">"Jack"</span>, <span class="number">1</span>, Integer::sum); <span class="comment">// 方法2</span></span><br></pre></td></tr></table></figure>
+<h3 id="WeekHashMap"><a class="header-anchor" href="#WeekHashMap">¶</a>WeekHashMap</h3>
+<p>弱散列映射：当对键的唯一引用来自散列条目时，这一数据结构将与垃圾回收器协同工作一起删除键 / 值对。也就是当某个值没用了它会被自动回收。</p>
+<h3 id="IdentityHashMap"><a class="header-anchor" href="#IdentityHashMap">¶</a>IdentityHashMap</h3>
+<ul>
+<li><code>IdentityHashMap</code> 中 键的散列值 不是用 hashCode 函数计算的，而是用 <code>System.identityHashCode</code> 方法计算的（<code>Object.hashCode</code>方法根据对象的内存地址来计算散列码时所使用的方式）。</li>
+<li>所以，在对两个对象进行比较时，IdentityHashMap 使用 == , 而不使用equal。也就是不同的键对象，即使内容相同，也被视为是不同的对象。</li>
+<li>在实现对象遍历算法 (如对象串行化)时，可以它用来跟踪每个对象的遍历状况。</li>
+</ul>
+<h1>遗留的集合</h1>
+<p>看看就好，遇到时再查书</p>
+<img src="https://i.loli.net/2020/01/10/1dk29Jrt5H4Yvqe.png" alt="image.png" style="zoom: 67%;">
+<p>本文示例代码：<a href="https://github.com/Zouxxyy/java-learning/tree/master/corejava-learning/src/com/zouxxyy/corejava/chap9" title="github" target="_blank" rel="noopener">github</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/03/05/java/corejava基础知识(4)-通配符/" rel="prev" title="corejava基础知识(4)-通配符">
+      <i class="fa fa-chevron-left"></i> corejava基础知识(4)-通配符
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/03/07/java/corejava基础知识-6-视图/" rel="next" title="corejava基础知识(6)-视图">
+      corejava基础知识(6)-视图 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">集合框架</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">接口</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#两个基本接口：Collection-和-Map"><span class="nav-number">2.1.</span> <span class="nav-text">¶两个基本接口：Collection 和 Map</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Collection"><span class="nav-number">2.1.1.</span> <span class="nav-text">¶Collection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Map"><span class="nav-number">2.1.2.</span> <span class="nav-text">¶Map</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Collection的子接口"><span class="nav-number">2.2.</span> <span class="nav-text">¶Collection的子接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#List"><span class="nav-number">2.2.1.</span> <span class="nav-text">¶List</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Set"><span class="nav-number">2.2.2.</span> <span class="nav-text">¶Set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Queue"><span class="nav-number">2.2.3.</span> <span class="nav-text">¶Queue</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Map的子接口"><span class="nav-number">2.3.</span> <span class="nav-text">¶Map的子接口</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">对接口的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#List-v2"><span class="nav-number">3.1.</span> <span class="nav-text">¶List</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LinkedList-链表"><span class="nav-number">3.1.1.</span> <span class="nav-text">¶LinkedList(链表)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ArrayList-数组列表"><span class="nav-number">3.1.2.</span> <span class="nav-text">¶ArrayList(数组列表)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Set-v2"><span class="nav-number">3.2.</span> <span class="nav-text">¶Set</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HashSet-散列集"><span class="nav-number">3.2.1.</span> <span class="nav-text">¶HashSet(散列集)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TreeSet-树集"><span class="nav-number">3.2.2.</span> <span class="nav-text">¶TreeSet(树集)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Queue-v2"><span class="nav-number">3.3.</span> <span class="nav-text">¶Queue</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PriorityQueue-优先级队列"><span class="nav-number">3.3.1.</span> <span class="nav-text">¶PriorityQueue(优先级队列)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Map-v2"><span class="nav-number">3.4.</span> <span class="nav-text">¶Map</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HashMap"><span class="nav-number">3.4.1.</span> <span class="nav-text">¶HashMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TreeMap"><span class="nav-number">3.4.2.</span> <span class="nav-text">¶TreeMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WeekHashMap"><span class="nav-number">3.4.3.</span> <span class="nav-text">¶WeekHashMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IdentityHashMap"><span class="nav-number">3.4.4.</span> <span class="nav-text">¶IdentityHashMap</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">遗留的集合</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="/images/me.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">50</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

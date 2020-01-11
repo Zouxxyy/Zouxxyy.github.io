@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="使用 textFile 读取HDFS的数据分区规则">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark杂谈-使用textFile读取HDFS的分区规则">
+<meta property="og:url" content="http://yoursite.com/2019/11/27/spark/spark杂谈-使用textFile读取HDFS的分区规则/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="使用 textFile 读取HDFS的数据分区规则">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-12-20T03:18:10.428Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark杂谈-使用textFile读取HDFS的分区规则">
+<meta name="twitter:description" content="使用 textFile 读取HDFS的数据分区规则">
+
+<link rel="canonical" href="http://yoursite.com/2019/11/27/spark/spark杂谈-使用textFile读取HDFS的分区规则/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>spark杂谈-使用textFile读取HDFS的分区规则 | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/27/spark/spark杂谈-使用textFile读取HDFS的分区规则/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spark杂谈-使用textFile读取HDFS的分区规则
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-27 14:43:54" itemprop="dateCreated datePublished" datetime="2019-11-27T14:43:54+08:00">2019-11-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-12-20 11:18:10" itemprop="dateModified" datetime="2019-12-20T11:18:10+08:00">2019-12-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/11/27/spark/spark杂谈-使用textFile读取HDFS的分区规则/" class="post-meta-item leancloud_visitors" data-flag-title="spark杂谈-使用textFile读取HDFS的分区规则" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/11/27/spark/spark杂谈-使用textFile读取HDFS的分区规则/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/11/27/spark/spark杂谈-使用textFile读取HDFS的分区规则/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>使用 textFile 读取HDFS的数据分区规则</p>
+<a id="more"></a>
+<p>spark 版本 2.4.3</p>
+<h1>跟着源码走</h1>
+<p>测试文件：大小 516.06 MB ，54个 block，blockSize 大小是128M，但每个 block 里面的数据只有10M 左右</p>
+<p><strong>1. 进入 <code>sc.textFile()</code></strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> textFile: <span class="type">RDD</span>[<span class="type">String</span>] = sc.textFile(<span class="string">"hdfs://xxxx"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// textFile() 有个默认值：minPartitions</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">textFile</span></span>(</span><br><span class="line">    path: <span class="type">String</span>,</span><br><span class="line">    minPartitions: <span class="type">Int</span> = defaultMinPartitions)</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 它是取 defaultParallelism 和 2 的最小值 </span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">defaultMinPartitions</span></span>: <span class="type">Int</span> = math.min(defaultParallelism, <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这个 defaultParallelism 不指定就是 totalCores，我这里是4</span></span><br><span class="line">scheduler.conf.getInt(<span class="string">"spark.default.parallelism"</span>, totalCores)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 所以 defaultMinPartitions 最终为2</span></span><br></pre></td></tr></table></figure>
+<p><strong>2. 创建 <code>HadoopRDD</code></strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="type">HadoopRDD</span>(</span><br><span class="line">  <span class="keyword">this</span>,</span><br><span class="line">  confBroadcast,</span><br><span class="line">  <span class="type">Some</span>(setInputPathsFunc),</span><br><span class="line">  inputFormatClass,</span><br><span class="line">  keyClass,</span><br><span class="line">  valueClass,</span><br><span class="line">  minPartitions).setName(path)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>3. 每个RDD 都有一个 <code>getPartitions</code> 函数，由它得到分区号</strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getPartitions</span></span>: <span class="type">Array</span>[<span class="type">Partition</span>] = &#123;</span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">  		<span class="keyword">val</span> allInputSplits = getInputFormat(jobConf).getSplits(jobConf, minPartitions)</span><br><span class="line">  	...</span><br><span class="line">   <span class="keyword">val</span> array = <span class="keyword">new</span> <span class="type">Array</span>[<span class="type">Partition</span>](inputSplits.size)</span><br><span class="line">   <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until inputSplits.size) &#123;</span><br><span class="line">   		array(i) = <span class="keyword">new</span> <span class="type">HadoopPartition</span>(id, i, inputSplits(i))</span><br><span class="line">   &#125;</span><br><span class="line">   array</span><br><span class="line">   &#125;</span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>4. 采用<code>FileInputFormat</code> 里的 <code>getSplits()</code> 划分分区，先计算 splitSize</strong></p>
+<p><code>getPartitions</code> 的 核心是 <code>getSplits()</code>，下面是计算分区关键步骤</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 总大小除2，为258M</span></span><br><span class="line">long goalSize = totalSize / (long)(numSplits == <span class="number">0</span> ? <span class="number">1</span> : numSplits);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这是人为设定的分区最小值，这个很好理解</span></span><br><span class="line">long minSize = <span class="type">Math</span>.max(job.getLong(<span class="string">"mapreduce.input.fileinputformat.split.minsize"</span>, <span class="number">1</span>L), <span class="keyword">this</span>.minSplitSize);</span><br><span class="line"></span><br><span class="line"><span class="comment">// HDFS 文件的块大小，128M</span></span><br><span class="line">long blockSize = file.getBlockSize();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 计算 splitSize</span></span><br><span class="line">long splitSize = <span class="keyword">this</span>.computeSplitSize(goalSize, minSize, blockSize);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>
+<p>假设文件大小为 20M： <code>splitSize = max（1，min(10,128)) = 10M</code></p>
+</li>
+<li>
+<p>假设文件大小为 516M：<code>splitSize  = max(1, min(258,128)) = 128M </code>（本文）</p>
+</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> long computeSplitSize(long goalSize, long minSize, long blockSize) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="type">Math</span>.max(minSize, <span class="type">Math</span>.min(goalSize, blockSize));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>5. 最后，按 splitSize 切分区</strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 可以发现为了防止最后一个分区过小的问题，引入了数字 1.1，保证最后一个分区的大小大于 splitSize  的 10%</span></span><br><span class="line"><span class="keyword">for</span>(bytesRemaining = length; (double)bytesRemaining / (double)splitSize &gt; <span class="number">1.1</span>D; bytesRemaining -= splitSize) &#123;</span><br><span class="line">	splitHosts = <span class="keyword">this</span>.getSplitHostsAndCachedHosts(blkLocations, length - bytesRemaining, splitSize, clusterMap);</span><br><span class="line">	splits.add(<span class="keyword">this</span>.makeSplit(path, length - bytesRemaining, splitSize, splitHosts[<span class="number">0</span>], splitHosts[<span class="number">1</span>]));</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (bytesRemaining != <span class="number">0</span>L) &#123;</span><br><span class="line">	splitHosts = <span class="keyword">this</span>.getSplitHostsAndCachedHosts(blkLocations, length - bytesRemaining, bytesRemaining, clusterMap);</span><br><span class="line">	splits.add(<span class="keyword">this</span>.makeSplit(path, length - bytesRemaining, bytesRemaining, splitHosts[<span class="number">0</span>], splitHosts[<span class="number">1</span>]));</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>6 分区结果</strong></p>
+<p>每块128M，最后一块略大，符合预期。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hdfs://xxxx:0+134217728</span><br><span class="line">hdfs://xxxx:134217728+134217728</span><br><span class="line">hdfs://xxxx:268435456+134217728</span><br><span class="line">hdfs://xxxx:402653184+138476793</span><br></pre></td></tr></table></figure>
+<h1>小结</h1>
+<ul>
+<li>
+<p>这里比较奇葩的是 minPartitions 这个设定，它最大只能是2。我觉得之所以这样设定，是防止文件切的过小。假设整个文件大小只有5M，公式：<code>Math.min(goalSize, blockSize)</code> blockSize假定128M，此时 splitSize 由 minPartitions 决定（不考虑人为设定的那个minSize）。那么它最多只能被切成2份。</p>
+</li>
+<li>
+<p>当文件较大时（大于blockSize两倍），只和 blockSize 有关。尽管我的测试文件中每个 block 实际大小只有10M，然鹅这个并没有什么软用。</p>
+</li>
+<li>
+<p>这是单文件情况，如果是读一个目录下的多文件，那就是单独对每个文件进行切分。（从源码可以发现，其中的 totalSize 是所有文件大小总和）。</p>
+</li>
+<li>
+<p>当然这只是分区划分，实际读取数据没这么简单。假如我们是一条一条读，那么如果该分区最后一条数据没读完，它会接着向下一块继续读，参考<a href="https://hadoopi.wordpress.com/2013/05/27/understand-recordreader-inputsplit/" target="_blank" rel="noopener">它</a>。</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/spark/" rel="tag"># spark</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/23/linux/CentOS根目录扩容/" rel="prev" title="CentOS根目录扩容">
+      <i class="fa fa-chevron-left"></i> CentOS根目录扩容
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/28/spark/spark源码-Partitioner/" rel="next" title="spark源码-Partitioner">
+      spark源码-Partitioner <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">跟着源码走</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="/images/me.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">50</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
