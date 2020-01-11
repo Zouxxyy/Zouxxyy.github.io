@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="它俩的对象和方法较多，需要耐心反复看。">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark源码-MemoryManager和MemoryStore">
+<meta property="og:url" content="http://yoursite.com/2020/01/11/spark/spark源码-MemoryManager和MemoryStore/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="它俩的对象和方法较多，需要耐心反复看。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://i.loli.net/2020/01/11/blD2MIJj1AkOQGv.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/11/sBvxNCqUHnKa61c.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/11/FHQD3Y1LohgG8Sf.png">
+<meta property="og:updated_time" content="2020-01-11T13:51:39.875Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark源码-MemoryManager和MemoryStore">
+<meta name="twitter:description" content="它俩的对象和方法较多，需要耐心反复看。">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/11/blD2MIJj1AkOQGv.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/11/spark/spark源码-MemoryManager和MemoryStore/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>spark源码-MemoryManager和MemoryStore | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/11/spark/spark源码-MemoryManager和MemoryStore/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spark源码-MemoryManager和MemoryStore
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-01-11 21:39:34 / 修改时间：21:51:39" itemprop="dateCreated datePublished" datetime="2020-01-11T21:39:34+08:00">2020-01-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/01/11/spark/spark源码-MemoryManager和MemoryStore/" class="post-meta-item leancloud_visitors" data-flag-title="spark源码-MemoryManager和MemoryStore" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/01/11/spark/spark源码-MemoryManager和MemoryStore/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/01/11/spark/spark源码-MemoryManager和MemoryStore/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>它俩的对象和方法较多，需要耐心反复看。</p>
+<a id="more"></a>
+<h1>MemoryManager</h1>
+<p>限制存储内存（<code>storage</code>）和执行内存（<code>execution</code>）的大小的管理器，有两种实现：<code>StaticMemoryManager</code> 和 <code>UnifiedMemoryManager</code>。</p>
+<img src="https://i.loli.net/2020/01/11/blD2MIJj1AkOQGv.png" alt="image001.png" style="zoom:67%;">
+<ul>
+<li>
+<p>一个Executor，一个JVM，一个MemoryManager，多个Task</p>
+</li>
+<li>
+<p>同一Executor的Task可共享堆内堆外内存，而同一个节点的不同Executor的Task只能共享堆外内存</p>
+</li>
+<li>
+<p>只能共享存储内存，计算内存肯定无法共享</p>
+</li>
+</ul>
+<h2 id="核心依赖对象——MemoryPool"><a class="header-anchor" href="#核心依赖对象——MemoryPool">¶</a>核心依赖对象——MemoryPool</h2>
+<p>它用于统计<strong>每个Executor</strong>内存使用情况的类（它并不是去查内存，只是记录，比如要用内存时就把数字增加，减时就把数字减少），具体实现分两种：<code>StorageMemoryPool</code> 和 <code>ExecutionMemoryPool</code>，它们每个又分堆内和堆外内存。基本方法有：<code>poolSize</code>、<code>memoryUsed</code>、<code>memoryFree(_poolSize - memoryUsed)</code>，看名知意。</p>
+<ul>
+<li>
+<p><code>StorageMemoryPool</code>：除了有统计功能，并且还会在需要的内存不够时，通知<code>MemoryStore</code>调用<code>evictBlocksToFreeSpace</code>驱逐内存（发现不够，会先向执行内存借，如果借不到再驱逐。这部分代码在MemoryManager中）。</p>
+</li>
+<li>
+<p><code>ExecutionMemoryPool</code>：相对内存池复杂点，由于存储内存对于同一个Executor的多个Task来说是<strong>共享</strong>的，而执行内存是<strong>不共享</strong>的。因此，其内部需要<strong>维护一个<code>HashMap</code></strong>，存储每个Task使用的执行内存。</p>
+<p>细节1:  内部的<code>acquireMemory</code> 和 <code>releaseMemory</code> 之间采用 <code>wait()</code> 和 <code>notifyAll()</code>机制 ：在内存不够时<code>acquireMemory</code>会触发 wait，而当<code>releaseMemory</code>时，notifyall。</p>
+<p>细节2:  每个Task<strong>最少到分执行内存的 1 / 2N</strong>，当超过1 / N时，不再允许申请。</p>
+<p>细节3:  <code>acquireMemory</code> 内部有个回调函数<code>maybeGrowPool</code>：当执行内存不足时，从存储内存中借它剩余的，或者要它归还从执行内存中借走的。</p>
+</li>
+</ul>
+<p>从这里也可以发现，执行内存可以要回被借走的，而存储内存不可以，这就是后面要说的<strong>动态占用</strong>规则之一。</p>
+<p>注意：<code>MemoryPool</code>里的操作，都<strong>加了object lock</strong>(<code>MemoryManager</code>)</p>
+<h2 id="UnifiedMemoryManager"><a class="header-anchor" href="#UnifiedMemoryManager">¶</a>UnifiedMemoryManager</h2>
+<p>spark 1.6 后统一使用<code>UnifiedMemoryManager</code>，它的进步是<strong>存储内存和执行内存可以动态占用</strong>。</p>
+<h3 id="内存划分"><a class="header-anchor" href="#内存划分">¶</a>内存划分</h3>
+<p><img src="https://i.loli.net/2020/01/11/sBvxNCqUHnKa61c.png" alt="屏幕快照 2020-01-03 下午8.47.52.png"></p>
+<p>堆内内存（<code>spark.executor.memory</code>  JVM内存）</p>
+<ul>
+<li>存储（storage）内存：（堆内内存 - 预留） * 0.6 <code>spark.memory.fraction</code> * 0.5 <code>spark.memory.storageFraction</code>，用于 <strong>cache、broadcast</strong> 等</li>
+<li>执行（executor）内存：（堆内内存 - 预留） * 0.6 <code>spark.memory.fraction</code> * (1 - 0.5 <code>spark.memory.storageFraction</code>，用于<strong>计算，如shuffles、join、sorts and aggregations</strong></li>
+<li>其它内存：（堆内内存 - 预留） * （1 - 0.6 <code>spark.memory.fraction</code>）</li>
+<li>预留内存：<code>RESERVED_SYSTEM_MEMORY_BYTES</code> 规定 300M</li>
+</ul>
+<p>堆外内存（<code>spark.memory.offHeap.size</code>）</p>
+<ul>
+<li>存储内存：堆外内存 * 0.5 <code>spark.memory.storageFraction</code></li>
+<li>执行内存：堆外内存 * （1 - 0.5 <code>spark.memory.storageFraction</code>）</li>
+</ul>
+<h3 id="动态占用"><a class="header-anchor" href="#动态占用">¶</a>动态占用</h3>
+<p><img src="https://i.loli.net/2020/01/11/FHQD3Y1LohgG8Sf.png" alt="image006.png"></p>
+<p>存储内存可以尽可能多地借用执行内存中的free内存，但是当执行池需要这部分内存时，<strong>会把该部分内存池中的对象从内存中驱逐出</strong>，直到满足执行池的内存需求。</p>
+<p>执行内存也可以尽可能多地借用存储内存中的free内存，不同的是，<strong>执行内存不会被存储池驱逐出内存</strong>。</p>
+<p>也就是说，缓存block时可能会因为执行池占用了大量的内存池，不能释放导致<strong>缓存block失败</strong>，在这种情况下，新的block会<strong>根据StorageLevel做相应处理</strong>（如 spill 磁盘或干脆丢弃以前的）。</p>
+<p>注意 <code>MemoryManager </code>里的<code>acquireMemory</code>操作都加了<code>synchronized</code></p>
+<h1>MemoryStore</h1>
+<p>负责将blocks写入内存及删改查操作，写入结构为反序列化的Java对象数组，或者序列化的ByteBuffers</p>
+<h2 id="核心依赖对象——MemoryEntry"><a class="header-anchor" href="#核心依赖对象——MemoryEntry">¶</a>核心依赖对象——MemoryEntry</h2>
+<p>块在内存中的抽象表示，也就是数据在存储内存中存储方式，有两种实现：<code>DeserializedMemoryEntry</code>和<code>SerializedMemoryEntry</code></p>
+<p><code>DeserializedMemoryEntry</code>：存储的数据结构是Array[T]，只适用于堆内</p>
+<p><code>SerializedMemoryEntry</code>：存储的数据结构是<code>ChunkedByteBuffer</code>（物理上存储为多个块而不是单个块上的连续数组），适用于堆内和堆外</p>
+<p>采用数组的数据结构很好的<strong>解决存储内存碎片</strong>问题：通常RDD 的 record 是 在 other内存中的是不连续空间，当要缓存时（也就是存到存储内存中），会将其由不连续的存储空间转换为连续的存储空间（数组）。</p>
+<h2 id="核心成员"><a class="header-anchor" href="#核心成员">¶</a>核心成员</h2>
+<p><strong>entries</strong>：一个 LinkedHashMap （BlockId  -&gt;  MemoryEntry），blocks 存入 MemoryEntry，同时建立 BlockId 和 MemoryEntry 的映射关系。注意LinkedHashMap本身不是线程安全的，因此<strong>对其并发访问都要加锁</strong>。<strong>MemoryStore的核心其实就是对entries的增删改查</strong>。</p>
+<p><strong>onHeapUnrollMemoryMap 和 offHeapUnrollMemoryMap</strong>：（BlockId  -&gt;  使用的 UnrollMemory 的大小）</p>
+<h2 id="核心方法："><a class="header-anchor" href="#核心方法：">¶</a><strong>核心方法</strong>：</h2>
+<h3 id="putBytes"><a class="header-anchor" href="#putBytes">¶</a><strong>putBytes</strong></h3>
+<p>序列化ByteBuffer的写入：在写入前，先调用<strong>MemoryManager.acquireStorageMemory()<strong>申请所需的内存，再将</strong>ChunkedByteBuffer</strong>封装进<strong>SerializedMemoryEntry</strong>，最后将该MemoryEntry放入entries映射。</p>
+<h3 id="putIterator-T"><a class="header-anchor" href="#putIterator-T">¶</a><strong>putIterator[T]</strong></h3>
+<p>迭代器对象的写入，根据入参 <strong>valuesHolder</strong>的不同，决定写成对象还是字节</p>
+<p>开始时，先初始化（申请）一部分内存（spark.storage.unrollMemoryThreshold 默认1M），将迭代器对象逐渐存入<strong>valuesHolder</strong>，并且每添加<code>memoryCheckPeriod</code>个元素就<strong>检查一次valuesHolder中数据占用的内存</strong>，如果超过了申请的内存就继续申请<code>UnrollMemory</code>（由<code>memoryGrowthFactor</code>参数控制申请大小，这种递增的方式避免OOM）。将全部元素存入valuesHolder后，使用它的<strong>build方法</strong>生成<code>MemoryEntry</code>（如果是堆内模式内部就是将SizeTrackingVector转成数组），接着release掉申请的unroll内存，最后申请整体大小的Storage内存。化零为整，这个零它就是UnrollMemory，现在知道UnrollMemory是啥了吧，它就是个工具人。</p>
+<p>该函数，由下面两个函数调用。</p>
+<h3 id="putIteratorAsValues"><a class="header-anchor" href="#putIteratorAsValues">¶</a>putIteratorAsValues</h3>
+<p>将迭代器对象 写成对象，使用的<strong>valuesHolder</strong>是 <code>DeserializedValuesHolder</code></p>
+<p>该方法的重点把握DeserializedValuesHolder，其内部有两个数据结构：SizeTrackingVector 和 Array；SizeTrackingVector 实现了SizeTracker接口，通过采样估计的方式得到其占用大小（<strong>估计值</strong>）。数据存入DeserializedValuesHolder其实是写入到SizeTrackingVector中，等待全部写完，再使用<strong>getBuilder</strong>方法，将SizeTrackingVector转成Array，再转成DeserializedMemoryEntry。</p>
+<h3 id="putIteratorAsBytes"><a class="header-anchor" href="#putIteratorAsBytes">¶</a>putIteratorAsBytes</h3>
+<p>将迭代器对象 写成字节，使用的<strong>valuesHolder</strong>是 <code>SerializedValuesHolder</code></p>
+<p>SerializedValuesHolder 内部是各种流，且用到了<strong>serializerManager</strong>，暂时不想了解过深，只要知道每次write时流内部会记录size，因此得到的总size是精确的。其内部的build方法，将数据封装成SerializedMemoryEntry。</p>
+<h3 id="getBytes、getValues、remove"><a class="header-anchor" href="#getBytes、getValues、remove">¶</a>getBytes、getValues、remove</h3>
+<p>读删操作就很简单了，直接根据blockId 对<strong>entries</strong>中的Map进行读删即可</p>
+<p>getBytes 的返回值是 ChunkedByteBuffer ，getValues 的返回值是 Iterator[T]，分别对应entry的2种数据结构</p>
+<h3 id="evictBlocksToFreeSpace"><a class="header-anchor" href="#evictBlocksToFreeSpace">¶</a>evictBlocksToFreeSpace</h3>
+<p>是不是很熟悉这名字，驱除存储内存时用的就是它。</p>
+<p><strong>调用时机</strong></p>
+<ul>
+<li>存储内存不足（自己的不够并且借执行内存的也不够 或者 被执行内存占用很多）</li>
+<li>执行内存不足时，需要回收被存储内存占用的</li>
+</ul>
+<p><strong>回收限制</strong></p>
+<ul>
+<li>不能是同一个 RDD的 block，避免循环淘汰</li>
+<li>memoryMode一致，即同属堆内或者堆外</li>
+<li>Block  不能处于被读状态</li>
+<li>LRU（最近最少使用）：这是 entries 也就是 LinkedHashMap自带的功能</li>
+</ul>
+<h1>小结</h1>
+<p>MemoryManager 用于对内存划分，同时实现执行内存和存储内存的动态占用。这一切都是逻辑上的，它其实就是计数员，MemoryPool 就是它的账本。当你需要使用执行内存或者存储内存时，你要向它汇报，它会对下帐本告诉你可不可分到，接着对账本修改。</p>
+<p>MemoryStore 负责将数据写入<strong>存储内存</strong>以及后续的读取与删除，数据结构就是一个LinkedHashMap。说白了它就是个仓库，存缓存，存广播等等。</p>
+<p>你可能会有个疑问，MemoryManager不是划了执行内存和存储内存嘛，都是关于存储内存的，那么执行内存的操作去哪啦？<strong>它与TaskMemoryManager和MemConsumer有关</strong>。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/spark/" rel="tag"># spark</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/12/31/随笔/我的2019/" rel="prev" title="我的2019">
+      <i class="fa fa-chevron-left"></i> 我的2019
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/11/spark/spark源码-DiskBlockManager和DiskStore/" rel="next" title="spark源码-DiskBlockManager和DiskStore">
+      spark源码-DiskBlockManager和DiskStore <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">MemoryManager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#核心依赖对象——MemoryPool"><span class="nav-number">1.1.</span> <span class="nav-text">¶核心依赖对象——MemoryPool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UnifiedMemoryManager"><span class="nav-number">1.2.</span> <span class="nav-text">¶UnifiedMemoryManager</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内存划分"><span class="nav-number">1.2.1.</span> <span class="nav-text">¶内存划分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态占用"><span class="nav-number">1.2.2.</span> <span class="nav-text">¶动态占用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">MemoryStore</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#核心依赖对象——MemoryEntry"><span class="nav-number">2.1.</span> <span class="nav-text">¶核心依赖对象——MemoryEntry</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心成员"><span class="nav-number">2.2.</span> <span class="nav-text">¶核心成员</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心方法："><span class="nav-number">2.3.</span> <span class="nav-text">¶核心方法：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#putBytes"><span class="nav-number">2.3.1.</span> <span class="nav-text">¶putBytes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#putIterator-T"><span class="nav-number">2.3.2.</span> <span class="nav-text">¶putIterator[T]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#putIteratorAsValues"><span class="nav-number">2.3.3.</span> <span class="nav-text">¶putIteratorAsValues</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#putIteratorAsBytes"><span class="nav-number">2.3.4.</span> <span class="nav-text">¶putIteratorAsBytes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#getBytes、getValues、remove"><span class="nav-number">2.3.5.</span> <span class="nav-text">¶getBytes、getValues、remove</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#evictBlocksToFreeSpace"><span class="nav-number">2.3.6.</span> <span class="nav-text">¶evictBlocksToFreeSpace</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="/images/me.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="DiskBlockManager 建立BlockID和磁盘中真实文件的一一映射，同时负责创建文件夹与删除文件夹">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark源码-DiskBlockManager和DiskStore">
+<meta property="og:url" content="http://yoursite.com/2020/01/11/spark/spark源码-DiskBlockManager和DiskStore/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="DiskBlockManager 建立BlockID和磁盘中真实文件的一一映射，同时负责创建文件夹与删除文件夹">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-01-11T13:43:47.474Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark源码-DiskBlockManager和DiskStore">
+<meta name="twitter:description" content="DiskBlockManager 建立BlockID和磁盘中真实文件的一一映射，同时负责创建文件夹与删除文件夹">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/11/spark/spark源码-DiskBlockManager和DiskStore/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>spark源码-DiskBlockManager和DiskStore | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/11/spark/spark源码-DiskBlockManager和DiskStore/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spark源码-DiskBlockManager和DiskStore
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-01-11 21:40:04 / 修改时间：21:43:47" itemprop="dateCreated datePublished" datetime="2020-01-11T21:40:04+08:00">2020-01-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/01/11/spark/spark源码-DiskBlockManager和DiskStore/" class="post-meta-item leancloud_visitors" data-flag-title="spark源码-DiskBlockManager和DiskStore" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/01/11/spark/spark源码-DiskBlockManager和DiskStore/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/01/11/spark/spark源码-DiskBlockManager和DiskStore/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1>DiskBlockManager</h1>
+<p>建立BlockID和磁盘中真实文件的一一映射，同时负责创建文件夹与删除文件夹</p>
+<a id="more"></a>
+<h2 id="成员"><a class="header-anchor" href="#成员">¶</a>成员</h2>
+<ul>
+<li>
+<p>subDirsPerLocalDir：每个LOCAL_DIRS下目录的最大个数，<code>spark.diskStore.subDirectories</code>（默认64）</p>
+</li>
+<li>
+<p>localDirs：本地目录数组，由<code>createLocalDirs()</code>创建。</p>
+</li>
+<li>
+<p>subDirs：2维数组<code>[localDirs个数][subDirsPerLocalDir 64]</code>，相当于人为把上面的目录按hash散列开，2级目录用于防止出现顶层inodes个数过多。（block文件就在该目录下）</p>
+</li>
+</ul>
+<p>下面以我的spark on yarn集群为例：</p>
+<p>localDirs ：<code>root + &quot;blockmgr&quot; + &quot;-&quot; + UUID.randomUUID</code>，其中 root 由<code>spark.local.dir</code>指定（可多个），默认是 <code>/tmp</code>。总算知道这玩意是干嘛的了，很明显该目录对应的<strong>磁盘对性能要求高！</strong></p>
+<p>subDirs：可以看到散列了5个子文件夹</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[xxx tmp]$ tree ./blockmgr*</span><br><span class="line">./blockmgr-37c233af-359c-4bcd-8dcc-5f216e55ce7d</span><br><span class="line">├── 0c</span><br><span class="line">├── 0d</span><br><span class="line">├── 0e</span><br><span class="line">├── 11</span><br><span class="line">└── 13</span><br></pre></td></tr></table></figure>
+<ul>
+<li>shutdownHook：给<code>ShutdownHookManager</code>添加一个钩子，调用doStop，递归删除localDirs下的文件</li>
+</ul>
+<h2 id="难点方法"><a class="header-anchor" href="#难点方法">¶</a>难点方法</h2>
+<h3 id="getFile"><a class="header-anchor" href="#getFile">¶</a>getFile</h3>
+<p>根据名字或者blockID返回磁盘中的File(subDir, filename)，如果没有就创建</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getFile</span></span>(filename: <span class="type">String</span>): <span class="type">File</span> = &#123;</span><br><span class="line">  <span class="comment">// 先hash取余 dirId， 再hash取余 subDirId</span></span><br><span class="line">  <span class="keyword">val</span> hash = <span class="type">Utils</span>.nonNegativeHash(filename)</span><br><span class="line">  <span class="keyword">val</span> dirId = hash % localDirs.length</span><br><span class="line">  <span class="keyword">val</span> subDirId = (hash / localDirs.length) % subDirsPerLocalDir</span><br><span class="line">  <span class="comment">// 如果</span></span><br><span class="line">  <span class="keyword">val</span> subDir = subDirs(dirId).synchronized &#123;</span><br><span class="line">    <span class="keyword">val</span> old = subDirs(dirId)(subDirId)</span><br><span class="line">    <span class="keyword">if</span> (old != <span class="literal">null</span>) &#123;</span><br><span class="line">      old</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 子目录格式：16进制2位符</span></span><br><span class="line">      <span class="keyword">val</span> newDir = <span class="keyword">new</span> <span class="type">File</span>(localDirs(dirId), <span class="string">"%02x"</span>.format(subDirId))</span><br><span class="line">      <span class="keyword">if</span> (!newDir.exists() &amp;&amp; !newDir.mkdir()) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IOException</span>(<span class="string">s"Failed to create local dir in <span class="subst">$newDir</span>."</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      subDirs(dirId)(subDirId) = newDir</span><br><span class="line">      newDir</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">new</span> <span class="type">File</span>(subDir, filename)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getFile</span></span>(blockId: <span class="type">BlockId</span>): <span class="type">File</span> = getFile(blockId.name)</span><br></pre></td></tr></table></figure>
+<h3 id="createTempXXXBlock"><a class="header-anchor" href="#createTempXXXBlock">¶</a>createTempXXXBlock</h3>
+<ul>
+<li>
+<p><code>createTempLocalBlock</code>：创建存放本地计算中间临时文件的Block</p>
+<p>blockId =  temp_local_ + “randomUUID”</p>
+</li>
+<li>
+<p><code>createTempShuffleBlock</code>：创建存放shuffle计算中间临时文件（如shuffle排序内存不够发生spill）的Block，blockId =  temp_shuffle_ + “randomUUID”</p>
+</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">createTempLocalBlock</span></span>(): (<span class="type">TempLocalBlockId</span>, <span class="type">File</span>) = &#123;</span><br><span class="line">  <span class="keyword">var</span> blockId = <span class="keyword">new</span> <span class="type">TempLocalBlockId</span>(<span class="type">UUID</span>.randomUUID())</span><br><span class="line">  <span class="keyword">while</span> (getFile(blockId).exists()) &#123;</span><br><span class="line">    blockId = <span class="keyword">new</span> <span class="type">TempLocalBlockId</span>(<span class="type">UUID</span>.randomUUID())</span><br><span class="line">  &#125;</span><br><span class="line">  (blockId, getFile(blockId)) <span class="comment">// getFile创建目录</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">createTempShuffleBlock</span></span>(): (<span class="type">TempShuffleBlockId</span>, <span class="type">File</span>) = &#123;</span><br><span class="line">  <span class="keyword">var</span> blockId = <span class="keyword">new</span> <span class="type">TempShuffleBlockId</span>(<span class="type">UUID</span>.randomUUID())</span><br><span class="line">  <span class="keyword">while</span> (getFile(blockId).exists()) &#123;</span><br><span class="line">    blockId = <span class="keyword">new</span> <span class="type">TempShuffleBlockId</span>(<span class="type">UUID</span>.randomUUID())</span><br><span class="line">  &#125;</span><br><span class="line">  (blockId, getFile(blockId)) <span class="comment">// getFile创建目录</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="stop"><a class="header-anchor" href="#stop">¶</a>stop</h3>
+<p>调用<code>stop()</code>，删除文件</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="function"><span class="keyword">def</span> <span class="title">stop</span></span>() &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="type">ShutdownHookManager</span>.removeShutdownHook(shutdownHook)</span><br><span class="line">  &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt;</span><br><span class="line">      logError(<span class="string">s"Exception while removing shutdown hook."</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line">  doStop()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">doStop</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="comment">// deleteFilesOnStop：DiskBlockManager 的 构造参数，决定是否递归删除localDirs下的文件</span></span><br><span class="line">  <span class="comment">// 一般只有使用外部shuffle服务时，它才为false</span></span><br><span class="line">  <span class="keyword">if</span> (deleteFilesOnStop) &#123;</span><br><span class="line">    localDirs.foreach &#123; localDir =&gt;</span><br><span class="line">      <span class="keyword">if</span> (localDir.isDirectory() &amp;&amp; localDir.exists()) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (!<span class="type">ShutdownHookManager</span>.hasRootAsShutdownDeleteDir(localDir)) &#123;</span><br><span class="line">            <span class="type">Utils</span>.deleteRecursively(localDir)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">          <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt;</span><br><span class="line">            logError(<span class="string">s"Exception while deleting local spark dir: <span class="subst">$localDir</span>"</span>, e)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>DiskStore</h1>
+<p>负责将blocks写入磁盘及删改查操作</p>
+<h2 id="成员-v2"><a class="header-anchor" href="#成员-v2">¶</a>成员</h2>
+<ul>
+<li>minMemoryMapBytes:    使用内存映射（java nio 功能）的最小值<code>spark.storage.memoryMapThreshold</code>默认2M</li>
+<li>maxMemoryMapBytes：使用内存映射的最大值</li>
+<li>blockSizes：一个ConcurrentHashMap，BlockId  -&gt; blockSize</li>
+</ul>
+<h2 id="难点方法-v2"><a class="header-anchor" href="#难点方法-v2">¶</a>难点方法</h2>
+<h3 id="put"><a class="header-anchor" href="#put">¶</a>put</h3>
+<p>增</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">put</span></span>(blockId: <span class="type">BlockId</span>)(writeFunc: <span class="type">WritableByteChannel</span> =&gt; <span class="type">Unit</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="keyword">if</span> (contains(blockId)) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">s"Block <span class="subst">$blockId</span> is already present in the disk store"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  logDebug(<span class="string">s"Attempting to put block <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="keyword">val</span> startTime = <span class="type">System</span>.currentTimeMillis</span><br><span class="line">  <span class="keyword">val</span> file = diskManager.getFile(blockId) <span class="comment">// 创建文件夹，并返回file</span></span><br><span class="line">  <span class="keyword">val</span> out = <span class="keyword">new</span> <span class="type">CountingWritableChannel</span>(openForWrite(file)) <span class="comment">// 开channel</span></span><br><span class="line">  <span class="keyword">var</span> threwException: <span class="type">Boolean</span> = <span class="literal">true</span></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    writeFunc(out) <span class="comment">// 写入文件夹中</span></span><br><span class="line">    blockSizes.put(blockId, out.getCount) <span class="comment">// 计数size，加入blockSizes map中</span></span><br><span class="line">    threwException = <span class="literal">false</span></span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      out.close()</span><br><span class="line">    &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">      <span class="keyword">case</span> ioe: <span class="type">IOException</span> =&gt;</span><br><span class="line">        <span class="keyword">if</span> (!threwException) &#123;</span><br><span class="line">          threwException = <span class="literal">true</span></span><br><span class="line">          <span class="keyword">throw</span> ioe</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">       <span class="keyword">if</span> (threwException) &#123;</span><br><span class="line">        remove(blockId)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">val</span> finishTime = <span class="type">System</span>.currentTimeMillis</span><br><span class="line">  logDebug(<span class="string">"Block %s stored as %s file on disk in %d ms"</span>.format(</span><br><span class="line">    file.getName,</span><br><span class="line">    <span class="type">Utils</span>.bytesToString(file.length()),</span><br><span class="line">    finishTime - startTime))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以下是一种调用它的方式</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">putBytes</span></span>(blockId: <span class="type">BlockId</span>, bytes: <span class="type">ChunkedByteBuffer</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">  put(blockId) &#123; channel =&gt;</span><br><span class="line">    bytes.writeFully(channel)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="getBytes"><a class="header-anchor" href="#getBytes">¶</a>getBytes</h3>
+<p>查，根据blockId，返回BlockData。</p>
+<p>有两种：<code>DiskBlockData</code>（普通） 以 及<code>EncryptedBlockData</code> （加密）</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getBytes</span></span>(blockId: <span class="type">BlockId</span>): <span class="type">BlockData</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> file = diskManager.getFile(blockId.name)</span><br><span class="line">  <span class="keyword">val</span> blockSize = getSize(blockId)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 分两种，一种是加密的一种是非加密的</span></span><br><span class="line">  securityManager.getIOEncryptionKey() <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(key) =&gt;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">EncryptedBlockData</span>(file, blockSize, conf, key)</span><br><span class="line">    <span class="keyword">case</span> _ =&gt;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">DiskBlockData</span>(minMemoryMapBytes, maxMemoryMapBytes, file, blockSize)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="remove"><a class="header-anchor" href="#remove">¶</a>remove</h3>
+<p>删</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">remove</span></span>(blockId: <span class="type">BlockId</span>): <span class="type">Boolean</span> = &#123;</span><br><span class="line">  blockSizes.remove(blockId)</span><br><span class="line">  <span class="keyword">val</span> file = diskManager.getFile(blockId.name)</span><br><span class="line">  <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">    <span class="keyword">val</span> ret = file.delete()</span><br><span class="line">    <span class="keyword">if</span> (!ret) &#123;</span><br><span class="line">      logWarning(<span class="string">s"Error deleting <span class="subst">$&#123;file.getPath()&#125;</span>"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    ret</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>小结</h1>
+<p>DiskBlockManager 用于建立BlockID和磁盘中真实文件的一一映射，同时负责创建文件夹与删除文件夹，学习时可以找到那个文件夹进入看看。</p>
+<p>DiskStore 负责将数据写入磁盘以及后续的读取与删除，相比MemoryStore它更简单。因为MemoryStore是真正的仓库，它需要定义数据结构；而DiskStore的数据是在磁盘的。</p>
+<p>todo: 未来学习下java nio，再学习<code>BlockData</code>。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/spark/" rel="tag"># spark</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/11/spark/spark源码-MemoryManager和MemoryStore/" rel="prev" title="spark源码-MemoryManager和MemoryStore">
+      <i class="fa fa-chevron-left"></i> spark源码-MemoryManager和MemoryStore
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/11/spark/spark源码-block/" rel="next" title="spark源码-block">
+      spark源码-block <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">DiskBlockManager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#成员"><span class="nav-number">1.1.</span> <span class="nav-text">¶成员</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#难点方法"><span class="nav-number">1.2.</span> <span class="nav-text">¶难点方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#getFile"><span class="nav-number">1.2.1.</span> <span class="nav-text">¶getFile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#createTempXXXBlock"><span class="nav-number">1.2.2.</span> <span class="nav-text">¶createTempXXXBlock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stop"><span class="nav-number">1.2.3.</span> <span class="nav-text">¶stop</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">DiskStore</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#成员-v2"><span class="nav-number">2.1.</span> <span class="nav-text">¶成员</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#难点方法-v2"><span class="nav-number">2.2.</span> <span class="nav-text">¶难点方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#put"><span class="nav-number">2.2.1.</span> <span class="nav-text">¶put</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#getBytes"><span class="nav-number">2.2.2.</span> <span class="nav-text">¶getBytes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#remove"><span class="nav-number">2.2.3.</span> <span class="nav-text">¶remove</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="/images/me.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,8 +1,464 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>spark源码-BlockManager</title>
+    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/</url>
+    <content><![CDATA[<p>每台节点（driver and executors）的block的总管理者，主要功能就是在本地或者远程的store中(堆内内存、磁盘、堆外内存) put、get、 block。</p>
+<p>作为总管理者，BlockManager 依赖众多对象。</p>
+<a id="more"></a>
+<h1>重要成员</h1>
+<p>从成员可以大体4类：RPC、传输、内存磁盘的 get or put（本文侧重）、shuffle</p>
+<p><strong>RPC 相关</strong>（todo）</p>
+<ul>
+<li>master：BlockManagerMaster，RPC相关</li>
+<li>rpcEnv</li>
+<li>blockManagerId：该blockManager的Id，分布式系统</li>
+<li>slaveEndpoint</li>
+</ul>
+<p><strong>块及其传输相关</strong>（todo）</p>
+<ul>
+<li>serializerManager：序列化管理者</li>
+<li>mapOutputTracker：跟踪 shuffle write 的输出</li>
+<li>blockTransferService：块传输服务（netty）</li>
+<li>securityManager：块加密</li>
+<li>remoteReadNioBufferConversion：<code>spark.network.remoteReadNioBufferConversion</code></li>
+<li>futureExecutionContext</li>
+<li>maxFailuresBeforeLocationRefresh</li>
+<li>remoteBlockTempFileManager</li>
+</ul>
+<p><strong>内存磁盘相关</strong>：</p>
+<ul>
+<li>
+<p><strong>memoryManager</strong></p>
+</li>
+<li>
+<p><strong>memoryStore</strong></p>
+</li>
+<li>
+<p><strong>diskBlockManager</strong></p>
+</li>
+<li>
+<p><strong>diskStore</strong></p>
+</li>
+<li>
+<p><strong>blockInfoManager</strong></p>
+</li>
+</ul>
+<p><strong>shuffle</strong> 相关</p>
+<ul>
+<li>
+<p>shuffleManager：使用的shuffleManager</p>
+</li>
+<li>
+<p>externalShuffleServiceEnabled：<code>spark.shuffle.service.enabled</code>，是否使用外部排序(todo)，默认false</p>
+</li>
+<li>
+<p>externalShuffleServicePort</p>
+</li>
+<li>
+<p>shuffleServerId</p>
+</li>
+<li>
+<p>shuffleClient：</p>
+</li>
+</ul>
+<h1>重点功能</h1>
+<h2 id="initialize"><a class="header-anchor" href="#initialize">¶</a>initialize</h2>
+<p>只有掉用了initialize方法，该BlockManager才可用，看看就行，pass</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">initialize</span></span>(appId: <span class="type">String</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">  blockTransferService.init(<span class="keyword">this</span>)</span><br><span class="line">  shuffleClient.init(appId)</span><br><span class="line"></span><br><span class="line">  blockReplicationPolicy = &#123;</span><br><span class="line">    <span class="keyword">val</span> priorityClass = conf.get(</span><br><span class="line">      <span class="string">"spark.storage.replication.policy"</span>, classOf[<span class="type">RandomBlockReplicationPolicy</span>].getName)</span><br><span class="line">    <span class="keyword">val</span> clazz = <span class="type">Utils</span>.classForName(priorityClass)</span><br><span class="line">    <span class="keyword">val</span> ret = clazz.newInstance.asInstanceOf[<span class="type">BlockReplicationPolicy</span>]</span><br><span class="line">    logInfo(<span class="string">s"Using <span class="subst">$priorityClass</span> for block replication policy"</span>)</span><br><span class="line">    ret</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> id =</span><br><span class="line">    <span class="type">BlockManagerId</span>(executorId, blockTransferService.hostName, blockTransferService.port, <span class="type">None</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> idFromMaster = master.registerBlockManager(</span><br><span class="line">    id,</span><br><span class="line">    maxOnHeapMemory,</span><br><span class="line">    maxOffHeapMemory,</span><br><span class="line">    slaveEndpoint)</span><br><span class="line"></span><br><span class="line">  blockManagerId = <span class="keyword">if</span> (idFromMaster != <span class="literal">null</span>) idFromMaster <span class="keyword">else</span> id</span><br><span class="line"></span><br><span class="line">  shuffleServerId = <span class="keyword">if</span> (externalShuffleServiceEnabled) &#123;</span><br><span class="line">    logInfo(<span class="string">s"external shuffle service port = <span class="subst">$externalShuffleServicePort</span>"</span>)</span><br><span class="line">    <span class="type">BlockManagerId</span>(executorId, blockTransferService.hostName, externalShuffleServicePort)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    blockManagerId</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Register Executors' configuration with the local shuffle service, if one should exist.</span></span><br><span class="line">  <span class="keyword">if</span> (externalShuffleServiceEnabled &amp;&amp; !blockManagerId.isDriver) &#123;</span><br><span class="line">    registerWithExternalShuffleServer()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  logInfo(<span class="string">s"Initialized BlockManager: <span class="subst">$blockManagerId</span>"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Put"><a class="header-anchor" href="#Put">¶</a>Put</h2>
+<p>block就是文件，所以只要有spark计算有写文件操作（内存和磁盘），那么就要用到 put。</p>
+<p>内容较多，我的学习目标是：先<strong>思考清楚spark计算流程</strong>，至于BlockManager内部弄明白<strong>调用流程和store的选择</strong>即可。能力有限，下面的方式并不是全部。</p>
+<h3 id="RDD-cache"><a class="header-anchor" href="#RDD-cache">¶</a>RDD cache</h3>
+<p>RDD 的缓存 参见我写的spark cache：第一次执行时，自然是存。并且存完后也要读，因为该函数就是要get，这里就不提读步骤。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下doPutIterator的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.putIteratorAsValues 注意</span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.putIteratorAsBytes  注意</span><br><span class="line">                 -<span class="literal">false</span>-&gt; diskStore.put</span><br><span class="line"><span class="comment">//注意： 当level为内存和磁盘时，会先存内存，内存不足再存磁盘</span></span><br></pre></td></tr></table></figure>
+<h3 id="Broadcast"><a class="header-anchor" href="#Broadcast">¶</a>Broadcast</h3>
+<p>广播变量的存储</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.writeBlocks -&gt; putSingle</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">putSingle -&gt; putIterator -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// doPutIterator 同理</span></span><br></pre></td></tr></table></figure>
+<h3 id="RDD-block-Replication"><a class="header-anchor" href="#RDD-block-Replication">¶</a>RDD block Replication</h3>
+<blockquote>
+<p>当RDD的storage level中的_replication大于1时，BlockManager需要将block数据发到另一个远程结点以备份，此时BlockManager会向远程结点发送UploadBlock消息，远程结点在收到该消息后会申请存储内存以存放收到的block数据。</p>
+</blockquote>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManage，分2类</span></span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receive -&gt; <span class="keyword">match</span> uploadBlock -&gt; putBlockData</span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receiveStream -&gt; putBlockDataAsStream</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">putBlockData -&gt; putBytes -&gt; doPutBytes -&gt; doPut</span><br><span class="line">putBlockDataAsStream -&gt; 吧啦吧啦的看不懂 -&gt; putBytes -&gt; doPutBytes -&gt; doPut</span><br><span class="line"></span><br><span class="line"><span class="comment">// doPutBytes 存储逻辑和 doPutIterator 基本一样</span></span><br><span class="line"><span class="comment">// 区别是 doPutIterator 输入是 Iterator[T]；doPutBytes 输入是 ChunkedByteBuffer，它需要先反序列化</span></span><br><span class="line"><span class="comment">// 分析：doPutIterator 是缓存步骤计算得到的自然是java对象； doPutBytes 是节点传自然是序列化的</span></span><br></pre></td></tr></table></figure>
+<h3 id="Shuffle-相关"><a class="header-anchor" href="#Shuffle-相关">¶</a>Shuffle 相关</h3>
+<p>Shuffle时有许多写磁盘的操作，它们都是使用了一个专门的直接将数据写入磁盘的类：</p>
+<p>DiskWriter：<code>DiskBlockObjectWriter</code>，而它通过BlockManaged得到。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getDiskWriter</span></span>(</span><br><span class="line">  blockId: <span class="type">BlockId</span>,</span><br><span class="line">  file: <span class="type">File</span>,</span><br><span class="line">  serializerInstance: <span class="type">SerializerInstance</span>,</span><br><span class="line">  bufferSize: <span class="type">Int</span>,</span><br><span class="line">  writeMetrics: <span class="type">ShuffleWriteMetrics</span>): <span class="type">DiskBlockObjectWriter</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> syncWrites = conf.getBoolean(<span class="string">"spark.shuffle.sync"</span>, <span class="literal">false</span>)</span><br><span class="line">  <span class="keyword">new</span> <span class="type">DiskBlockObjectWriter</span>(file, serializerManager, serializerInstance, bufferSize,</span><br><span class="line">                            syncWrites, writeMetrics, blockId)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 通用流程</span></span><br><span class="line"><span class="comment">// 1. 得到 DiskWriter</span></span><br><span class="line"><span class="keyword">val</span> writer = blockManager.getDiskWriter(xxx)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 将数据写入DiskWriter</span></span><br><span class="line">writer.write(xxx)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 提交并返回偏移和大小</span></span><br><span class="line"><span class="keyword">val</span> fileSegment = writer.commitAndGet()</span><br></pre></td></tr></table></figure>
+<p>主要有下列情况</p>
+<ul>
+<li>
+<p><strong>ShuffleSpill</strong>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
+</li>
+<li>
+<p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/" target="_blank" rel="noopener">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
+</li>
+<li>
+<p><strong>ShuffleWrite</strong>生成的合并大文件：BlockId：<code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code></p>
+</li>
+</ul>
+<h2 id="get"><a class="header-anchor" href="#get">¶</a>get</h2>
+<p>有写就有读，与写不同的是：<strong>写只能写本地，读可以读本地和远程</strong>，这个我想应该很好理解。</p>
+<h3 id="RDD-cache-v2"><a class="header-anchor" href="#RDD-cache-v2">¶</a>RDD cache</h3>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; get -&gt; getLocalValues</span><br><span class="line">											 -&gt; getRemoteValues -&gt; getRemoteBytes -&gt; 反序列</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下 getLocalValues 的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.getValues </span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.getBytes  -&gt; 反序列</span><br><span class="line">                 -<span class="literal">false</span>-&gt; level.useDisk      -<span class="literal">true</span>--&gt; diskStore.getBytes    -&gt; 反序列</span><br></pre></td></tr></table></figure>
+<h3 id="Broadcast-v2"><a class="header-anchor" href="#Broadcast-v2">¶</a>Broadcast</h3>
+<p>广播变量的读取比较简单</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.readBroadcastBlock -&gt; getLocalValues</span><br></pre></td></tr></table></figure>
+<h3 id="RDD-block-Replication-v2"><a class="header-anchor" href="#RDD-block-Replication-v2">¶</a>RDD block Replication</h3>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManage，只有一类</span></span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receive -&gt; <span class="keyword">match</span> openBlocks -&gt; getBlockData</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getBlockData -&gt; getLocalBytes</span><br></pre></td></tr></table></figure>
+<h3 id="Shuffle-相关-v2"><a class="header-anchor" href="#Shuffle-相关-v2">¶</a>Shuffle 相关</h3>
+<p>shuffle read 阶段：<code>BlockStoreShuffleReader</code> 核心是<code>ShuffleBlockFetcherIterator</code></p>
+<p>现在可以理解它们名字的含义了，就是去fetch write阶段写下的block，</p>
+<p>分本地<code>localBlocks</code> 和远程  <code>remoteBlocks</code></p>
+<p>这部分内容较复杂，需结合rpc，先pass</p>
+<h1>小结</h1>
+<p>BlockManager 块管理者，使用它时，直接get、put即可；而之前对其底层结构的了解这一过程还是很有意思的，同时使我对spark有了更深的认识。</p>
+<p>至此，spark文件系统告一段落，以后学了rpc再回来看文件系统的rpc。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>spark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark源码-cache和persist</title>
+    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/</url>
+    <content><![CDATA[<h1>简介</h1>
+<p>复杂的任务中，某个中间转换结果可能会被多次调用，此时可以使用 spark 的缓存功能，将计算的中间过程缓存在内存或者磁盘中，以便再次使用，减少不必要的计算。</p>
+<a id="more"></a>
+<h1>特点</h1>
+<ul>
+<li>懒加载，只有RDD触发action时才会进行计算并且缓存</li>
+<li>5个参数控制存储级别：是否用内存缓存、 是否用磁盘缓存、是否用堆外内存缓存、是否序列化、缓存个数</li>
+<li>cache() 是 persist() 也是 persist(StorageLevel.MEMORY_ONLY)</li>
+<li>api:   <code>rdd.cache()</code> or <code>rdd.persist()</code>、<code>rdd.unpersist()</code>、<code>sc.getPersistentRDDs</code></li>
+</ul>
+<p>接着，以MEMORY_ONLY模式为例，从源码中验证这一切，同时加深对 <strong>spark内存管理</strong> 的理解</p>
+<h1>流程</h1>
+<h2 id="cache-or-persist-…"><a class="header-anchor" href="#cache-or-persist-…">¶</a>cache() or persist(…)</h2>
+<p>解决一个疑问：<code>rdd1.cache()  rdd1 -&gt; rdd2 rdd2.cahce()</code> ，此时 rdd1 和 rdd2 都会被缓存</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// cache() 等同于 persist() 等同于 persist(StorageLevel.MEMORY_ONLY) ，也就是仅缓存于存储内存中。</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cache</span></span>(): <span class="keyword">this</span>.<span class="keyword">type</span> = persist()</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(): <span class="keyword">this</span>.<span class="keyword">type</span> = persist(<span class="type">StorageLevel</span>.<span class="type">MEMORY_ONLY</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 缓存级别，由5个参数组成</span></span><br><span class="line"><span class="keyword">new</span> <span class="type">StorageLevel</span>(useDisk, useMemory, useOffHeap, deserialized, replication))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(newLevel: <span class="type">StorageLevel</span>): <span class="keyword">this</span>.<span class="keyword">type</span> = &#123;</span><br><span class="line">  <span class="comment">// isLocallyCheckpointed 方法 判断该RDD是否已经标记为 checkpoint，注意不是cache</span></span><br><span class="line">  <span class="keyword">if</span> (isLocallyCheckpointed) &#123;</span><br><span class="line">    persist(<span class="type">LocalRDDCheckpointData</span>.transformStorageLevel(newLevel), allowOverride = <span class="literal">true</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    persist(newLevel, allowOverride = <span class="literal">false</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(newLevel: <span class="type">StorageLevel</span>, allowOverride: <span class="type">Boolean</span>): <span class="keyword">this</span>.<span class="keyword">type</span> = &#123;</span><br><span class="line">  <span class="comment">// 可以发现当前版本并不支持改变已缓存 RDD 的 StorageLevel (注意RDD1转成RDD2后自然可以改变)</span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span> &amp;&amp; newLevel != storageLevel &amp;&amp; !allowOverride) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">UnsupportedOperationException</span>(</span><br><span class="line">      <span class="string">"Cannot change storage level of an RDD after it was already assigned a level"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 仅第一次缓存时触发 </span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel == <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">    sc.cleaner.foreach(_.registerRDDForCleanup(<span class="keyword">this</span>)) <span class="comment">// 用于 cleanups</span></span><br><span class="line">    <span class="comment">// 写入 persistentRdds，它是一个map（rdd.id, rdd），可调用 sc.getPersistentRDDs 得到</span></span><br><span class="line">    sc.persistRDD(<span class="keyword">this</span>) </span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 设置 storageLevel，之前默认为StorageLevel.NONE</span></span><br><span class="line">  storageLevel = newLevel</span><br><span class="line">  <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="getOrCompute-…"><a class="header-anchor" href="#getOrCompute-…">¶</a>getOrCompute(…)</h2>
+<p>cache() 给 RDD埋了一个属性<code>storageLevel</code>，只有执行行动操作才会真正执行缓存</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// RDD的iterator，由于RDD本身懒加载，只要行动操作才会执行</span></span><br><span class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">iterator</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] = &#123;</span><br><span class="line">  <span class="comment">// 计算前先检查 storageLevel 是否不为NONE</span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">    getOrCompute(split, context) <span class="comment">// 核心</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    computeOrReadCheckpoint(split, context)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>[spark] <span class="function"><span class="keyword">def</span> <span class="title">getOrCompute</span></span>(partition: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] = &#123;</span><br><span class="line">  <span class="keyword">val</span> blockId = <span class="type">RDDBlockId</span>(id, partition.index)</span><br><span class="line">  <span class="keyword">var</span> readCachedBlock = <span class="literal">true</span></span><br><span class="line">  <span class="comment">// 调用blockManager 的 getOrElseUpdate方法，取出或者生成该blockId对应的block数据，返回blockResult</span></span><br><span class="line">  <span class="type">SparkEnv</span>.get.blockManager.getOrElseUpdate(blockId, storageLevel, elementClassTag, () =&gt; &#123;</span><br><span class="line">    <span class="comment">// 该函数变量仅生成block时执行</span></span><br><span class="line">    readCachedBlock = <span class="literal">false</span></span><br><span class="line">    computeOrReadCheckpoint(partition, context)</span><br><span class="line">  &#125;) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Left</span>(blockResult) =&gt;</span><br><span class="line">    <span class="comment">// 读 cache ：会计数</span></span><br><span class="line">    <span class="keyword">if</span> (readCachedBlock) &#123;</span><br><span class="line">      <span class="keyword">val</span> existingMetrics = context.taskMetrics().inputMetrics</span><br><span class="line">      existingMetrics.incBytesRead(blockResult.bytes)</span><br><span class="line">      <span class="comment">// blockResul.data 得到迭代器，封装成 InterruptibleIterator，结束！</span></span><br><span class="line">      <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>[<span class="type">T</span>](context, blockResult.data.asInstanceOf[<span class="type">Iterator</span>[<span class="type">T</span>]]) &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">next</span></span>(): <span class="type">T</span> = &#123;</span><br><span class="line">          existingMetrics.incRecordsRead(<span class="number">1</span>)</span><br><span class="line">          delegate.next()</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 生成 cache：compute 内有自己的计数，这里就不用处理</span></span><br><span class="line">      <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>(context, blockResult.data.asInstanceOf[<span class="type">Iterator</span>[<span class="type">T</span>]])</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Right</span>(iter) =&gt;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>(context, iter.asInstanceOf[<span class="type">Iterator</span>[<span class="type">T</span>]])</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="getOrElseUpdate-…"><a class="header-anchor" href="#getOrElseUpdate-…">¶</a>getOrElseUpdate(…)</h2>
+<p><code>getOrElseUpdate</code> 是<code>BlockManager </code>中的方法</p>
+<p>函数参数<code>makeIterator</code>就是我们的<code>computeOrReadCheckpoint</code>方法</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getOrElseUpdate</span></span>[<span class="type">T</span>](</span><br><span class="line">    blockId: <span class="type">BlockId</span>,</span><br><span class="line">    level: <span class="type">StorageLevel</span>,</span><br><span class="line">    classTag: <span class="type">ClassTag</span>[<span class="type">T</span>],</span><br><span class="line">    makeIterator: () =&gt; <span class="type">Iterator</span>[<span class="type">T</span>]): <span class="type">Either</span>[<span class="type">BlockResult</span>, <span class="type">Iterator</span>[<span class="type">T</span>]] = &#123;</span><br><span class="line">  <span class="comment">// 调用 get[T](blockId) 方法，从各种 store 中找该 block</span></span><br><span class="line">  get[<span class="type">T</span>](blockId)(classTag) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="comment">// 找到了表明有缓存，直接返回找到的 BlockResult</span></span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(block) =&gt;</span><br><span class="line">      <span class="keyword">return</span> <span class="type">Left</span>(block)</span><br><span class="line">    <span class="keyword">case</span> _ =&gt;</span><br><span class="line">      <span class="comment">// 没缓存，继续执行下一步</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// Initially we hold no locks on this block.</span></span><br><span class="line">  <span class="comment">// 调用 doPutIterator，将 makeIterator 计算的结果存入Block（逻辑概念）中（其实是存入各种store中）</span></span><br><span class="line">  <span class="comment">// 写数据时加 读锁</span></span><br><span class="line">  doPutIterator(blockId, makeIterator, level, classTag, keepReadLock = <span class="literal">true</span>) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt;</span><br><span class="line">      <span class="comment">// doPut() 正常情况返回None，接着调用 getLocalValues 读取刚写的 block，返回 blockResult</span></span><br><span class="line">      <span class="keyword">val</span> blockResult = getLocalValues(blockId).getOrElse &#123;</span><br><span class="line">        releaseLock(blockId)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">SparkException</span>(<span class="string">s"get() failed for block <span class="subst">$blockId</span> even though we held a lock"</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 放锁</span></span><br><span class="line">      releaseLock(blockId)</span><br><span class="line">      <span class="type">Left</span>(blockResult)</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(iter) =&gt;</span><br><span class="line">     <span class="type">Right</span>(iter)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>补充</h1>
+<h2 id="persistentRdds"><a class="header-anchor" href="#persistentRdds">¶</a>persistentRdds</h2>
+<p>一个map ：key 为 <a href="http://rdd.id" target="_blank" rel="noopener">rdd.id</a> ，value 为 rdd</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="keyword">val</span> persistentRdds = &#123;</span><br><span class="line">    <span class="keyword">val</span> map: <span class="type">ConcurrentMap</span>[<span class="type">Int</span>, <span class="type">RDD</span>[_]] = <span class="keyword">new</span> <span class="type">MapMaker</span>().weakValues().makeMap[<span class="type">Int</span>, <span class="type">RDD</span>[_]]()</span><br><span class="line">    map.asScala</span><br><span class="line">  &#125;</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getPersistentRDDs</span></span>: <span class="type">Map</span>[<span class="type">Int</span>, <span class="type">RDD</span>[_]] = persistentRdds.toMap</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用户使用该方法得到它</span></span><br><span class="line"><span class="keyword">val</span> ds: collection.<span class="type">Map</span>[<span class="type">Int</span>, <span class="type">RDD</span>[_]] = sc.getPersistentRDDs</span><br></pre></td></tr></table></figure>
+<h2 id="unpersist"><a class="header-anchor" href="#unpersist">¶</a>unpersist()</h2>
+<p>取消缓存</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="function"><span class="keyword">def</span> <span class="title">unpersistRDD</span></span>(rddId: <span class="type">Int</span>, blocking: <span class="type">Boolean</span> = <span class="literal">true</span>) &#123;</span><br><span class="line">  <span class="comment">// 通知blockManager删掉属于该RDD的全部block</span></span><br><span class="line">  env.blockManager.master.removeRdd(rddId, blocking)</span><br><span class="line">  <span class="comment">// 从map中移掉它</span></span><br><span class="line">  persistentRdds.remove(rddId)</span><br><span class="line">  listenerBus.post(<span class="type">SparkListenerUnpersistRDD</span>(rddId))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>小结</h1>
+<p>当你对spark的存储有一点理解时，本节相对简单。缓存就是将RDD的<code>storageLevel</code>属性改写，并把该RDD加入<code>persistentRdds</code>这个map中。当执行到<code>iterator</code>时触发，如果没有缓存过，则进行计算并写入BLock中，有缓存直接从BLock中提取即可。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>spark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark源码-block</title>
+    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-block/</url>
+    <content><![CDATA[<p><strong>首先明确spark有个自己文件系统，block就是里面的一个文件</strong>。如：缓存后<strong>的RDD的一个分区是一个block；计算产生的</strong>临时文件<strong>也是block</strong>。<strong>任何你要存的东西都是block</strong>。</p>
+<p>因此既然它是文件，它就有<strong>文件名</strong>、<strong>元信息</strong>、<strong>锁</strong>、<strong>数据</strong>，理解它们，你就理解了block！</p>
+<a id="more"></a>
+<h1>BlockId</h1>
+<p>每个Block都有个ID与之一一对应，这个<strong>BlockId也就是该文件的文件名</strong></p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BlockId</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">name</span></span>: <span class="type">String</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// RDDBlockId、ShuffleBlockId什么的都是它的子类</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">asRDDId</span></span>: <span class="type">Option</span>[<span class="type">RDDBlockId</span>] = <span class="keyword">if</span> (isRDD) <span class="type">Some</span>(asInstanceOf[<span class="type">RDDBlockId</span>]) <span class="keyword">else</span> <span class="type">None</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">isRDD</span></span>: <span class="type">Boolean</span> = isInstanceOf[<span class="type">RDDBlockId</span>]</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">isShuffle</span></span>: <span class="type">Boolean</span> = isInstanceOf[<span class="type">ShuffleBlockId</span>]</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">isBroadcast</span></span>: <span class="type">Boolean</span> = isInstanceOf[<span class="type">BroadcastBlockId</span>]</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span></span>: <span class="type">String</span> = name</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>理解了取名的规则，你就对spark的计算流程理解了。例如：</p>
+<p>todo：理解剩余的 BlockId</p>
+<p><strong>普通RDD</strong>：</p>
+<ul>
+<li>RDDBlockId <code>&quot;rdd_&quot; + rddId + &quot;_&quot; + splitIndex</code></li>
+</ul>
+<p>简单的按 rddId 和 分区ID 划分</p>
+<p><strong>Shuffle过程</strong>：</p>
+<ul>
+<li>ShuffleBlockId <code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code></li>
+<li>ShuffleDataBlockId <code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId + &quot;.data&quot;</code></li>
+<li>ShuffleIndexBlockId <code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId + &quot;.index&quot;</code></li>
+</ul>
+<p><strong>ShuffleBlockId 就是ShuffleWrite时单个task生成的那个大文件，ShuffleDataBlockId是这个大文件的临时叫法，ShuffleIndexBlockId是索引文件</strong>。而它们由<strong>shuffleId、mapId、reduceId</strong> 3者共同确定。</p>
+<p>注意：<strong>reduceId是0（<code>NOOP_REDUCE_ID</code>）</strong>，因为<strong>SortShuffle最后生成的是1个大文件</strong>，所以这个reduceid没什么软用。理解清楚SortShuffleManager和被淘汰的HashShuffleManager的区别，骚年。</p>
+<p><strong>临时文件</strong>：</p>
+<ul>
+<li>
+<p>TempLocalBlockId <code>temp_local_ + “randomUUID”</code></p>
+</li>
+<li>
+<p>TempShuffleBlockId <code>temp_shuffle_ + “randomUUID”</code></p>
+</li>
+</ul>
+<p><strong>TempLocalBlockId是本地计算中间临时文件</strong></p>
+<p><strong>TempShuffleBlockId是shuffle计算中间临时文件</strong>：1、BypassShuffle 单分区临时文件；2、shuffle排序时如果内存不够发生spill到磁盘的文件。</p>
+<h1>BlockInfo</h1>
+<p>block的元信息如下</p>
+<p>构造参数：</p>
+<ul>
+<li><strong>StorageLevel</strong>：存储等级</li>
+<li><strong>classTag</strong>：类名，用于序列化需求</li>
+<li><strong>tellMaster</strong>：是否需要通知master block改变，大多数都要，但是broadcast blocks不用</li>
+</ul>
+<p>内部属性（可get、set）后面两参数用于实现锁机制：</p>
+<ul>
+<li><strong>size</strong>: block的大小（bytes）</li>
+<li><strong>readerCount</strong>： 目前有多少个Task在读它</li>
+<li><strong>writerTask</strong>：<strong>持有该块写锁的Task ID</strong>。默认值：BlockInfo.NO_WRITER，代表没有人写</li>
+</ul>
+<p>在set值后，会调用checkInvariants方法，检查值是否合格。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">checkInvariants</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="comment">// 可多人读</span></span><br><span class="line">  assert(_readerCount &gt;= <span class="number">0</span>)</span><br><span class="line">  <span class="comment">// 读写互斥</span></span><br><span class="line">  assert(_readerCount == <span class="number">0</span> || _writerTask == <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>BlockInfoManager</h1>
+<p>它用于控制块的元信息，以<strong>实现块的锁机制</strong>，一个经典的文件读写锁机制。</p>
+<p>需求：</p>
+<ul>
+<li>同一个文件可以多个人读，前提没人写；且读锁可重入</li>
+<li>只能有一个人写文件，且没人读 ；且写锁不可重入</li>
+<li>当拿不到锁，可以选择一直等待（实现方法：拿不到锁wait，放锁notify）</li>
+</ul>
+<h2 id="成员"><a class="header-anchor" href="#成员">¶</a>成员</h2>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 换个别名</span></span><br><span class="line"><span class="comment">// 理解：一个task一个线程，锁的就它</span></span><br><span class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">type</span> <span class="title">TaskAttemptId</span> </span>= <span class="type">Long</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockId 和 BlockInfo的映射</span></span><br><span class="line"><span class="meta">@GuardedBy</span>(<span class="string">"this"</span>)</span><br><span class="line"><span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span> infos = <span class="keyword">new</span> mutable.<span class="type">HashMap</span>[<span class="type">BlockId</span>, <span class="type">BlockInfo</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">// 任务ID 和 它拥有的写锁</span></span><br><span class="line"><span class="meta">@GuardedBy</span>(<span class="string">"this"</span>)</span><br><span class="line"><span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span> writeLocksByTask =</span><br><span class="line"><span class="keyword">new</span> mutable.<span class="type">HashMap</span>[<span class="type">TaskAttemptId</span>, mutable.<span class="type">Set</span>[<span class="type">BlockId</span>]]</span><br><span class="line"><span class="keyword">with</span> mutable.<span class="type">MultiMap</span>[<span class="type">TaskAttemptId</span>, <span class="type">BlockId</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">// 任务ID 和 它拥有的读锁</span></span><br><span class="line"><span class="meta">@GuardedBy</span>(<span class="string">"this"</span>)</span><br><span class="line"><span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span> readLocksByTask =</span><br><span class="line"><span class="keyword">new</span> mutable.<span class="type">HashMap</span>[<span class="type">TaskAttemptId</span>, <span class="type">ConcurrentHashMultiset</span>[<span class="type">BlockId</span>]]</span><br></pre></td></tr></table></figure>
+<p>writeLocksByTask的数据结构的写法真是<a href="https://www.scala-lang.org/api/current/scala/collection/mutable/MultiMap.html" target="_blank" rel="noopener">活久见</a>，使用<strong>有重复值的set</strong>实现<strong>可重入锁</strong>。</p>
+<h2 id="难点方法"><a class="header-anchor" href="#难点方法">¶</a>难点方法</h2>
+<h3 id="registerTask"><a class="header-anchor" href="#registerTask">¶</a>registerTask</h3>
+<p>给<code>readLocksByTask</code>添加映射，值自然是空的</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">registerTask</span></span>(taskAttemptId: <span class="type">TaskAttemptId</span>): <span class="type">Unit</span> = synchronized &#123;</span><br><span class="line">  require(!readLocksByTask.contains(taskAttemptId),</span><br><span class="line">          <span class="string">s"Task attempt <span class="subst">$taskAttemptId</span> is already registered"</span>)</span><br><span class="line">  readLocksByTask(taskAttemptId) = <span class="type">ConcurrentHashMultiset</span>.create()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意一个特殊的TaskId: <code>NON_TASK_WRITER</code>，它在<strong>BlockInfoManager初始化时被注册</strong>，非任务线程，如driver线程。</p>
+<h3 id="lockNewBlockForWriting"><a class="header-anchor" href="#lockNewBlockForWriting">¶</a>lockNewBlockForWriting</h3>
+<p>创建新的block时，自然需要<strong>加写锁</strong>，它用到了<code>lockForReading</code>和<code>lockForWriting</code></p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">lockNewBlockForWriting</span></span>(</span><br><span class="line">  blockId: <span class="type">BlockId</span>,</span><br><span class="line">  newBlockInfo: <span class="type">BlockInfo</span>): <span class="type">Boolean</span> = synchronized &#123;</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> trying to put <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="comment">// 由于有多线程的存在不能直接执行操作，而是先判断读锁，防止别的兄弟先一步已经lockNewBlockForWriting了</span></span><br><span class="line">  lockForReading(blockId) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(info) =&gt;</span><br><span class="line">    <span class="literal">false</span></span><br><span class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt;</span><br><span class="line">    <span class="comment">// 给 infos 加映射</span></span><br><span class="line">    infos(blockId) = newBlockInfo</span><br><span class="line">    <span class="comment">// 上写锁</span></span><br><span class="line">    lockForWriting(blockId)</span><br><span class="line">    <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="lockForWriting"><a class="header-anchor" href="#lockForWriting">¶</a>lockForWriting</h3>
+<p>加写锁</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">lockForWriting</span></span>(</span><br><span class="line">    blockId: <span class="type">BlockId</span>,</span><br><span class="line">    blocking: <span class="type">Boolean</span> = <span class="literal">true</span>): <span class="type">Option</span>[<span class="type">BlockInfo</span>] = synchronized &#123;</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> trying to acquire write lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  do &#123;</span><br><span class="line">    infos.get(blockId) <span class="keyword">match</span> &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="keyword">return</span> <span class="type">None</span></span><br><span class="line">      <span class="keyword">case</span> <span class="type">Some</span>(info) =&gt;</span><br><span class="line">      	<span class="comment">// 当该block没有人读，且没有人写时才能锁它，并返回</span></span><br><span class="line">        <span class="keyword">if</span> (info.writerTask == <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span> &amp;&amp; info.readerCount == <span class="number">0</span>) &#123;</span><br><span class="line">          info.writerTask = currentTaskAttemptId</span><br><span class="line">          writeLocksByTask.addBinding(currentTaskAttemptId, blockId)</span><br><span class="line">          logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> acquired write lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">          <span class="keyword">return</span> <span class="type">Some</span>(info)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果之前没拿到锁，就wait()，blocking控制是否等待</span></span><br><span class="line">    <span class="keyword">if</span> (blocking) &#123;</span><br><span class="line">      wait()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">while</span> (blocking)</span><br><span class="line">  <span class="type">None</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="lockForReading"><a class="header-anchor" href="#lockForReading">¶</a>lockForReading</h3>
+<p>加读锁</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">lockForReading</span></span>(</span><br><span class="line">  blockId: <span class="type">BlockId</span>,</span><br><span class="line">  blocking: <span class="type">Boolean</span> = <span class="literal">true</span>): <span class="type">Option</span>[<span class="type">BlockInfo</span>] = synchronized &#123;</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> trying to acquire read lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  do &#123;</span><br><span class="line">    infos.get(blockId) <span class="keyword">match</span> &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="keyword">return</span> <span class="type">None</span></span><br><span class="line">      <span class="keyword">case</span> <span class="type">Some</span>(info) =&gt;</span><br><span class="line">      <span class="comment">// 没有人写，即可加读锁，并返回</span></span><br><span class="line">      <span class="keyword">if</span> (info.writerTask == <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span>) &#123;</span><br><span class="line">        info.readerCount += <span class="number">1</span></span><br><span class="line">        readLocksByTask(currentTaskAttemptId).add(blockId)</span><br><span class="line">        logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> acquired read lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="type">Some</span>(info)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 同上</span></span><br><span class="line">    <span class="keyword">if</span> (blocking) &#123;</span><br><span class="line">      wait()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">while</span> (blocking)</span><br><span class="line">  <span class="type">None</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="unlock"><a class="header-anchor" href="#unlock">¶</a>unlock</h3>
+<p>放锁</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">unlock</span></span>(blockId: <span class="type">BlockId</span>, taskAttemptId: <span class="type">Option</span>[<span class="type">TaskAttemptId</span>] = <span class="type">None</span>): <span class="type">Unit</span> = synchronized &#123;</span><br><span class="line">  <span class="keyword">val</span> taskId = taskAttemptId.getOrElse(currentTaskAttemptId)</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$taskId</span> releasing lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="keyword">val</span> info = get(blockId).getOrElse &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">s"Block <span class="subst">$blockId</span> not found"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 放写锁</span></span><br><span class="line">  <span class="keyword">if</span> (info.writerTask != <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span>) &#123;</span><br><span class="line">    info.writerTask = <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span></span><br><span class="line">    writeLocksByTask.removeBinding(taskId, blockId)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    assert(info.readerCount &gt; <span class="number">0</span>, <span class="string">s"Block <span class="subst">$blockId</span> is not locked for reading"</span>)</span><br><span class="line">    <span class="comment">// 放读锁</span></span><br><span class="line">    info.readerCount -= <span class="number">1</span></span><br><span class="line">    <span class="keyword">val</span> countsForTask = readLocksByTask(taskId)</span><br><span class="line">    <span class="comment">// remove(blockId, n) 删除重复set中指定元素 n 个 。此处自然只删一个</span></span><br><span class="line">    <span class="keyword">val</span> newPinCountForTask: <span class="type">Int</span> = countsForTask.remove(blockId, <span class="number">1</span>) - <span class="number">1</span></span><br><span class="line">    assert(newPinCountForTask &gt;= <span class="number">0</span>,</span><br><span class="line">      <span class="string">s"Task <span class="subst">$taskId</span> release lock on block <span class="subst">$blockId</span> more times than it acquired it"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  notifyAll()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="downgradeLock"><a class="header-anchor" href="#downgradeLock">¶</a>downgradeLock</h3>
+<p>由写锁降为读锁。todo：了解这玩意有啥用</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">downgradeLock</span></span>(blockId: <span class="type">BlockId</span>): <span class="type">Unit</span> = synchronized &#123;</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> downgrading write lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="keyword">val</span> info = get(blockId).get</span><br><span class="line">  require(info.writerTask == currentTaskAttemptId,</span><br><span class="line">    <span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> tried to downgrade a write lock that it does not hold on"</span> +</span><br><span class="line">      <span class="string">s" block <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="comment">// 放锁</span></span><br><span class="line">  unlock(blockId)</span><br><span class="line">  <span class="comment">// 加读锁，注意blocking为false</span></span><br><span class="line">  <span class="keyword">val</span> lockOutcome = lockForReading(blockId, blocking = <span class="literal">false</span>)</span><br><span class="line">  assert(lockOutcome.isDefined)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>BlockResult</h1>
+<p>调用 <code>getLocalValues(blockId)</code> 或者 <code>getRemoteValues(blockId)</code> 时，以java对象的形式返回block。</p>
+<p>注意，<strong>数据是存在store中的</strong>，如<code>memoryStore</code>，调它的API取出数据封装成BlockResult。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="class"><span class="keyword">class</span> <span class="title">BlockResult</span>(<span class="params"></span></span></span><br><span class="line"><span class="class"><span class="params">    val data: <span class="type">Iterator</span>[<span class="type">Any</span>],    // 数据，从memoryStore中取出</span></span></span><br><span class="line"><span class="class"><span class="params">    val readMethod: <span class="type">DataReadMethod</span>.<span class="type">Value</span>, // <span class="type">Memory</span>, <span class="type">Disk</span>, <span class="type">Hadoop</span>, <span class="type">Network</span></span></span></span><br><span class="line"><span class="class"><span class="params">    val bytes: <span class="type">Long</span></span>)            <span class="title">//</span> <span class="title">大小，从info中取出</span></span></span><br></pre></td></tr></table></figure>
+<h1>BlockData</h1>
+<p>调用 <code>getLocalBytes(blockId)</code> 或者 <code>getRemoteBytes(blockId)</code> 时，以序列化字节的形式返回block。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="class"><span class="keyword">trait</span> <span class="title">BlockData</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">toInputStream</span></span>(): <span class="type">InputStream</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">toNetty</span></span>(): <span class="type">Object</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">toChunkedByteBuffer</span></span>(allocator: <span class="type">Int</span> =&gt; <span class="type">ByteBuffer</span>): <span class="type">ChunkedByteBuffer</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">toByteBuffer</span></span>(): <span class="type">ByteBuffer</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">size</span></span>: <span class="type">Long</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">dispose</span></span>(): <span class="type">Unit</span>   <span class="comment">// 多了一个销毁</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>它有3个实现类，<code>ByteBufferBlockData</code>、<code>DiskBlockData</code>，以及<code>EncryptedBlockData</code>。</p>
+<p>以<code>ByteBufferBlockData</code>为例：</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="class"><span class="keyword">class</span> <span class="title">ByteBufferBlockData</span>(<span class="params"></span></span></span><br><span class="line"><span class="class"><span class="params">    val buffer: <span class="type">ChunkedByteBuffer</span>,     // 数据，从memoryStore中取出</span></span></span><br><span class="line"><span class="class"><span class="params">    val shouldDispose: <span class="type">Boolean</span></span>) <span class="keyword">extends</span> <span class="title">BlockData</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 下面4个是选择以什么形式提取</span></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toInputStream</span></span>(): <span class="type">InputStream</span> = buffer.toInputStream(dispose = <span class="literal">false</span>)</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toNetty</span></span>(): <span class="type">Object</span> = buffer.toNetty</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toChunkedByteBuffer</span></span>(allocator: <span class="type">Int</span> =&gt; <span class="type">ByteBuffer</span>): <span class="type">ChunkedByteBuffer</span> = &#123;</span><br><span class="line">    buffer.copy(allocator)&#125;</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toByteBuffer</span></span>(): <span class="type">ByteBuffer</span> = buffer.toByteBuffer</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">size</span></span>: <span class="type">Long</span> = buffer.size</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">dispose</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">    <span class="keyword">if</span> (shouldDispose) &#123;</span><br><span class="line">      buffer.dispose()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>小结</h1>
+<p>我觉得对Block的认识<strong>非常非常重要</strong>，它是spark内部文件系统的基石。</p>
+<p>对知识梳理一波：</p>
+<p>Store：真正存数据，如MemoryStore、DiskStore</p>
+<p>MemoryManager: 划分内存</p>
+<p>Block：文件，有<strong>文件名</strong>（blockId）、<strong>元信息</strong>(blockInfo)、<strong>锁</strong>(blockInfoManager)、<strong>数据</strong>（从Store中取）</p>
+<p>BlockManager：对Block进行管理（下一节）</p>
+<p>RPC：各种master、manager（以后再学）</p>
+<p>这当真是一个完整的<strong>分布式多人文件系统</strong>！</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>spark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark源码-DiskBlockManager和DiskStore</title>
+    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-DiskBlockManager%E5%92%8CDiskStore/</url>
+    <content><![CDATA[<h1>DiskBlockManager</h1>
+<p>建立BlockID和磁盘中真实文件的一一映射，同时负责创建文件夹与删除文件夹</p>
+<a id="more"></a>
+<h2 id="成员"><a class="header-anchor" href="#成员">¶</a>成员</h2>
+<ul>
+<li>
+<p>subDirsPerLocalDir：每个LOCAL_DIRS下目录的最大个数，<code>spark.diskStore.subDirectories</code>（默认64）</p>
+</li>
+<li>
+<p>localDirs：本地目录数组，由<code>createLocalDirs()</code>创建。</p>
+</li>
+<li>
+<p>subDirs：2维数组<code>[localDirs个数][subDirsPerLocalDir 64]</code>，相当于人为把上面的目录按hash散列开，2级目录用于防止出现顶层inodes个数过多。（block文件就在该目录下）</p>
+</li>
+</ul>
+<p>下面以我的spark on yarn集群为例：</p>
+<p>localDirs ：<code>root + &quot;blockmgr&quot; + &quot;-&quot; + UUID.randomUUID</code>，其中 root 由<code>spark.local.dir</code>指定（可多个），默认是 <code>/tmp</code>。总算知道这玩意是干嘛的了，很明显该目录对应的<strong>磁盘对性能要求高！</strong></p>
+<p>subDirs：可以看到散列了5个子文件夹</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[xxx tmp]$ tree ./blockmgr*</span><br><span class="line">./blockmgr-37c233af-359c-4bcd-8dcc-5f216e55ce7d</span><br><span class="line">├── 0c</span><br><span class="line">├── 0d</span><br><span class="line">├── 0e</span><br><span class="line">├── 11</span><br><span class="line">└── 13</span><br></pre></td></tr></table></figure>
+<ul>
+<li>shutdownHook：给<code>ShutdownHookManager</code>添加一个钩子，调用doStop，递归删除localDirs下的文件</li>
+</ul>
+<h2 id="难点方法"><a class="header-anchor" href="#难点方法">¶</a>难点方法</h2>
+<h3 id="getFile"><a class="header-anchor" href="#getFile">¶</a>getFile</h3>
+<p>根据名字或者blockID返回磁盘中的File(subDir, filename)，如果没有就创建</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getFile</span></span>(filename: <span class="type">String</span>): <span class="type">File</span> = &#123;</span><br><span class="line">  <span class="comment">// 先hash取余 dirId， 再hash取余 subDirId</span></span><br><span class="line">  <span class="keyword">val</span> hash = <span class="type">Utils</span>.nonNegativeHash(filename)</span><br><span class="line">  <span class="keyword">val</span> dirId = hash % localDirs.length</span><br><span class="line">  <span class="keyword">val</span> subDirId = (hash / localDirs.length) % subDirsPerLocalDir</span><br><span class="line">  <span class="comment">// 如果</span></span><br><span class="line">  <span class="keyword">val</span> subDir = subDirs(dirId).synchronized &#123;</span><br><span class="line">    <span class="keyword">val</span> old = subDirs(dirId)(subDirId)</span><br><span class="line">    <span class="keyword">if</span> (old != <span class="literal">null</span>) &#123;</span><br><span class="line">      old</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 子目录格式：16进制2位符</span></span><br><span class="line">      <span class="keyword">val</span> newDir = <span class="keyword">new</span> <span class="type">File</span>(localDirs(dirId), <span class="string">"%02x"</span>.format(subDirId))</span><br><span class="line">      <span class="keyword">if</span> (!newDir.exists() &amp;&amp; !newDir.mkdir()) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IOException</span>(<span class="string">s"Failed to create local dir in <span class="subst">$newDir</span>."</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      subDirs(dirId)(subDirId) = newDir</span><br><span class="line">      newDir</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">new</span> <span class="type">File</span>(subDir, filename)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getFile</span></span>(blockId: <span class="type">BlockId</span>): <span class="type">File</span> = getFile(blockId.name)</span><br></pre></td></tr></table></figure>
+<h3 id="createTempXXXBlock"><a class="header-anchor" href="#createTempXXXBlock">¶</a>createTempXXXBlock</h3>
+<ul>
+<li>
+<p><code>createTempLocalBlock</code>：创建存放本地计算中间临时文件的Block</p>
+<p>blockId =  temp_local_ + “randomUUID”</p>
+</li>
+<li>
+<p><code>createTempShuffleBlock</code>：创建存放shuffle计算中间临时文件（如shuffle排序内存不够发生spill）的Block，blockId =  temp_shuffle_ + “randomUUID”</p>
+</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">createTempLocalBlock</span></span>(): (<span class="type">TempLocalBlockId</span>, <span class="type">File</span>) = &#123;</span><br><span class="line">  <span class="keyword">var</span> blockId = <span class="keyword">new</span> <span class="type">TempLocalBlockId</span>(<span class="type">UUID</span>.randomUUID())</span><br><span class="line">  <span class="keyword">while</span> (getFile(blockId).exists()) &#123;</span><br><span class="line">    blockId = <span class="keyword">new</span> <span class="type">TempLocalBlockId</span>(<span class="type">UUID</span>.randomUUID())</span><br><span class="line">  &#125;</span><br><span class="line">  (blockId, getFile(blockId)) <span class="comment">// getFile创建目录</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">createTempShuffleBlock</span></span>(): (<span class="type">TempShuffleBlockId</span>, <span class="type">File</span>) = &#123;</span><br><span class="line">  <span class="keyword">var</span> blockId = <span class="keyword">new</span> <span class="type">TempShuffleBlockId</span>(<span class="type">UUID</span>.randomUUID())</span><br><span class="line">  <span class="keyword">while</span> (getFile(blockId).exists()) &#123;</span><br><span class="line">    blockId = <span class="keyword">new</span> <span class="type">TempShuffleBlockId</span>(<span class="type">UUID</span>.randomUUID())</span><br><span class="line">  &#125;</span><br><span class="line">  (blockId, getFile(blockId)) <span class="comment">// getFile创建目录</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="stop"><a class="header-anchor" href="#stop">¶</a>stop</h3>
+<p>调用<code>stop()</code>，删除文件</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="function"><span class="keyword">def</span> <span class="title">stop</span></span>() &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="type">ShutdownHookManager</span>.removeShutdownHook(shutdownHook)</span><br><span class="line">  &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt;</span><br><span class="line">      logError(<span class="string">s"Exception while removing shutdown hook."</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line">  doStop()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">doStop</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="comment">// deleteFilesOnStop：DiskBlockManager 的 构造参数，决定是否递归删除localDirs下的文件</span></span><br><span class="line">  <span class="comment">// 一般只有使用外部shuffle服务时，它才为false</span></span><br><span class="line">  <span class="keyword">if</span> (deleteFilesOnStop) &#123;</span><br><span class="line">    localDirs.foreach &#123; localDir =&gt;</span><br><span class="line">      <span class="keyword">if</span> (localDir.isDirectory() &amp;&amp; localDir.exists()) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (!<span class="type">ShutdownHookManager</span>.hasRootAsShutdownDeleteDir(localDir)) &#123;</span><br><span class="line">            <span class="type">Utils</span>.deleteRecursively(localDir)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">          <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt;</span><br><span class="line">            logError(<span class="string">s"Exception while deleting local spark dir: <span class="subst">$localDir</span>"</span>, e)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>DiskStore</h1>
+<p>负责将blocks写入磁盘及删改查操作</p>
+<h2 id="成员-v2"><a class="header-anchor" href="#成员-v2">¶</a>成员</h2>
+<ul>
+<li>minMemoryMapBytes:    使用内存映射（java nio 功能）的最小值<code>spark.storage.memoryMapThreshold</code>默认2M</li>
+<li>maxMemoryMapBytes：使用内存映射的最大值</li>
+<li>blockSizes：一个ConcurrentHashMap，BlockId  -&gt; blockSize</li>
+</ul>
+<h2 id="难点方法-v2"><a class="header-anchor" href="#难点方法-v2">¶</a>难点方法</h2>
+<h3 id="put"><a class="header-anchor" href="#put">¶</a>put</h3>
+<p>增</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">put</span></span>(blockId: <span class="type">BlockId</span>)(writeFunc: <span class="type">WritableByteChannel</span> =&gt; <span class="type">Unit</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="keyword">if</span> (contains(blockId)) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">s"Block <span class="subst">$blockId</span> is already present in the disk store"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  logDebug(<span class="string">s"Attempting to put block <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="keyword">val</span> startTime = <span class="type">System</span>.currentTimeMillis</span><br><span class="line">  <span class="keyword">val</span> file = diskManager.getFile(blockId) <span class="comment">// 创建文件夹，并返回file</span></span><br><span class="line">  <span class="keyword">val</span> out = <span class="keyword">new</span> <span class="type">CountingWritableChannel</span>(openForWrite(file)) <span class="comment">// 开channel</span></span><br><span class="line">  <span class="keyword">var</span> threwException: <span class="type">Boolean</span> = <span class="literal">true</span></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    writeFunc(out) <span class="comment">// 写入文件夹中</span></span><br><span class="line">    blockSizes.put(blockId, out.getCount) <span class="comment">// 计数size，加入blockSizes map中</span></span><br><span class="line">    threwException = <span class="literal">false</span></span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      out.close()</span><br><span class="line">    &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">      <span class="keyword">case</span> ioe: <span class="type">IOException</span> =&gt;</span><br><span class="line">        <span class="keyword">if</span> (!threwException) &#123;</span><br><span class="line">          threwException = <span class="literal">true</span></span><br><span class="line">          <span class="keyword">throw</span> ioe</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">       <span class="keyword">if</span> (threwException) &#123;</span><br><span class="line">        remove(blockId)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">val</span> finishTime = <span class="type">System</span>.currentTimeMillis</span><br><span class="line">  logDebug(<span class="string">"Block %s stored as %s file on disk in %d ms"</span>.format(</span><br><span class="line">    file.getName,</span><br><span class="line">    <span class="type">Utils</span>.bytesToString(file.length()),</span><br><span class="line">    finishTime - startTime))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以下是一种调用它的方式</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">putBytes</span></span>(blockId: <span class="type">BlockId</span>, bytes: <span class="type">ChunkedByteBuffer</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">  put(blockId) &#123; channel =&gt;</span><br><span class="line">    bytes.writeFully(channel)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="getBytes"><a class="header-anchor" href="#getBytes">¶</a>getBytes</h3>
+<p>查，根据blockId，返回BlockData。</p>
+<p>有两种：<code>DiskBlockData</code>（普通） 以 及<code>EncryptedBlockData</code> （加密）</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getBytes</span></span>(blockId: <span class="type">BlockId</span>): <span class="type">BlockData</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> file = diskManager.getFile(blockId.name)</span><br><span class="line">  <span class="keyword">val</span> blockSize = getSize(blockId)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 分两种，一种是加密的一种是非加密的</span></span><br><span class="line">  securityManager.getIOEncryptionKey() <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(key) =&gt;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">EncryptedBlockData</span>(file, blockSize, conf, key)</span><br><span class="line">    <span class="keyword">case</span> _ =&gt;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">DiskBlockData</span>(minMemoryMapBytes, maxMemoryMapBytes, file, blockSize)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="remove"><a class="header-anchor" href="#remove">¶</a>remove</h3>
+<p>删</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">remove</span></span>(blockId: <span class="type">BlockId</span>): <span class="type">Boolean</span> = &#123;</span><br><span class="line">  blockSizes.remove(blockId)</span><br><span class="line">  <span class="keyword">val</span> file = diskManager.getFile(blockId.name)</span><br><span class="line">  <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">    <span class="keyword">val</span> ret = file.delete()</span><br><span class="line">    <span class="keyword">if</span> (!ret) &#123;</span><br><span class="line">      logWarning(<span class="string">s"Error deleting <span class="subst">$&#123;file.getPath()&#125;</span>"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    ret</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>小结</h1>
+<p>DiskBlockManager 用于建立BlockID和磁盘中真实文件的一一映射，同时负责创建文件夹与删除文件夹，学习时可以找到那个文件夹进入看看。</p>
+<p>DiskStore 负责将数据写入磁盘以及后续的读取与删除，相比MemoryStore它更简单。因为MemoryStore是真正的仓库，它需要定义数据结构；而DiskStore的数据是在磁盘的。</p>
+<p>todo: 未来学习下java nio，再学习<code>BlockData</code>。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>spark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark源码-MemoryManager和MemoryStore</title>
+    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-MemoryManager%E5%92%8CMemoryStore/</url>
+    <content><![CDATA[<p>它俩的对象和方法较多，需要耐心反复看。</p>
+<a id="more"></a>
+<h1>MemoryManager</h1>
+<p>限制存储内存（<code>storage</code>）和执行内存（<code>execution</code>）的大小的管理器，有两种实现：<code>StaticMemoryManager</code> 和 <code>UnifiedMemoryManager</code>。</p>
+<img src="https://i.loli.net/2020/01/11/blD2MIJj1AkOQGv.png" alt="image001.png" style="zoom:67%;">
+<ul>
+<li>
+<p>一个Executor，一个JVM，一个MemoryManager，多个Task</p>
+</li>
+<li>
+<p>同一Executor的Task可共享堆内堆外内存，而同一个节点的不同Executor的Task只能共享堆外内存</p>
+</li>
+<li>
+<p>只能共享存储内存，计算内存肯定无法共享</p>
+</li>
+</ul>
+<h2 id="核心依赖对象——MemoryPool"><a class="header-anchor" href="#核心依赖对象——MemoryPool">¶</a>核心依赖对象——MemoryPool</h2>
+<p>它用于统计<strong>每个Executor</strong>内存使用情况的类（它并不是去查内存，只是记录，比如要用内存时就把数字增加，减时就把数字减少），具体实现分两种：<code>StorageMemoryPool</code> 和 <code>ExecutionMemoryPool</code>，它们每个又分堆内和堆外内存。基本方法有：<code>poolSize</code>、<code>memoryUsed</code>、<code>memoryFree(_poolSize - memoryUsed)</code>，看名知意。</p>
+<ul>
+<li>
+<p><code>StorageMemoryPool</code>：除了有统计功能，并且还会在需要的内存不够时，通知<code>MemoryStore</code>调用<code>evictBlocksToFreeSpace</code>驱逐内存（发现不够，会先向执行内存借，如果借不到再驱逐。这部分代码在MemoryManager中）。</p>
+</li>
+<li>
+<p><code>ExecutionMemoryPool</code>：相对内存池复杂点，由于存储内存对于同一个Executor的多个Task来说是<strong>共享</strong>的，而执行内存是<strong>不共享</strong>的。因此，其内部需要<strong>维护一个<code>HashMap</code></strong>，存储每个Task使用的执行内存。</p>
+<p>细节1:  内部的<code>acquireMemory</code> 和 <code>releaseMemory</code> 之间采用 <code>wait()</code> 和 <code>notifyAll()</code>机制 ：在内存不够时<code>acquireMemory</code>会触发 wait，而当<code>releaseMemory</code>时，notifyall。</p>
+<p>细节2:  每个Task<strong>最少到分执行内存的 1 / 2N</strong>，当超过1 / N时，不再允许申请。</p>
+<p>细节3:  <code>acquireMemory</code> 内部有个回调函数<code>maybeGrowPool</code>：当执行内存不足时，从存储内存中借它剩余的，或者要它归还从执行内存中借走的。</p>
+</li>
+</ul>
+<p>从这里也可以发现，执行内存可以要回被借走的，而存储内存不可以，这就是后面要说的<strong>动态占用</strong>规则之一。</p>
+<p>注意：<code>MemoryPool</code>里的操作，都<strong>加了object lock</strong>(<code>MemoryManager</code>)</p>
+<h2 id="UnifiedMemoryManager"><a class="header-anchor" href="#UnifiedMemoryManager">¶</a>UnifiedMemoryManager</h2>
+<p>spark 1.6 后统一使用<code>UnifiedMemoryManager</code>，它的进步是<strong>存储内存和执行内存可以动态占用</strong>。</p>
+<h3 id="内存划分"><a class="header-anchor" href="#内存划分">¶</a>内存划分</h3>
+<p><img src="https://i.loli.net/2020/01/11/sBvxNCqUHnKa61c.png" alt="屏幕快照 2020-01-03 下午8.47.52.png"></p>
+<p>堆内内存（<code>spark.executor.memory</code>  JVM内存）</p>
+<ul>
+<li>存储（storage）内存：（堆内内存 - 预留） * 0.6 <code>spark.memory.fraction</code> * 0.5 <code>spark.memory.storageFraction</code>，用于 <strong>cache、broadcast</strong> 等</li>
+<li>执行（executor）内存：（堆内内存 - 预留） * 0.6 <code>spark.memory.fraction</code> * (1 - 0.5 <code>spark.memory.storageFraction</code>，用于<strong>计算，如shuffles、join、sorts and aggregations</strong></li>
+<li>其它内存：（堆内内存 - 预留） * （1 - 0.6 <code>spark.memory.fraction</code>）</li>
+<li>预留内存：<code>RESERVED_SYSTEM_MEMORY_BYTES</code> 规定 300M</li>
+</ul>
+<p>堆外内存（<code>spark.memory.offHeap.size</code>）</p>
+<ul>
+<li>存储内存：堆外内存 * 0.5 <code>spark.memory.storageFraction</code></li>
+<li>执行内存：堆外内存 * （1 - 0.5 <code>spark.memory.storageFraction</code>）</li>
+</ul>
+<h3 id="动态占用"><a class="header-anchor" href="#动态占用">¶</a>动态占用</h3>
+<p><img src="https://i.loli.net/2020/01/11/FHQD3Y1LohgG8Sf.png" alt="image006.png"></p>
+<p>存储内存可以尽可能多地借用执行内存中的free内存，但是当执行池需要这部分内存时，<strong>会把该部分内存池中的对象从内存中驱逐出</strong>，直到满足执行池的内存需求。</p>
+<p>执行内存也可以尽可能多地借用存储内存中的free内存，不同的是，<strong>执行内存不会被存储池驱逐出内存</strong>。</p>
+<p>也就是说，缓存block时可能会因为执行池占用了大量的内存池，不能释放导致<strong>缓存block失败</strong>，在这种情况下，新的block会<strong>根据StorageLevel做相应处理</strong>（如 spill 磁盘或干脆丢弃以前的）。</p>
+<p>注意 <code>MemoryManager </code>里的<code>acquireMemory</code>操作都加了<code>synchronized</code></p>
+<h1>MemoryStore</h1>
+<p>负责将blocks写入内存及删改查操作，写入结构为反序列化的Java对象数组，或者序列化的ByteBuffers</p>
+<h2 id="核心依赖对象——MemoryEntry"><a class="header-anchor" href="#核心依赖对象——MemoryEntry">¶</a>核心依赖对象——MemoryEntry</h2>
+<p>块在内存中的抽象表示，也就是数据在存储内存中存储方式，有两种实现：<code>DeserializedMemoryEntry</code>和<code>SerializedMemoryEntry</code></p>
+<p><code>DeserializedMemoryEntry</code>：存储的数据结构是Array[T]，只适用于堆内</p>
+<p><code>SerializedMemoryEntry</code>：存储的数据结构是<code>ChunkedByteBuffer</code>（物理上存储为多个块而不是单个块上的连续数组），适用于堆内和堆外</p>
+<p>采用数组的数据结构很好的<strong>解决存储内存碎片</strong>问题：通常RDD 的 record 是 在 other内存中的是不连续空间，当要缓存时（也就是存到存储内存中），会将其由不连续的存储空间转换为连续的存储空间（数组）。</p>
+<h2 id="核心成员"><a class="header-anchor" href="#核心成员">¶</a>核心成员</h2>
+<p><strong>entries</strong>：一个 LinkedHashMap （BlockId  -&gt;  MemoryEntry），blocks 存入 MemoryEntry，同时建立 BlockId 和 MemoryEntry 的映射关系。注意LinkedHashMap本身不是线程安全的，因此<strong>对其并发访问都要加锁</strong>。<strong>MemoryStore的核心其实就是对entries的增删改查</strong>。</p>
+<p><strong>onHeapUnrollMemoryMap 和 offHeapUnrollMemoryMap</strong>：（BlockId  -&gt;  使用的 UnrollMemory 的大小）</p>
+<h2 id="核心方法："><a class="header-anchor" href="#核心方法：">¶</a><strong>核心方法</strong>：</h2>
+<h3 id="putBytes"><a class="header-anchor" href="#putBytes">¶</a><strong>putBytes</strong></h3>
+<p>序列化ByteBuffer的写入：在写入前，先调用<strong>MemoryManager.acquireStorageMemory()<strong>申请所需的内存，再将</strong>ChunkedByteBuffer</strong>封装进<strong>SerializedMemoryEntry</strong>，最后将该MemoryEntry放入entries映射。</p>
+<h3 id="putIterator-T"><a class="header-anchor" href="#putIterator-T">¶</a><strong>putIterator[T]</strong></h3>
+<p>迭代器对象的写入，根据入参 <strong>valuesHolder</strong>的不同，决定写成对象还是字节</p>
+<p>开始时，先初始化（申请）一部分内存（spark.storage.unrollMemoryThreshold 默认1M），将迭代器对象逐渐存入<strong>valuesHolder</strong>，并且每添加<code>memoryCheckPeriod</code>个元素就<strong>检查一次valuesHolder中数据占用的内存</strong>，如果超过了申请的内存就继续申请<code>UnrollMemory</code>（由<code>memoryGrowthFactor</code>参数控制申请大小，这种递增的方式避免OOM）。将全部元素存入valuesHolder后，使用它的<strong>build方法</strong>生成<code>MemoryEntry</code>（如果是堆内模式内部就是将SizeTrackingVector转成数组），接着release掉申请的unroll内存，最后申请整体大小的Storage内存。化零为整，这个零它就是UnrollMemory，现在知道UnrollMemory是啥了吧，它就是个工具人。</p>
+<p>该函数，由下面两个函数调用。</p>
+<h3 id="putIteratorAsValues"><a class="header-anchor" href="#putIteratorAsValues">¶</a>putIteratorAsValues</h3>
+<p>将迭代器对象 写成对象，使用的<strong>valuesHolder</strong>是 <code>DeserializedValuesHolder</code></p>
+<p>该方法的重点把握DeserializedValuesHolder，其内部有两个数据结构：SizeTrackingVector 和 Array；SizeTrackingVector 实现了SizeTracker接口，通过采样估计的方式得到其占用大小（<strong>估计值</strong>）。数据存入DeserializedValuesHolder其实是写入到SizeTrackingVector中，等待全部写完，再使用<strong>getBuilder</strong>方法，将SizeTrackingVector转成Array，再转成DeserializedMemoryEntry。</p>
+<h3 id="putIteratorAsBytes"><a class="header-anchor" href="#putIteratorAsBytes">¶</a>putIteratorAsBytes</h3>
+<p>将迭代器对象 写成字节，使用的<strong>valuesHolder</strong>是 <code>SerializedValuesHolder</code></p>
+<p>SerializedValuesHolder 内部是各种流，且用到了<strong>serializerManager</strong>，暂时不想了解过深，只要知道每次write时流内部会记录size，因此得到的总size是精确的。其内部的build方法，将数据封装成SerializedMemoryEntry。</p>
+<h3 id="getBytes、getValues、remove"><a class="header-anchor" href="#getBytes、getValues、remove">¶</a>getBytes、getValues、remove</h3>
+<p>读删操作就很简单了，直接根据blockId 对<strong>entries</strong>中的Map进行读删即可</p>
+<p>getBytes 的返回值是 ChunkedByteBuffer ，getValues 的返回值是 Iterator[T]，分别对应entry的2种数据结构</p>
+<h3 id="evictBlocksToFreeSpace"><a class="header-anchor" href="#evictBlocksToFreeSpace">¶</a>evictBlocksToFreeSpace</h3>
+<p>是不是很熟悉这名字，驱除存储内存时用的就是它。</p>
+<p><strong>调用时机</strong></p>
+<ul>
+<li>存储内存不足（自己的不够并且借执行内存的也不够 或者 被执行内存占用很多）</li>
+<li>执行内存不足时，需要回收被存储内存占用的</li>
+</ul>
+<p><strong>回收限制</strong></p>
+<ul>
+<li>不能是同一个 RDD的 block，避免循环淘汰</li>
+<li>memoryMode一致，即同属堆内或者堆外</li>
+<li>Block  不能处于被读状态</li>
+<li>LRU（最近最少使用）：这是 entries 也就是 LinkedHashMap自带的功能</li>
+</ul>
+<h1>小结</h1>
+<p>MemoryManager 用于对内存划分，同时实现执行内存和存储内存的动态占用。这一切都是逻辑上的，它其实就是计数员，MemoryPool 就是它的账本。当你需要使用执行内存或者存储内存时，你要向它汇报，它会对下帐本告诉你可不可分到，接着对账本修改。</p>
+<p>MemoryStore 负责将数据写入<strong>存储内存</strong>以及后续的读取与删除，数据结构就是一个LinkedHashMap。说白了它就是个仓库，存缓存，存广播等等。</p>
+<p>你可能会有个疑问，MemoryManager不是划了执行内存和存储内存嘛，都是关于存储内存的，那么执行内存的操作去哪啦？<strong>它与TaskMemoryManager和MemConsumer有关</strong>。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>spark</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>我的2019</title>
-    <url>/2019/12/31/suibi/%E6%88%91%E7%9A%842019/</url>
+    <url>/2019/12/31/%E9%9A%8F%E7%AC%94/%E6%88%91%E7%9A%842019/</url>
     <content><![CDATA[<p>2019小结，多图慎点</p>
 <a id="more"></a>
 <h1>github</h1>
@@ -36,7 +492,7 @@
   </entry>
   <entry>
     <title>分布式版本控制系统-Git</title>
-    <url>/2019/12/31/tool/%E5%88%86%E5%B8%83%E5%BC%8F%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F-Git/</url>
+    <url>/2019/12/31/%E5%B7%A5%E5%85%B7/%E5%88%86%E5%B8%83%E5%BC%8F%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F-Git/</url>
     <content><![CDATA[<p>本文主要包括Git的用法加底层</p>
 <h1>使用</h1>
 <h2 id="初始化相关"><a class="header-anchor" href="#初始化相关">¶</a>初始化相关</h2>
@@ -156,7 +612,6 @@
     <url>/2019/12/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBlockStoreShuffleReader/</url>
     <content><![CDATA[<p>spark的唯一 ShuffleReader ：BlockStoreShuffleReader</p>
 <a id="more"></a>
-<p>spark 版本 2.4.3</p>
 <h1>引入</h1>
 <p><a href="https://zouxxyy.github.io/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/" target="_blank" rel="noopener">之前</a>提过，<code>getShuffleWrite</code> 只在 <code>ShuffleMapTask</code> 中出现。</p>
 <p>那么<code>getShuffleRead</code>呢？由于不管哪个 Task 都需要读数据，于是就把该步骤封装在RDD的<code>computer</code>方法中。以下是<code>ShuffleRDD</code>中的<code>computer</code>方法。通过调用 <code>shuffleManager</code> 的 <code>getReader</code> 就获取了本文的主角<code>BlockStoreShuffleReader</code></p>
@@ -239,13 +694,13 @@
         <category>大数据</category>
       </categories>
       <tags>
-        <tag>HDFS</tag>
         <tag>spark</tag>
+        <tag>HDFS</tag>
       </tags>
   </entry>
   <entry>
     <title>自动化运维工具-Ansible</title>
-    <url>/2019/12/24/tool/%E8%87%AA%E5%8A%A8%E5%8C%96%E8%BF%90%E7%BB%B4%E5%B7%A5%E5%85%B7-Ansible/</url>
+    <url>/2019/12/24/%E5%B7%A5%E5%85%B7/%E8%87%AA%E5%8A%A8%E5%8C%96%E8%BF%90%E7%BB%B4%E5%B7%A5%E5%85%B7-Ansible/</url>
     <content><![CDATA[<p>Ansible 是一个开源的基于 OpenSSH 的自动化配置管理工具。可以用它来配置系统、部署软件和编排更高级的 IT 任务，比如持续部署或零停机更新。管理员可以通过 Ansible 在成百上千台计算机上同时执行指令(任务)，这是<a href="https://ansible-tran.readthedocs.io/en/latest/index.html" target="_blank" rel="noopener">官方文档</a>。</p>
 <a id="more"></a>
 <h1>配置组</h1>
@@ -303,7 +758,7 @@
   </entry>
   <entry>
     <title>大数据bug记录</title>
-    <url>/2019/12/20/bigdata/%E5%A4%A7%E6%95%B0%E6%8D%AEbug%E8%AE%B0%E5%BD%95/</url>
+    <url>/2019/12/20/%E5%A4%A7%E6%95%B0%E6%8D%AE/%E5%A4%A7%E6%95%B0%E6%8D%AEbug%E8%AE%B0%E5%BD%95/</url>
     <content><![CDATA[<p>记录遇到的简单bug</p>
 <a id="more"></a>
 <h1>201911-201912</h1>
@@ -444,7 +899,6 @@
     <url>/2019/12/04/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BSortShuffleWriter/</url>
     <content><![CDATA[<p>spark 三大ShuffleWriter 之 SortShuffleWriter</p>
 <a id="more"></a>
-<p>spark 版本 2.4.3</p>
 <h1>特点</h1>
 <ul>
 <li>
@@ -527,7 +981,6 @@
     <url>/2019/12/02/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BUnsafeShuffleWriter/</url>
     <content><![CDATA[<p>spark 三大ShuffleWriter 之 UnsafeShuffleWriter</p>
 <a id="more"></a>
-<p>spark 版本 2.4.3</p>
 <h1>特点</h1>
 <ul>
 <li>
@@ -581,7 +1034,7 @@
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public long spill(long size, <span class="type">MemoryConsumer</span> trigger) <span class="keyword">throws</span> <span class="type">IOException</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (trigger != <span class="keyword">this</span> || inMemSorter == <span class="literal">null</span> || inMemSorter.numRecords() == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>L;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  logger.info(<span class="string">"Thread &#123;&#125; spilling sort data of &#123;&#125; to disk (&#123;&#125; &#123;&#125; so far)"</span>,</span><br><span class="line">    <span class="type">Thread</span>.currentThread().getId(),</span><br><span class="line">    <span class="type">Utils</span>.bytesToString(getMemoryUsage()),</span><br><span class="line">    spills.size(),</span><br><span class="line">    spills.size() &gt; <span class="number">1</span> ? <span class="string">" times"</span> : <span class="string">" time"</span>);</span><br><span class="line"></span><br><span class="line">  writeSortedFile(<span class="literal">false</span>);</span><br><span class="line">  <span class="keyword">final</span> long spillSize = freeMemory();</span><br><span class="line">  <span class="comment">// spill 完整。重置 inMemSorter</span></span><br><span class="line">  inMemSorter.reset();</span><br><span class="line">  <span class="comment">// Reset the in-memory sorter's pointer array only after freeing up the memory pages holding the</span></span><br><span class="line">  <span class="comment">// records. Otherwise, if the task is over allocated memory, then without freeing the memory</span></span><br><span class="line">  <span class="comment">// pages, we might not be able to get memory for the pointer array.</span></span><br><span class="line">  taskContext.taskMetrics().incMemoryBytesSpilled(spillSize);</span><br><span class="line">  <span class="keyword">return</span> spillSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="writeSortedFile"><a class="header-anchor" href="#writeSortedFile">¶</a>writeSortedFile()</h2>
 <p>对内存中的数据进行排序（排序排的是指针数组）并 写到磁盘</p>
-<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> void writeSortedFile(boolean isLastFile) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="type">ShuffleWriteMetrics</span> writeMetricsToUse;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (isLastFile) &#123;</span><br><span class="line">    writeMetricsToUse = writeMetrics;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    writeMetricsToUse = <span class="keyword">new</span> <span class="type">ShuffleWriteMetrics</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// This call performs the actual sort.</span></span><br><span class="line">  <span class="comment">// 迭代器：包含分区有序的数据指针（排序在这里进行，有两种排序手段）</span></span><br><span class="line">  <span class="keyword">final</span> <span class="type">ShuffleInMemorySorter</span>.<span class="type">ShuffleSorterIterator</span> sortedRecords =</span><br><span class="line">    inMemSorter.getSortedIterator();</span><br><span class="line">  <span class="keyword">final</span> byte[] writeBuffer = <span class="keyword">new</span> byte[diskWriteBufferSize];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 文件名：temp_shuffle_ + block_id</span></span><br><span class="line">  <span class="keyword">final</span> <span class="type">Tuple2</span>&lt;<span class="type">TempShuffleBlockId</span>, <span class="type">File</span>&gt; spilledFileInfo =</span><br><span class="line">    blockManager.diskBlockManager().createTempShuffleBlock();</span><br><span class="line">  <span class="keyword">final</span> <span class="type">File</span> file = spilledFileInfo._2();</span><br><span class="line">  <span class="keyword">final</span> <span class="type">TempShuffleBlockId</span> blockId = spilledFileInfo._1();</span><br><span class="line">  <span class="keyword">final</span> <span class="type">SpillInfo</span> spillInfo = <span class="keyword">new</span> <span class="type">SpillInfo</span>(numPartitions, file, blockId);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="type">SerializerInstance</span> ser = <span class="type">DummySerializerInstance</span>.<span class="type">INSTANCE</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="type">DiskBlockObjectWriter</span> writer =</span><br><span class="line">    blockManager.getDiskWriter(blockId, file, ser, fileBufferSizeBytes, writeMetricsToUse);</span><br><span class="line"></span><br><span class="line">  int currentPartition = <span class="number">-1</span>;</span><br><span class="line">  <span class="keyword">final</span> int uaoSize = <span class="type">UnsafeAlignedOffset</span>.getUaoSize();</span><br><span class="line">  <span class="keyword">while</span> (sortedRecords.hasNext()) &#123;</span><br><span class="line">    sortedRecords.loadNext();</span><br><span class="line">    <span class="keyword">final</span> int partition = sortedRecords.packedRecordPointer.getPartitionId();</span><br><span class="line">    assert (partition &gt;= currentPartition);</span><br><span class="line">    <span class="keyword">if</span> (partition != currentPartition) &#123;</span><br><span class="line">      <span class="comment">// Switch to the new partition</span></span><br><span class="line">      <span class="keyword">if</span> (currentPartition != <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">FileSegment</span> fileSegment = writer.commitAndGet();</span><br><span class="line">        <span class="comment">// 记录每个分区的长度</span></span><br><span class="line">        spillInfo.partitionLengths[currentPartition] = fileSegment.length();</span><br><span class="line">      &#125;</span><br><span class="line">      currentPartition = partition;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> long recordPointer = sortedRecords.packedRecordPointer.getRecordPointer();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Object</span> recordPage = taskMemoryManager.getPage(recordPointer);</span><br><span class="line">    <span class="keyword">final</span> long recordOffsetInPage = taskMemoryManager.getOffsetInPage(recordPointer);</span><br><span class="line">    int dataRemaining = <span class="type">UnsafeAlignedOffset</span>.getSize(recordPage, recordOffsetInPage);</span><br><span class="line">    long recordReadPosition = recordOffsetInPage + uaoSize; <span class="comment">// skip over record length</span></span><br><span class="line">    <span class="keyword">while</span> (dataRemaining &gt; <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="keyword">final</span> int toTransfer = <span class="type">Math</span>.min(diskWriteBufferSize, dataRemaining);</span><br><span class="line">      <span class="type">Platform</span>.copyMemory(</span><br><span class="line">        recordPage, recordReadPosition, writeBuffer, <span class="type">Platform</span>.<span class="type">BYTE_ARRAY_OFFSET</span>, toTransfer);</span><br><span class="line">      writer.write(writeBuffer, <span class="number">0</span>, toTransfer);</span><br><span class="line">      recordReadPosition += toTransfer;</span><br><span class="line">      dataRemaining -= toTransfer;</span><br><span class="line">    &#125;</span><br><span class="line">    writer.recordWritten();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="type">FileSegment</span> committedSegment = writer.commitAndGet();</span><br><span class="line">  writer.close();</span><br><span class="line">  <span class="keyword">if</span> (currentPartition != <span class="number">-1</span>) &#123;</span><br><span class="line">    spillInfo.partitionLengths[currentPartition] = committedSegment.length();</span><br><span class="line">    spills.add(spillInfo);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!isLastFile) &#123;  <span class="comment">// i.e. this is a spill file</span></span><br><span class="line">    writeMetrics.incRecordsWritten(writeMetricsToUse.recordsWritten());</span><br><span class="line">    taskContext.taskMetrics().incDiskBytesSpilled(writeMetricsToUse.bytesWritten());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> void writeSortedFile(boolean isLastFile) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="type">ShuffleWriteMetrics</span> writeMetricsToUse;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (isLastFile) &#123;</span><br><span class="line">    writeMetricsToUse = writeMetrics;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    writeMetricsToUse = <span class="keyword">new</span> <span class="type">ShuffleWriteMetrics</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// This call performs the actual sort.</span></span><br><span class="line">  <span class="comment">// 迭代器：包含分区有序的数据指针（排序在这里进行，有两种排序手段）</span></span><br><span class="line">  <span class="keyword">final</span> <span class="type">ShuffleInMemorySorter</span>.<span class="type">ShuffleSorterIterator</span> sortedRecords =</span><br><span class="line">    inMemSorter.getSortedIterator();</span><br><span class="line">  <span class="keyword">final</span> byte[] writeBuffer = <span class="keyword">new</span> byte[diskWriteBufferSize];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 文件名：temp_shuffle_ + UUID</span></span><br><span class="line">  <span class="keyword">final</span> <span class="type">Tuple2</span>&lt;<span class="type">TempShuffleBlockId</span>, <span class="type">File</span>&gt; spilledFileInfo =</span><br><span class="line">    blockManager.diskBlockManager().createTempShuffleBlock();</span><br><span class="line">  <span class="keyword">final</span> <span class="type">File</span> file = spilledFileInfo._2();</span><br><span class="line">  <span class="keyword">final</span> <span class="type">TempShuffleBlockId</span> blockId = spilledFileInfo._1();</span><br><span class="line">  <span class="keyword">final</span> <span class="type">SpillInfo</span> spillInfo = <span class="keyword">new</span> <span class="type">SpillInfo</span>(numPartitions, file, blockId);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="type">SerializerInstance</span> ser = <span class="type">DummySerializerInstance</span>.<span class="type">INSTANCE</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="type">DiskBlockObjectWriter</span> writer =</span><br><span class="line">    blockManager.getDiskWriter(blockId, file, ser, fileBufferSizeBytes, writeMetricsToUse);</span><br><span class="line"></span><br><span class="line">  int currentPartition = <span class="number">-1</span>;</span><br><span class="line">  <span class="keyword">final</span> int uaoSize = <span class="type">UnsafeAlignedOffset</span>.getUaoSize();</span><br><span class="line">  <span class="keyword">while</span> (sortedRecords.hasNext()) &#123;</span><br><span class="line">    sortedRecords.loadNext();</span><br><span class="line">    <span class="keyword">final</span> int partition = sortedRecords.packedRecordPointer.getPartitionId();</span><br><span class="line">    assert (partition &gt;= currentPartition);</span><br><span class="line">    <span class="keyword">if</span> (partition != currentPartition) &#123;</span><br><span class="line">      <span class="comment">// Switch to the new partition</span></span><br><span class="line">      <span class="keyword">if</span> (currentPartition != <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">FileSegment</span> fileSegment = writer.commitAndGet();</span><br><span class="line">        <span class="comment">// 记录每个分区的长度</span></span><br><span class="line">        spillInfo.partitionLengths[currentPartition] = fileSegment.length();</span><br><span class="line">      &#125;</span><br><span class="line">      currentPartition = partition;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> long recordPointer = sortedRecords.packedRecordPointer.getRecordPointer();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Object</span> recordPage = taskMemoryManager.getPage(recordPointer);</span><br><span class="line">    <span class="keyword">final</span> long recordOffsetInPage = taskMemoryManager.getOffsetInPage(recordPointer);</span><br><span class="line">    int dataRemaining = <span class="type">UnsafeAlignedOffset</span>.getSize(recordPage, recordOffsetInPage);</span><br><span class="line">    long recordReadPosition = recordOffsetInPage + uaoSize; <span class="comment">// skip over record length</span></span><br><span class="line">    <span class="keyword">while</span> (dataRemaining &gt; <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="keyword">final</span> int toTransfer = <span class="type">Math</span>.min(diskWriteBufferSize, dataRemaining);</span><br><span class="line">      <span class="type">Platform</span>.copyMemory(</span><br><span class="line">        recordPage, recordReadPosition, writeBuffer, <span class="type">Platform</span>.<span class="type">BYTE_ARRAY_OFFSET</span>, toTransfer);</span><br><span class="line">      writer.write(writeBuffer, <span class="number">0</span>, toTransfer);</span><br><span class="line">      recordReadPosition += toTransfer;</span><br><span class="line">      dataRemaining -= toTransfer;</span><br><span class="line">    &#125;</span><br><span class="line">    writer.recordWritten();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="type">FileSegment</span> committedSegment = writer.commitAndGet();</span><br><span class="line">  writer.close();</span><br><span class="line">  <span class="keyword">if</span> (currentPartition != <span class="number">-1</span>) &#123;</span><br><span class="line">    spillInfo.partitionLengths[currentPartition] = committedSegment.length();</span><br><span class="line">    spills.add(spillInfo);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!isLastFile) &#123;  <span class="comment">// i.e. this is a spill file</span></span><br><span class="line">    writeMetrics.incRecordsWritten(writeMetricsToUse.recordsWritten());</span><br><span class="line">    taskContext.taskMetrics().incDiskBytesSpilled(writeMetricsToUse.bytesWritten());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="closeAndWriteOutput"><a class="header-anchor" href="#closeAndWriteOutput">¶</a>closeAndWriteOutput();</h2>
 <p>终于完成了流程1: <code>insertRecordIntoSorter</code></p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">void closeAndWriteOutput() <span class="keyword">throws</span> <span class="type">IOException</span> &#123;</span><br><span class="line">  assert(sorter != <span class="literal">null</span>);</span><br><span class="line">  updatePeakMemoryUsed();</span><br><span class="line">  serBuffer = <span class="literal">null</span>;</span><br><span class="line">  serOutputStream = <span class="literal">null</span>;</span><br><span class="line">  <span class="comment">// 流程2: spill 内存中剩余的文件，返回所有 spill 文件的元信息（重点是每个分区的长度）</span></span><br><span class="line">  <span class="keyword">final</span> <span class="type">SpillInfo</span>[] spills = sorter.closeAndGetSpills();</span><br><span class="line">  sorter = <span class="literal">null</span>;</span><br><span class="line">  <span class="keyword">final</span> long[] partitionLengths;</span><br><span class="line">  <span class="comment">// 文件名："shuffle_" + shuffleId + "_" + mapId + "_" + reduceId + ".data"</span></span><br><span class="line">  <span class="keyword">final</span> <span class="type">File</span> output = shuffleBlockResolver.getDataFile(shuffleId, mapId);</span><br><span class="line">  <span class="keyword">final</span> <span class="type">File</span> tmp = <span class="type">Utils</span>.tempFileWith(output);</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 流程3: 合并 spill 文件，并返回 spill 文件的大小，用于计算索引文件</span></span><br><span class="line">      partitionLengths = mergeSpills(spills, tmp);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="keyword">for</span> (<span class="type">SpillInfo</span> spill : spills) &#123;</span><br><span class="line">        <span class="keyword">if</span> (spill.file.exists() &amp;&amp; ! spill.file.delete()) &#123;</span><br><span class="line">          logger.error(<span class="string">"Error while deleting spill file &#123;&#125;"</span>, spill.file.getPath());</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 流程4: 生成索引文件。这个步骤都是一样的，参考 BypassMergeSortShuffleWriter</span></span><br><span class="line">    shuffleBlockResolver.writeIndexFileAndCommit(shuffleId, mapId, partitionLengths, tmp);</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (tmp.exists() &amp;&amp; !tmp.delete()) &#123;</span><br><span class="line">      logger.error(<span class="string">"Error while deleting temp file &#123;&#125;"</span>, tmp.getAbsolutePath());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  流程<span class="number">5</span>: 封装信息到`<span class="type">MapStatus</span>`返回</span><br><span class="line">  mapStatus = <span class="type">MapStatus</span>$.<span class="type">MODULE</span>$.apply(blockManager.shuffleServerId(), partitionLengths);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -623,7 +1076,6 @@
     <url>/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/</url>
     <content><![CDATA[<p>spark 三大ShuffleWriter 之 BypassMergeSortShuffleWriter</p>
 <a id="more"></a>
-<p>spark 版本 2.4.3</p>
 <h1>特点</h1>
 <ul>
 <li>
@@ -681,7 +1133,6 @@
     <url>/2019/11/29/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/</url>
     <content><![CDATA[<p>spark shuffle 学习起始篇，涉及源码中shuffle的相关概念 加 SortShuffleManager</p>
 <a id="more"></a>
-<p>spark 版本 2.4.3</p>
 <h1>Spark 里的 Shuffle</h1>
 <p>shuffle 主要分为:</p>
 <ul>
@@ -750,7 +1201,6 @@
     <url>/2019/11/28/spark/spark%E6%BA%90%E7%A0%81-Partitioner/</url>
     <content><![CDATA[<p>Partitioner（分区器）学习</p>
 <a id="more"></a>
-<p>spark 版本 2.4.3</p>
 <h1>Partitioner</h1>
 <p>分区器，RDD五大特性之五（只针对（k,v）类型的RDD）。它的核心作用是使用 <code>getPartition(key: Any)</code>对每条数据进行分区</p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Partitioner</span> <span class="keyword">extends</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">numPartitions</span></span>: <span class="type">Int</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">getPartition</span></span>(key: <span class="type">Any</span>): <span class="type">Int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -795,7 +1245,6 @@
     <url>/2019/11/27/spark/spark%E6%9D%82%E8%B0%88-%E4%BD%BF%E7%94%A8textFile%E8%AF%BB%E5%8F%96HDFS%E7%9A%84%E5%88%86%E5%8C%BA%E8%A7%84%E5%88%99/</url>
     <content><![CDATA[<p>使用 textFile 读取HDFS的数据分区规则</p>
 <a id="more"></a>
-<p>spark 版本 2.4.3</p>
 <h1>跟着源码走</h1>
 <p>测试文件：大小 516.06 MB ，54个 block，blockSize 大小是128M，但每个 block 里面的数据只有10M 左右</p>
 <p><strong>1. 进入 <code>sc.textFile()</code></strong></p>
@@ -878,7 +1327,7 @@
   </entry>
   <entry>
     <title>hbase-基本原理</title>
-    <url>/2019/09/29/bigdata/hbase-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</url>
+    <url>/2019/09/29/%E5%A4%A7%E6%95%B0%E6%8D%AE/hbase-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<p>简单介绍了hbase的基本原理：数据结构、读写操作、flush、合并与切分</p>
 <a id="more"></a>
 <h1>数据结构</h1>
@@ -953,7 +1402,7 @@
   </entry>
   <entry>
     <title>hbase-安装与配置</title>
-    <url>/2019/09/28/bigdata/hbase-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/</url>
+    <url>/2019/09/28/%E5%A4%A7%E6%95%B0%E6%8D%AE/hbase-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/</url>
     <content><![CDATA[<p>介绍hbase的安装与简单使用</p>
 <a id="more"></a>
 <h1>准备</h1>
@@ -983,13 +1432,13 @@
         <category>大数据</category>
       </categories>
       <tags>
-        <tag>hbase</tag>
         <tag>配置</tag>
+        <tag>hbase</tag>
       </tags>
   </entry>
   <entry>
     <title>zookeeper-基本原理</title>
-    <url>/2019/09/24/bigdata/zookeeper-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</url>
+    <url>/2019/09/24/%E5%A4%A7%E6%95%B0%E6%8D%AE/zookeeper-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<p>介绍了zookeeper的基本原理和使用</p>
 <a id="more"></a>
 <h1>简介</h1>
@@ -1072,7 +1521,7 @@
   </entry>
   <entry>
     <title>hive-DML</title>
-    <url>/2019/09/19/bigdata/hive-DML/</url>
+    <url>/2019/09/19/%E5%A4%A7%E6%95%B0%E6%8D%AE/hive-DML/</url>
     <content><![CDATA[<p>hive中一些DML的操作</p>
 <a id="more"></a>
 <p>DML（数据操纵语言）主要指数据的增删查改</p>
@@ -1201,7 +1650,7 @@
   </entry>
   <entry>
     <title>hive-DDL</title>
-    <url>/2019/09/17/bigdata/hive-DDL/</url>
+    <url>/2019/09/17/%E5%A4%A7%E6%95%B0%E6%8D%AE/hive-DDL/</url>
     <content><![CDATA[<p>hive中一些DDL的操作</p>
 <a id="more"></a>
 <h1>DDL</h1>
@@ -1251,7 +1700,7 @@
   </entry>
   <entry>
     <title>随笔-中秋入学有感</title>
-    <url>/2019/09/16/suibi/%E9%9A%8F%E7%AC%94-20190916%E5%85%A5%E5%AD%A6/</url>
+    <url>/2019/09/16/%E9%9A%8F%E7%AC%94/%E9%9A%8F%E7%AC%94-20190916%E5%85%A5%E5%AD%A6/</url>
     <content><![CDATA[<p>很早想写，却迟迟未动笔。今有兴留以纪念。</p>
 <a id="more"></a>
 <p><strong>终于正式成为了研究生大军的一员～</strong></p>
@@ -1279,7 +1728,7 @@
   </entry>
   <entry>
     <title>hive-安装与配置</title>
-    <url>/2019/09/16/bigdata/hive-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/</url>
+    <url>/2019/09/16/%E5%A4%A7%E6%95%B0%E6%8D%AE/hive-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/</url>
     <content><![CDATA[<p>介绍hive的安装，使用 mysql 做 hive 的元数据库</p>
 <a id="more"></a>
 <h1>准备</h1>
@@ -1320,7 +1769,7 @@
   </entry>
   <entry>
     <title>flume-基本原理</title>
-    <url>/2019/09/12/bigdata/flume-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</url>
+    <url>/2019/09/12/%E5%A4%A7%E6%95%B0%E6%8D%AE/flume-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<p>介绍了flume的基本原理和使用</p>
 <a id="more"></a>
 <h1>简介</h1>
@@ -1641,13 +2090,13 @@
         <category>大数据</category>
       </categories>
       <tags>
-        <tag>yarn</tag>
         <tag>spark</tag>
+        <tag>yarn</tag>
       </tags>
   </entry>
   <entry>
     <title>hadoop-Yarn流程解析</title>
-    <url>/2019/08/31/bigdata/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
+    <url>/2019/08/31/%E5%A4%A7%E6%95%B0%E6%8D%AE/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
     <content><![CDATA[<p>介绍了Yarn的工作流程和一些总结</p>
 <a id="more"></a>
 <h1>Yarn运行机制流程图</h1>
@@ -1706,13 +2155,13 @@
         <category>大数据</category>
       </categories>
       <tags>
-        <tag>hadoop</tag>
         <tag>yarn</tag>
+        <tag>hadoop</tag>
       </tags>
   </entry>
   <entry>
     <title>hadoop-HDFS流程解析</title>
-    <url>/2019/08/31/bigdata/hadoop-HDFS%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
+    <url>/2019/08/31/%E5%A4%A7%E6%95%B0%E6%8D%AE/hadoop-HDFS%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
     <content><![CDATA[<p>介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互</p>
 <a id="more"></a>
 <h1>HDFS写数据</h1>
@@ -1813,13 +2262,13 @@
         <category>大数据</category>
       </categories>
       <tags>
-        <tag>hadoop</tag>
         <tag>HDFS</tag>
+        <tag>hadoop</tag>
       </tags>
   </entry>
   <entry>
     <title>hadoop-MapReduce流程解析</title>
-    <url>/2019/08/30/bigdata/hadoop-MapReduce%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
+    <url>/2019/08/30/%E5%A4%A7%E6%95%B0%E6%8D%AE/hadoop-MapReduce%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
     <content><![CDATA[<p>介绍了MapReduce的详细流程和一些总结</p>
 <a id="more"></a>
 <h1>流程图</h1>
@@ -1894,7 +2343,7 @@
   </entry>
   <entry>
     <title>hadoop-单节点伪分布式搭建</title>
-    <url>/2019/08/24/bigdata/hadoop-%E5%8D%95%E8%8A%82%E7%82%B9%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA/</url>
+    <url>/2019/08/24/%E5%A4%A7%E6%95%B0%E6%8D%AE/hadoop-%E5%8D%95%E8%8A%82%E7%82%B9%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA/</url>
     <content><![CDATA[<p>在mac上搭建hadoop伪分布式</p>
 <a id="more"></a>
 <p>操作系统： macOS Mojave 10.14.5</p>
@@ -2567,7 +3016,7 @@
   </entry>
   <entry>
     <title>IntelliJ IDEA 实用快捷键</title>
-    <url>/2019/03/22/tool/IntelliJ-IDEA-%E5%AE%9E%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/</url>
+    <url>/2019/03/22/%E5%B7%A5%E5%85%B7/IntelliJ-IDEA-%E5%AE%9E%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/</url>
     <content><![CDATA[<p>IntelliJ IDEA 的小技巧 （ mac 版）</p>
 <a id="more"></a>
 <h1>码代码</h1>
@@ -3478,7 +3927,7 @@
   </entry>
   <entry>
     <title>hello hexo</title>
-    <url>/2019/02/26/tool/hello-hexo/</url>
+    <url>/2019/02/26/%E5%B7%A5%E5%85%B7/hello-hexo/</url>
     <content><![CDATA[<p><img src="https://i.loli.net/2020/01/10/5UKxWLad8w37kAi.png" alt="me.png"></p>
 <a id="more"></a>
 <h1>生成文章</h1>

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="介绍了flume的基本原理和使用">
+<meta name="keywords" content="flume">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flume-基本原理">
+<meta property="og:url" content="http://yoursite.com/2019/09/12/大数据/flume-基本原理/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="介绍了flume的基本原理和使用">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/agent.png">
+<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/flume.png">
+<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/transaction.png">
+<meta property="og:updated_time" content="2019-09-12T08:30:53.708Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="flume-基本原理">
+<meta name="twitter:description" content="介绍了flume的基本原理和使用">
+<meta name="twitter:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/agent.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/09/12/大数据/flume-基本原理/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>flume-基本原理 | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/12/大数据/flume-基本原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          flume-基本原理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2019-09-12 16:25:19 / 修改时间：16:30:53" itemprop="dateCreated datePublished" datetime="2019-09-12T16:25:19+08:00">2019-09-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/09/12/大数据/flume-基本原理/" class="post-meta-item leancloud_visitors" data-flag-title="flume-基本原理" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/12/大数据/flume-基本原理/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/09/12/大数据/flume-基本原理/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>介绍了flume的基本原理和使用</p>
+<a id="more"></a>
+<h1>简介</h1>
+<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/agent.png" alt></p>
+<p>Flume是一种<strong>分布式</strong>，<strong>可靠且可用</strong>的服务，用于<strong>有效地收集，聚合和传输大量日志数据</strong>，是基于<strong>流式</strong>的简单灵活的架构。</p>
+<p>它具有可靠的<strong>可靠性机制</strong>和许多<strong>故障转移和恢复机制</strong>，具有强大的容错性。</p>
+<p>它使用简单的<strong>可扩展</strong>数据模型，允许在线分析应用程序。</p>
+<h1>流程图</h1>
+<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/flume.png" alt></p>
+<h1>六大组件</h1>
+<p>3大基本组件，3个辅助组件。这些组件都支持用户自定义。</p>
+<h2 id="Source"><a class="header-anchor" href="#Source">¶</a>Source</h2>
+<p>用于数据的收集。将数据捕获后可以先进行自定义处理，然后将数据封装到事件（event） 里（如event的body），最后将事件推入Channel中。</p>
+<p><strong>常见的source</strong>:</p>
+<p><strong>Avro Source</strong>、<strong>Exce Source</strong>、<strong>Spooling Directory Source</strong>、<strong>NetCat Source</strong>、Syslog Source、Syslog TCP Source、Syslog UDP Source、HTTP Source、<strong>HDFS Source</strong> 等等。</p>
+<h2 id="Channel"><a class="header-anchor" href="#Channel">¶</a>Channel</h2>
+<p>用于连接Source和Sink的组件，是数据的缓冲区。它可以将事件暂存到内存中也可以持久化到本地磁盘上， 直到Sink处理完该事件。</p>
+<p><strong>常见的channel</strong>:</p>
+<p><strong>Memory Channel</strong>、<strong>File Channel</strong>、<strong>Kafka Channel</strong>等等。</p>
+<h2 id="Sink"><a class="header-anchor" href="#Sink">¶</a>Sink</h2>
+<p>从channel中取出数据，再将数据存入相应的存储文件系统，数据库，或者提交到远程服务器。</p>
+<p><strong>常见的sink</strong>:</p>
+<p><strong>HDFS sink</strong>、<strong>Logger sink</strong>、<strong>Avro sink</strong>、<strong>File Roll sink</strong>、Null sink、HBase sink 等等。</p>
+<h2 id="Interceptor"><a class="header-anchor" href="#Interceptor">¶</a>Interceptor</h2>
+<p>对Source收集的数据，进行<strong>分类</strong>或者<strong>拦截</strong>。可以将多个Interceptor连接形成拦截器链。</p>
+<p><strong>用法</strong></p>
+<ul>
+<li>
+<p>分类：自定义分类逻辑，将分类属性(k,v类型)，加入event的headers中，然后使用<strong>MultiplexingChannelSelector</strong>选择器 选择放入哪个channel中。</p>
+</li>
+<li>
+<p>拦截：自定义丢弃逻辑，将不要的event设为<strong>null</strong>即可。</p>
+</li>
+</ul>
+<h2 id="ChannelSelector"><a class="header-anchor" href="#ChannelSelector">¶</a>ChannelSelector</h2>
+<p>将event放入指定的channel中。</p>
+<p><strong>2种ChannelSelector</strong>:</p>
+<ul>
+<li>
+<p><strong>ReplicatingChannelSelector</strong>（默认） ：将事件放入所有channel中。（用于复制，也就是备份）</p>
+</li>
+<li>
+<p><strong>MultiplexingChannelSelector</strong> ：结合<strong>Interceptor</strong>使用。根据header，将event放到指定的channel中。</p>
+</li>
+</ul>
+<h2 id="sinkgroups中的SinkProcessor"><a class="header-anchor" href="#sinkgroups中的SinkProcessor">¶</a>sinkgroups中的SinkProcessor</h2>
+<p>按照指定算法将event分配到sink组的sink中。需要先指定一个sink组，再选择SinkProcessor，它会根据配置的分配方式自动将event分到组里的sink中。注意默认的SinkProcessor中，没有sink组的概念，不需要配置，也就是一对一。</p>
+<p><strong>2种SinkProcessor</strong>:</p>
+<ul>
+<li>
+<p><strong>LoadBalanceSinkProcessor</strong> ：负载均衡。可选择分配方式：如随机分配、轮询分配等等</p>
+</li>
+<li>
+<p><strong>FailoverSinkProcessor</strong> ：优先级分配（多用于故障转移）。指定sink的优先级，按优先级分配。</p>
+</li>
+</ul>
+<h1>两个Transaction</h1>
+<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/transaction.png" alt></p>
+<h2 id="Put-Transaction"><a class="header-anchor" href="#Put-Transaction">¶</a>Put Transaction</h2>
+<p>它实现 source 将 event 发送至 channel，带有容错机制，可以分为以下阶段：</p>
+<ul>
+<li><strong>doPut</strong>: 将批数据写入临时缓冲区putList</li>
+<li><strong>doCommit</strong>: 检查channel内存队列是否足够合并。</li>
+<li><strong>doRollback</strong>: channel内存队列空间不足，回滚数据</li>
+</ul>
+<h2 id="Take-Transaction"><a class="header-anchor" href="#Take-Transaction">¶</a>Take Transaction</h2>
+<p>它实现 sink 将 event 从 channel 中提取出来，带有容错机制，可以分为以下阶段：</p>
+<ul>
+<li><strong>doTake</strong>: 将数据提取到临时缓冲区takeList</li>
+<li><strong>doCommit</strong>: 数据发送成功的前提下，清除临时缓冲区takeList</li>
+<li><strong>doRollback</strong>: 数据发送过程中如果出现异常，rollback将临时缓冲区takeList中的数据归还给channel内存队列。</li>
+</ul>
+<h1>一些案例</h1>
+<ul>
+<li><strong>日志复制（备份）</strong></li>
+</ul>
+<p>单source，多channel，多sink</p>
+<p>使用 ReplicatingChannelSelector，将每个event分到多个channel再传到sink中，实现复制（备份）。</p>
+<ul>
+<li><strong>日志分类</strong></li>
+</ul>
+<p>单source，多channel，多sink， 配置拦截器</p>
+<p>使用 MultiplexingChannelSelector，根据拦截器将每个event，分到指定的channel中再传到sink中，实现分类。</p>
+<ul>
+<li><strong>负载均衡</strong></li>
+</ul>
+<p>单source，单channel，多sink（组成一个sink组）</p>
+<p>使用LoadBalanceSinkProcessor，选择分配方式：如随机分配、轮询分配，将event递给相应sink。</p>
+<ul>
+<li><strong>故障转移</strong></li>
+</ul>
+<p>单source，单channel，多sink（组成一个sink组）</p>
+<p>使用FailoverSinkProcessor，给sink组里的sink指定优先级，只有优先级最高的会接收，当它挂了，次优先级的才会接收。</p>
+<ul>
+<li><strong>日志聚合</strong></li>
+</ul>
+<p>多source，单channel，单sink</p>
+<p>直接将多个源的数据，用一个channel接收。</p>
+<ul>
+<li><strong>可以使用第三方框架Ganglia对flume实现监控</strong></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/flume/" rel="tag"># flume</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/09/09/spark/spark基础-DataFrame和DataSet/" rel="prev" title="spark基础-DataFrame和DataSet">
+      <i class="fa fa-chevron-left"></i> spark基础-DataFrame和DataSet
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/09/16/大数据/hive-安装与配置/" rel="next" title="hive-安装与配置">
+      hive-安装与配置 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">六大组件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Source"><span class="nav-number">3.1.</span> <span class="nav-text">¶Source</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Channel"><span class="nav-number">3.2.</span> <span class="nav-text">¶Channel</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sink"><span class="nav-number">3.3.</span> <span class="nav-text">¶Sink</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interceptor"><span class="nav-number">3.4.</span> <span class="nav-text">¶Interceptor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ChannelSelector"><span class="nav-number">3.5.</span> <span class="nav-text">¶ChannelSelector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sinkgroups中的SinkProcessor"><span class="nav-number">3.6.</span> <span class="nav-text">¶sinkgroups中的SinkProcessor</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">两个Transaction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Put-Transaction"><span class="nav-number">4.1.</span> <span class="nav-text">¶Put Transaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Take-Transaction"><span class="nav-number">4.2.</span> <span class="nav-text">¶Take Transaction</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">5.</span> <span class="nav-text">一些案例</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="/images/me.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="简介 复杂的任务中，某个中间转换结果可能会被多次调用，此时可以使用 spark 的缓存功能，将计算的中间过程缓存在内存或者磁盘中，以便再次使用，减少不必要的计算。">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark源码-cache和persist">
+<meta property="og:url" content="http://yoursite.com/2020/01/11/spark/spark源码-cache和persist/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="简介 复杂的任务中，某个中间转换结果可能会被多次调用，此时可以使用 spark 的缓存功能，将计算的中间过程缓存在内存或者磁盘中，以便再次使用，减少不必要的计算。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-01-11T13:45:07.630Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark源码-cache和persist">
+<meta name="twitter:description" content="简介 复杂的任务中，某个中间转换结果可能会被多次调用，此时可以使用 spark 的缓存功能，将计算的中间过程缓存在内存或者磁盘中，以便再次使用，减少不必要的计算。">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/11/spark/spark源码-cache和persist/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>spark源码-cache和persist | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/11/spark/spark源码-cache和persist/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spark源码-cache和persist
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-01-11 21:40:44 / 修改时间：21:45:07" itemprop="dateCreated datePublished" datetime="2020-01-11T21:40:44+08:00">2020-01-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/01/11/spark/spark源码-cache和persist/" class="post-meta-item leancloud_visitors" data-flag-title="spark源码-cache和persist" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/01/11/spark/spark源码-cache和persist/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/01/11/spark/spark源码-cache和persist/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1>简介</h1>
+<p>复杂的任务中，某个中间转换结果可能会被多次调用，此时可以使用 spark 的缓存功能，将计算的中间过程缓存在内存或者磁盘中，以便再次使用，减少不必要的计算。</p>
+<a id="more"></a>
+<h1>特点</h1>
+<ul>
+<li>懒加载，只有RDD触发action时才会进行计算并且缓存</li>
+<li>5个参数控制存储级别：是否用内存缓存、 是否用磁盘缓存、是否用堆外内存缓存、是否序列化、缓存个数</li>
+<li>cache() 是 persist() 也是 persist(StorageLevel.MEMORY_ONLY)</li>
+<li>api:   <code>rdd.cache()</code> or <code>rdd.persist()</code>、<code>rdd.unpersist()</code>、<code>sc.getPersistentRDDs</code></li>
+</ul>
+<p>接着，以MEMORY_ONLY模式为例，从源码中验证这一切，同时加深对 <strong>spark内存管理</strong> 的理解</p>
+<h1>流程</h1>
+<h2 id="cache-or-persist-…"><a class="header-anchor" href="#cache-or-persist-…">¶</a>cache() or persist(…)</h2>
+<p>解决一个疑问：<code>rdd1.cache()  rdd1 -&gt; rdd2 rdd2.cahce()</code> ，此时 rdd1 和 rdd2 都会被缓存</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cache() 等同于 persist() 等同于 persist(StorageLevel.MEMORY_ONLY) ，也就是仅缓存于存储内存中。</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cache</span></span>(): <span class="keyword">this</span>.<span class="keyword">type</span> = persist()</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(): <span class="keyword">this</span>.<span class="keyword">type</span> = persist(<span class="type">StorageLevel</span>.<span class="type">MEMORY_ONLY</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 缓存级别，由5个参数组成</span></span><br><span class="line"><span class="keyword">new</span> <span class="type">StorageLevel</span>(useDisk, useMemory, useOffHeap, deserialized, replication))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(newLevel: <span class="type">StorageLevel</span>): <span class="keyword">this</span>.<span class="keyword">type</span> = &#123;</span><br><span class="line">  <span class="comment">// isLocallyCheckpointed 方法 判断该RDD是否已经标记为 checkpoint，注意不是cache</span></span><br><span class="line">  <span class="keyword">if</span> (isLocallyCheckpointed) &#123;</span><br><span class="line">    persist(<span class="type">LocalRDDCheckpointData</span>.transformStorageLevel(newLevel), allowOverride = <span class="literal">true</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    persist(newLevel, allowOverride = <span class="literal">false</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(newLevel: <span class="type">StorageLevel</span>, allowOverride: <span class="type">Boolean</span>): <span class="keyword">this</span>.<span class="keyword">type</span> = &#123;</span><br><span class="line">  <span class="comment">// 可以发现当前版本并不支持改变已缓存 RDD 的 StorageLevel (注意RDD1转成RDD2后自然可以改变)</span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span> &amp;&amp; newLevel != storageLevel &amp;&amp; !allowOverride) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">UnsupportedOperationException</span>(</span><br><span class="line">      <span class="string">"Cannot change storage level of an RDD after it was already assigned a level"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 仅第一次缓存时触发 </span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel == <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">    sc.cleaner.foreach(_.registerRDDForCleanup(<span class="keyword">this</span>)) <span class="comment">// 用于 cleanups</span></span><br><span class="line">    <span class="comment">// 写入 persistentRdds，它是一个map（rdd.id, rdd），可调用 sc.getPersistentRDDs 得到</span></span><br><span class="line">    sc.persistRDD(<span class="keyword">this</span>) </span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 设置 storageLevel，之前默认为StorageLevel.NONE</span></span><br><span class="line">  storageLevel = newLevel</span><br><span class="line">  <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="getOrCompute-…"><a class="header-anchor" href="#getOrCompute-…">¶</a>getOrCompute(…)</h2>
+<p>cache() 给 RDD埋了一个属性<code>storageLevel</code>，只有执行行动操作才会真正执行缓存</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RDD的iterator，由于RDD本身懒加载，只要行动操作才会执行</span></span><br><span class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">iterator</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] = &#123;</span><br><span class="line">  <span class="comment">// 计算前先检查 storageLevel 是否不为NONE</span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">    getOrCompute(split, context) <span class="comment">// 核心</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    computeOrReadCheckpoint(split, context)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>[spark] <span class="function"><span class="keyword">def</span> <span class="title">getOrCompute</span></span>(partition: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] = &#123;</span><br><span class="line">  <span class="keyword">val</span> blockId = <span class="type">RDDBlockId</span>(id, partition.index)</span><br><span class="line">  <span class="keyword">var</span> readCachedBlock = <span class="literal">true</span></span><br><span class="line">  <span class="comment">// 调用blockManager 的 getOrElseUpdate方法，取出或者生成该blockId对应的block数据，返回blockResult</span></span><br><span class="line">  <span class="type">SparkEnv</span>.get.blockManager.getOrElseUpdate(blockId, storageLevel, elementClassTag, () =&gt; &#123;</span><br><span class="line">    <span class="comment">// 该函数变量仅生成block时执行</span></span><br><span class="line">    readCachedBlock = <span class="literal">false</span></span><br><span class="line">    computeOrReadCheckpoint(partition, context)</span><br><span class="line">  &#125;) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Left</span>(blockResult) =&gt;</span><br><span class="line">    <span class="comment">// 读 cache ：会计数</span></span><br><span class="line">    <span class="keyword">if</span> (readCachedBlock) &#123;</span><br><span class="line">      <span class="keyword">val</span> existingMetrics = context.taskMetrics().inputMetrics</span><br><span class="line">      existingMetrics.incBytesRead(blockResult.bytes)</span><br><span class="line">      <span class="comment">// blockResul.data 得到迭代器，封装成 InterruptibleIterator，结束！</span></span><br><span class="line">      <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>[<span class="type">T</span>](context, blockResult.data.asInstanceOf[<span class="type">Iterator</span>[<span class="type">T</span>]]) &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">next</span></span>(): <span class="type">T</span> = &#123;</span><br><span class="line">          existingMetrics.incRecordsRead(<span class="number">1</span>)</span><br><span class="line">          delegate.next()</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 生成 cache：compute 内有自己的计数，这里就不用处理</span></span><br><span class="line">      <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>(context, blockResult.data.asInstanceOf[<span class="type">Iterator</span>[<span class="type">T</span>]])</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Right</span>(iter) =&gt;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>(context, iter.asInstanceOf[<span class="type">Iterator</span>[<span class="type">T</span>]])</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="getOrElseUpdate-…"><a class="header-anchor" href="#getOrElseUpdate-…">¶</a>getOrElseUpdate(…)</h2>
+<p><code>getOrElseUpdate</code> 是<code>BlockManager </code>中的方法</p>
+<p>函数参数<code>makeIterator</code>就是我们的<code>computeOrReadCheckpoint</code>方法</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getOrElseUpdate</span></span>[<span class="type">T</span>](</span><br><span class="line">    blockId: <span class="type">BlockId</span>,</span><br><span class="line">    level: <span class="type">StorageLevel</span>,</span><br><span class="line">    classTag: <span class="type">ClassTag</span>[<span class="type">T</span>],</span><br><span class="line">    makeIterator: () =&gt; <span class="type">Iterator</span>[<span class="type">T</span>]): <span class="type">Either</span>[<span class="type">BlockResult</span>, <span class="type">Iterator</span>[<span class="type">T</span>]] = &#123;</span><br><span class="line">  <span class="comment">// 调用 get[T](blockId) 方法，从各种 store 中找该 block</span></span><br><span class="line">  get[<span class="type">T</span>](blockId)(classTag) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="comment">// 找到了表明有缓存，直接返回找到的 BlockResult</span></span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(block) =&gt;</span><br><span class="line">      <span class="keyword">return</span> <span class="type">Left</span>(block)</span><br><span class="line">    <span class="keyword">case</span> _ =&gt;</span><br><span class="line">      <span class="comment">// 没缓存，继续执行下一步</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// Initially we hold no locks on this block.</span></span><br><span class="line">  <span class="comment">// 调用 doPutIterator，将 makeIterator 计算的结果存入Block（逻辑概念）中（其实是存入各种store中）</span></span><br><span class="line">  <span class="comment">// 写数据时加 读锁</span></span><br><span class="line">  doPutIterator(blockId, makeIterator, level, classTag, keepReadLock = <span class="literal">true</span>) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt;</span><br><span class="line">      <span class="comment">// doPut() 正常情况返回None，接着调用 getLocalValues 读取刚写的 block，返回 blockResult</span></span><br><span class="line">      <span class="keyword">val</span> blockResult = getLocalValues(blockId).getOrElse &#123;</span><br><span class="line">        releaseLock(blockId)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">SparkException</span>(<span class="string">s"get() failed for block <span class="subst">$blockId</span> even though we held a lock"</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 放锁</span></span><br><span class="line">      releaseLock(blockId)</span><br><span class="line">      <span class="type">Left</span>(blockResult)</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(iter) =&gt;</span><br><span class="line">     <span class="type">Right</span>(iter)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>补充</h1>
+<h2 id="persistentRdds"><a class="header-anchor" href="#persistentRdds">¶</a>persistentRdds</h2>
+<p>一个map ：key 为 <a href="http://rdd.id" target="_blank" rel="noopener">rdd.id</a> ，value 为 rdd</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="keyword">val</span> persistentRdds = &#123;</span><br><span class="line">    <span class="keyword">val</span> map: <span class="type">ConcurrentMap</span>[<span class="type">Int</span>, <span class="type">RDD</span>[_]] = <span class="keyword">new</span> <span class="type">MapMaker</span>().weakValues().makeMap[<span class="type">Int</span>, <span class="type">RDD</span>[_]]()</span><br><span class="line">    map.asScala</span><br><span class="line">  &#125;</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getPersistentRDDs</span></span>: <span class="type">Map</span>[<span class="type">Int</span>, <span class="type">RDD</span>[_]] = persistentRdds.toMap</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用户使用该方法得到它</span></span><br><span class="line"><span class="keyword">val</span> ds: collection.<span class="type">Map</span>[<span class="type">Int</span>, <span class="type">RDD</span>[_]] = sc.getPersistentRDDs</span><br></pre></td></tr></table></figure>
+<h2 id="unpersist"><a class="header-anchor" href="#unpersist">¶</a>unpersist()</h2>
+<p>取消缓存</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="function"><span class="keyword">def</span> <span class="title">unpersistRDD</span></span>(rddId: <span class="type">Int</span>, blocking: <span class="type">Boolean</span> = <span class="literal">true</span>) &#123;</span><br><span class="line">  <span class="comment">// 通知blockManager删掉属于该RDD的全部block</span></span><br><span class="line">  env.blockManager.master.removeRdd(rddId, blocking)</span><br><span class="line">  <span class="comment">// 从map中移掉它</span></span><br><span class="line">  persistentRdds.remove(rddId)</span><br><span class="line">  listenerBus.post(<span class="type">SparkListenerUnpersistRDD</span>(rddId))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1>小结</h1>
+<p>当你对spark的存储有一点理解时，本节相对简单。缓存就是将RDD的<code>storageLevel</code>属性改写，并把该RDD加入<code>persistentRdds</code>这个map中。当执行到<code>iterator</code>时触发，如果没有缓存过，则进行计算并写入BLock中，有缓存直接从BLock中提取即可。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/spark/" rel="tag"># spark</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/11/spark/spark源码-block/" rel="prev" title="spark源码-block">
+      <i class="fa fa-chevron-left"></i> spark源码-block
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/11/spark/spark源码-BlockManager/" rel="next" title="spark源码-BlockManager">
+      spark源码-BlockManager <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">特点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cache-or-persist-…"><span class="nav-number">3.1.</span> <span class="nav-text">¶cache() or persist(…)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#getOrCompute-…"><span class="nav-number">3.2.</span> <span class="nav-text">¶getOrCompute(…)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#getOrElseUpdate-…"><span class="nav-number">3.3.</span> <span class="nav-text">¶getOrElseUpdate(…)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">补充</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#persistentRdds"><span class="nav-number">4.1.</span> <span class="nav-text">¶persistentRdds</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#unpersist"><span class="nav-number">4.2.</span> <span class="nav-text">¶unpersist()</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="/images/me.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
