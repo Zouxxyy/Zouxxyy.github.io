@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -281,28 +281,28 @@
       
         <p>介绍了flume的基本原理和使用</p>
 <a id="more"></a>
-<h1>简介</h1>
+<h1 id="简介"><a class="header-anchor" href="#简介"></a>简介</h1>
 <p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/agent.png" alt></p>
 <p>Flume是一种<strong>分布式</strong>，<strong>可靠且可用</strong>的服务，用于<strong>有效地收集，聚合和传输大量日志数据</strong>，是基于<strong>流式</strong>的简单灵活的架构。</p>
 <p>它具有可靠的<strong>可靠性机制</strong>和许多<strong>故障转移和恢复机制</strong>，具有强大的容错性。</p>
 <p>它使用简单的<strong>可扩展</strong>数据模型，允许在线分析应用程序。</p>
-<h1>流程图</h1>
+<h1 id="流程图"><a class="header-anchor" href="#流程图"></a>流程图</h1>
 <p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/flume.png" alt></p>
-<h1>六大组件</h1>
+<h1 id="六大组件"><a class="header-anchor" href="#六大组件"></a>六大组件</h1>
 <p>3大基本组件，3个辅助组件。这些组件都支持用户自定义。</p>
-<h2 id="Source"><a class="header-anchor" href="#Source">¶</a>Source</h2>
+<h2 id="Source"><a class="header-anchor" href="#Source"></a>Source</h2>
 <p>用于数据的收集。将数据捕获后可以先进行自定义处理，然后将数据封装到事件（event） 里（如event的body），最后将事件推入Channel中。</p>
 <p><strong>常见的source</strong>:</p>
 <p><strong>Avro Source</strong>、<strong>Exce Source</strong>、<strong>Spooling Directory Source</strong>、<strong>NetCat Source</strong>、Syslog Source、Syslog TCP Source、Syslog UDP Source、HTTP Source、<strong>HDFS Source</strong> 等等。</p>
-<h2 id="Channel"><a class="header-anchor" href="#Channel">¶</a>Channel</h2>
+<h2 id="Channel"><a class="header-anchor" href="#Channel"></a>Channel</h2>
 <p>用于连接Source和Sink的组件，是数据的缓冲区。它可以将事件暂存到内存中也可以持久化到本地磁盘上， 直到Sink处理完该事件。</p>
 <p><strong>常见的channel</strong>:</p>
 <p><strong>Memory Channel</strong>、<strong>File Channel</strong>、<strong>Kafka Channel</strong>等等。</p>
-<h2 id="Sink"><a class="header-anchor" href="#Sink">¶</a>Sink</h2>
+<h2 id="Sink"><a class="header-anchor" href="#Sink"></a>Sink</h2>
 <p>从channel中取出数据，再将数据存入相应的存储文件系统，数据库，或者提交到远程服务器。</p>
 <p><strong>常见的sink</strong>:</p>
 <p><strong>HDFS sink</strong>、<strong>Logger sink</strong>、<strong>Avro sink</strong>、<strong>File Roll sink</strong>、Null sink、HBase sink 等等。</p>
-<h2 id="Interceptor"><a class="header-anchor" href="#Interceptor">¶</a>Interceptor</h2>
+<h2 id="Interceptor"><a class="header-anchor" href="#Interceptor"></a>Interceptor</h2>
 <p>对Source收集的数据，进行<strong>分类</strong>或者<strong>拦截</strong>。可以将多个Interceptor连接形成拦截器链。</p>
 <p><strong>用法</strong></p>
 <ul>
@@ -313,7 +313,7 @@
 <p>拦截：自定义丢弃逻辑，将不要的event设为<strong>null</strong>即可。</p>
 </li>
 </ul>
-<h2 id="ChannelSelector"><a class="header-anchor" href="#ChannelSelector">¶</a>ChannelSelector</h2>
+<h2 id="ChannelSelector"><a class="header-anchor" href="#ChannelSelector"></a>ChannelSelector</h2>
 <p>将event放入指定的channel中。</p>
 <p><strong>2种ChannelSelector</strong>:</p>
 <ul>
@@ -324,7 +324,7 @@
 <p><strong>MultiplexingChannelSelector</strong> ：结合<strong>Interceptor</strong>使用。根据header，将event放到指定的channel中。</p>
 </li>
 </ul>
-<h2 id="sinkgroups中的SinkProcessor"><a class="header-anchor" href="#sinkgroups中的SinkProcessor">¶</a>sinkgroups中的SinkProcessor</h2>
+<h2 id="sinkgroups中的SinkProcessor"><a class="header-anchor" href="#sinkgroups中的SinkProcessor"></a>sinkgroups中的SinkProcessor</h2>
 <p>按照指定算法将event分配到sink组的sink中。需要先指定一个sink组，再选择SinkProcessor，它会根据配置的分配方式自动将event分到组里的sink中。注意默认的SinkProcessor中，没有sink组的概念，不需要配置，也就是一对一。</p>
 <p><strong>2种SinkProcessor</strong>:</p>
 <ul>
@@ -335,23 +335,23 @@
 <p><strong>FailoverSinkProcessor</strong> ：优先级分配（多用于故障转移）。指定sink的优先级，按优先级分配。</p>
 </li>
 </ul>
-<h1>两个Transaction</h1>
+<h1 id="两个Transaction"><a class="header-anchor" href="#两个Transaction"></a>两个Transaction</h1>
 <p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/transaction.png" alt></p>
-<h2 id="Put-Transaction"><a class="header-anchor" href="#Put-Transaction">¶</a>Put Transaction</h2>
+<h2 id="Put-Transaction"><a class="header-anchor" href="#Put-Transaction"></a>Put Transaction</h2>
 <p>它实现 source 将 event 发送至 channel，带有容错机制，可以分为以下阶段：</p>
 <ul>
 <li><strong>doPut</strong>: 将批数据写入临时缓冲区putList</li>
 <li><strong>doCommit</strong>: 检查channel内存队列是否足够合并。</li>
 <li><strong>doRollback</strong>: channel内存队列空间不足，回滚数据</li>
 </ul>
-<h2 id="Take-Transaction"><a class="header-anchor" href="#Take-Transaction">¶</a>Take Transaction</h2>
+<h2 id="Take-Transaction"><a class="header-anchor" href="#Take-Transaction"></a>Take Transaction</h2>
 <p>它实现 sink 将 event 从 channel 中提取出来，带有容错机制，可以分为以下阶段：</p>
 <ul>
 <li><strong>doTake</strong>: 将数据提取到临时缓冲区takeList</li>
 <li><strong>doCommit</strong>: 数据发送成功的前提下，清除临时缓冲区takeList</li>
 <li><strong>doRollback</strong>: 数据发送过程中如果出现异常，rollback将临时缓冲区takeList中的数据归还给channel内存队列。</li>
 </ul>
-<h1>一些案例</h1>
+<h1 id="一些案例"><a class="header-anchor" href="#一些案例"></a>一些案例</h1>
 <ul>
 <li><strong>日志复制（备份）</strong></li>
 </ul>
@@ -465,7 +465,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">六大组件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Source"><span class="nav-number">3.1.</span> <span class="nav-text">¶Source</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Channel"><span class="nav-number">3.2.</span> <span class="nav-text">¶Channel</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sink"><span class="nav-number">3.3.</span> <span class="nav-text">¶Sink</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interceptor"><span class="nav-number">3.4.</span> <span class="nav-text">¶Interceptor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ChannelSelector"><span class="nav-number">3.5.</span> <span class="nav-text">¶ChannelSelector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sinkgroups中的SinkProcessor"><span class="nav-number">3.6.</span> <span class="nav-text">¶sinkgroups中的SinkProcessor</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">两个Transaction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Put-Transaction"><span class="nav-number">4.1.</span> <span class="nav-text">¶Put Transaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Take-Transaction"><span class="nav-number">4.2.</span> <span class="nav-text">¶Take Transaction</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">5.</span> <span class="nav-text">一些案例</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#流程图"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#六大组件"><span class="nav-text">六大组件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Source"><span class="nav-text">Source</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Channel"><span class="nav-text">Channel</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sink"><span class="nav-text">Sink</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interceptor"><span class="nav-text">Interceptor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ChannelSelector"><span class="nav-text">ChannelSelector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sinkgroups中的SinkProcessor"><span class="nav-text">sinkgroups中的SinkProcessor</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#两个Transaction"><span class="nav-text">两个Transaction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Put-Transaction"><span class="nav-text">Put Transaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Take-Transaction"><span class="nav-text">Take Transaction</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一些案例"><span class="nav-text">一些案例</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

@@ -2,23 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-MemoryManager%E5%92%8CMemoryStore/</loc>
-    
-    <lastmod>2020-01-11T13:51:39.875Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/</loc>
     
-    <lastmod>2020-01-11T13:46:44.553Z</lastmod>
+    <lastmod>2020-01-13T07:27:55.057Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-block/</loc>
     
-    <lastmod>2020-01-11T13:46:42.507Z</lastmod>
+    <lastmod>2020-01-13T02:08:02.512Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-DiskBlockManager%E5%92%8CDiskStore/</loc>
+    
+    <lastmod>2020-01-13T02:04:19.550Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-MemoryManager%E5%92%8CMemoryStore/</loc>
+    
+    <lastmod>2020-01-13T01:50:02.542Z</lastmod>
     
   </url>
   
@@ -26,13 +33,6 @@
     <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/</loc>
     
     <lastmod>2020-01-11T13:45:07.630Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-DiskBlockManager%E5%92%8CDiskStore/</loc>
-    
-    <lastmod>2020-01-11T13:43:47.474Z</lastmod>
     
   </url>
   

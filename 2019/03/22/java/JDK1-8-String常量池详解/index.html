@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -285,14 +285,14 @@
         <p>本文是 JDK1.8 String常量池详解，带图哦</p>
 <a id="more"></a>
 <p><strong>jdk 1.8</strong></p>
-<h1>先抛结论</h1>
-<h2 id="1-只在常量池上创建常量"><a class="header-anchor" href="#1-只在常量池上创建常量">¶</a>1.只在常量池上创建常量</h2>
+<h1 id="先抛结论"><a class="header-anchor" href="#先抛结论"></a>先抛结论</h1>
+<h2 id="1-只在常量池上创建常量"><a class="header-anchor" href="#1-只在常量池上创建常量"></a>1.只在常量池上创建常量</h2>
 <p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a32568b4c1f09?w=531&amp;h=366&amp;f=png&amp;s=15995" alt></p>
-<h2 id="2-只在堆上创建对象"><a class="header-anchor" href="#2-只在堆上创建对象">¶</a>2.只在堆上创建对象</h2>
+<h2 id="2-只在堆上创建对象"><a class="header-anchor" href="#2-只在堆上创建对象"></a>2.只在堆上创建对象</h2>
 <p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a32d01c0c56b4?w=577&amp;h=389&amp;f=png&amp;s=19131" alt></p>
-<h2 id="3-在堆上创建对象，在常量池上创建常量"><a class="header-anchor" href="#3-在堆上创建对象，在常量池上创建常量">¶</a>3.在堆上创建对象，在常量池上创建常量</h2>
+<h2 id="3-在堆上创建对象，在常量池上创建常量"><a class="header-anchor" href="#3-在堆上创建对象，在常量池上创建常量"></a>3.在堆上创建对象，在常量池上创建常量</h2>
 <p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a32fd14b320a8?w=553&amp;h=362&amp;f=png&amp;s=18505" alt></p>
-<h2 id="4-在堆上创建对象，在常量池上创建引用"><a class="header-anchor" href="#4-在堆上创建对象，在常量池上创建引用">¶</a>4.在堆上创建对象，在常量池上创建引用</h2>
+<h2 id="4-在堆上创建对象，在常量池上创建引用"><a class="header-anchor" href="#4-在堆上创建对象，在常量池上创建引用"></a>4.在堆上创建对象，在常量池上创建引用</h2>
 <p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a331a8ed3ecb4?w=561&amp;h=362&amp;f=png&amp;s=20883" alt></p>
 <p>注意：</p>
 <ul>
@@ -309,12 +309,12 @@
 <p>&quot; &quot; 和intern() 其实很像。区别就是在常量池为空时，“ ”是把值加进去，intern()是把引用加进去。</p>
 </li>
 </ul>
-<h1>根据结论解决例子</h1>
-<h2 id="例一"><a class="header-anchor" href="#例一">¶</a>例一</h2>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String s1 = <span class="keyword">new</span> String(<span class="string">"zxy"</span>);    <span class="comment">// 结论3</span></span><br><span class="line">s1.intern(); <span class="comment">// 常量池非空，返回值是常量池里的内容</span></span><br><span class="line">String s2 = <span class="string">"zxy"</span>; <span class="comment">// 常量池非空，返回值是常量池里的内容</span></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">//false</span></span><br><span class="line">System.out.println(s1.intern() == s2); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<h1 id="根据结论解决例子"><a class="header-anchor" href="#根据结论解决例子"></a>根据结论解决例子</h1>
+<h2 id="例一"><a class="header-anchor" href="#例一"></a>例一</h2>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">String s1 = <span class="keyword">new</span> String(<span class="string">"zxy"</span>);    <span class="comment">// 结论3</span></span><br><span class="line">s1.intern(); <span class="comment">// 常量池非空，返回值是常量池里的内容</span></span><br><span class="line">String s2 = <span class="string">"zxy"</span>; <span class="comment">// 常量池非空，返回值是常量池里的内容</span></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">//false</span></span><br><span class="line">System.out.println(s1.intern() == s2); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
 <p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a351b50cc98d6?w=569&amp;h=355&amp;f=png&amp;s=18514" alt></p>
-<h2 id="例二"><a class="header-anchor" href="#例二">¶</a>例二</h2>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">String s1 = <span class="string">"zxy"</span>; <span class="comment">// 加到常量池</span></span><br><span class="line">String s2 = <span class="keyword">new</span> String(<span class="string">"zxy"</span>); <span class="comment">// 加到堆，常量池有东西所以啥也不干</span></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">// false</span></span><br><span class="line">System.out.println(s1 == s2.intern()); <span class="comment">// true 常量池非空，intern返回常量池里的内容</span></span><br></pre></td></tr></table></figure>
+<h2 id="例二"><a class="header-anchor" href="#例二"></a>例二</h2>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">String s1 = <span class="string">"zxy"</span>; <span class="comment">// 加到常量池</span></span><br><span class="line">String s2 = <span class="keyword">new</span> String(<span class="string">"zxy"</span>); <span class="comment">// 加到堆，常量池有东西所以啥也不干</span></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">// false</span></span><br><span class="line">System.out.println(s1 == s2.intern()); <span class="comment">// true 常量池非空，intern返回常量池里的内容</span></span><br></pre></td></tr></table></figure>
 <p><img src="https://user-gold-cdn.xitu.io/2019/3/22/169a35d23404be5b?w=468&amp;h=373&amp;f=png&amp;s=16487" alt></p>
 
     </div>
@@ -402,7 +402,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">先抛结论</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-只在常量池上创建常量"><span class="nav-number">1.1.</span> <span class="nav-text">¶1.只在常量池上创建常量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-只在堆上创建对象"><span class="nav-number">1.2.</span> <span class="nav-text">¶2.只在堆上创建对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-在堆上创建对象，在常量池上创建常量"><span class="nav-number">1.3.</span> <span class="nav-text">¶3.在堆上创建对象，在常量池上创建常量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-在堆上创建对象，在常量池上创建引用"><span class="nav-number">1.4.</span> <span class="nav-text">¶4.在堆上创建对象，在常量池上创建引用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">根据结论解决例子</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例一"><span class="nav-number">2.1.</span> <span class="nav-text">¶例一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例二"><span class="nav-number">2.2.</span> <span class="nav-text">¶例二</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#先抛结论"><span class="nav-text">先抛结论</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-只在常量池上创建常量"><span class="nav-text">1.只在常量池上创建常量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-只在堆上创建对象"><span class="nav-text">2.只在堆上创建对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-在堆上创建对象，在常量池上创建常量"><span class="nav-text">3.在堆上创建对象，在常量池上创建常量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-在堆上创建对象，在常量池上创建引用"><span class="nav-text">4.在堆上创建对象，在常量池上创建引用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#根据结论解决例子"><span class="nav-text">根据结论解决例子</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例一"><span class="nav-text">例一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例二"><span class="nav-text">例二</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

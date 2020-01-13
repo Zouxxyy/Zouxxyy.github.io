@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -285,11 +285,11 @@
       
         <p>介绍了在spark中Yarn的工作流程和一些总结</p>
 <a id="more"></a>
-<h1>流程</h1>
+<h1 id="流程"><a class="header-anchor" href="#流程"></a>流程</h1>
 <p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png" alt="YARN-Cluster流程图" title="YARN-Cluster流程图"></p>
 <p>主要流程和<a href="https://zouxxyy.github.io/2019/08/31/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/#more" target="_blank" rel="noopener">Yarn的流程</a>一样，不同的就是紫色部分。这里采用的是spark的<strong>yarn-cluster</strong>模式，driver在APPMaster中。</p>
-<h1>细节</h1>
-<h2 id="解耦思想"><a class="header-anchor" href="#解耦思想">¶</a>解耦思想</h2>
+<h1 id="细节"><a class="header-anchor" href="#细节"></a>细节</h1>
+<h2 id="解耦思想"><a class="header-anchor" href="#解耦思想"></a>解耦思想</h2>
 <ul>
 <li>
 <p>ResourceManager管理资源调度，与NodeManager直接联系；Driver负责执行计算，与Executor也就是一个个Task直接联系。</p>
@@ -301,7 +301,7 @@
 <p>此时计算框架是<strong>可插拔</strong>的，如：spark计算框架（紫色部分）代替mapreduce。</p>
 </li>
 </ul>
-<h2 id="Client和Cluster模式"><a class="header-anchor" href="#Client和Cluster模式">¶</a>Client和Cluster模式</h2>
+<h2 id="Client和Cluster模式"><a class="header-anchor" href="#Client和Cluster模式"></a>Client和Cluster模式</h2>
 <p>spark上yarn有两种管理模式，<strong>YARN-Client</strong>和<strong>YARN-Cluster</strong>。</p>
 <p>主要区别是：SparkContext初始化位置不同，也就是了Driver所在位置的不同。</p>
 <table>
@@ -330,10 +330,10 @@
 </tr>
 </tbody>
 </table>
-<h1>其它管理模式</h1>
-<h2 id="local模式"><a class="header-anchor" href="#local模式">¶</a>local模式</h2>
+<h1 id="其它管理模式"><a class="header-anchor" href="#其它管理模式"></a>其它管理模式</h1>
+<h2 id="local模式"><a class="header-anchor" href="#local模式"></a>local模式</h2>
 <p>单机模式 <code>--master local[*] </code></p>
-<h2 id="Standalone模式"><a class="header-anchor" href="#Standalone模式">¶</a>Standalone模式</h2>
+<h2 id="Standalone模式"><a class="header-anchor" href="#Standalone模式"></a>Standalone模式</h2>
 <p>不用Yarn，用Spark自带的Standalone资源管理器，它把节点分成<strong>Master</strong>和<strong>Worker</strong>。类似RM和NM，但它没有AppMaster。也分为Client模式和cluster模式。</p>
 
     </div>
@@ -421,7 +421,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">细节</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解耦思想"><span class="nav-number">2.1.</span> <span class="nav-text">¶解耦思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Client和Cluster模式"><span class="nav-number">2.2.</span> <span class="nav-text">¶Client和Cluster模式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">其它管理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#local模式"><span class="nav-number">3.1.</span> <span class="nav-text">¶local模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Standalone模式"><span class="nav-number">3.2.</span> <span class="nav-text">¶Standalone模式</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#流程"><span class="nav-text">流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#细节"><span class="nav-text">细节</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解耦思想"><span class="nav-text">解耦思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Client和Cluster模式"><span class="nav-text">Client和Cluster模式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其它管理模式"><span class="nav-text">其它管理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#local模式"><span class="nav-text">local模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Standalone模式"><span class="nav-text">Standalone模式</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

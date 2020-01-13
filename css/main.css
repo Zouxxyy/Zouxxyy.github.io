@@ -364,6 +364,38 @@ td {
   transform: rotate(45deg);
   top: -5px;
 }
+.highlight-container {
+  position: relative;
+}
+.highlight-container:hover .copy-btn,
+.highlight-container .copy-btn:focus {
+  opacity: 1;
+}
+.copy-btn {
+  color: #333;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 700;
+  line-height: 1.6;
+  opacity: 0;
+  outline: 0;
+  padding: 2px 6px;
+  position: absolute;
+  transition: opacity 0.3s ease-in-out;
+  vertical-align: middle;
+  white-space: nowrap;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  background-color: #eee;
+  background-image: linear-gradient(#fcfcfc, #eee);
+  border: 1px solid #d5d5d5;
+  border-radius: 3px;
+  font-size: 0.8125em;
+  right: 4px;
+  top: 8px;
+}
 .highlight,
 pre {
   background: #f7f7f7;
@@ -1159,7 +1191,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #ab0091;
+  background: #ff0652;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -1323,7 +1355,7 @@ pre .javascript .function {
   white-space: nowrap;
 }
 .post-toc .nav .nav-child {
-  display: none;
+  display: block;
 }
 .post-toc .nav .active > .nav-child {
   display: block;
@@ -2571,26 +2603,137 @@ ul.breadcrumb li + li:last-child {
 .links-of-blogroll-item {
   padding: 0;
 }
-h1 {
-  color: #099;
+.post-body {
+  color: #333;
+  line-height: 1.6;
 }
-h2 {
-  color: #099;
+.post-body html {
+  font-size: 16px;
 }
-h3 {
-  color: #099;
+.post-body h1,
+.post-body h2,
+.post-body h3,
+.post-body h4,
+.post-body h5,
+.post-body h6 {
+  padding-top: 0px;
+  position: relative;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  line-height: 1.4;
+  cursor: text;
 }
-h4 {
-  color: #099;
+.post-body h1:hover a.anchor,
+.post-body h2:hover a.anchor,
+.post-body h3:hover a.anchor,
+.post-body h4:hover a.anchor,
+.post-body h5:hover a.anchor,
+.post-body h6:hover a.anchor {
+  text-decoration: none;
 }
-/*body {counter-reset: h2}
-  h2 {counter-reset: h3}
-  h3 {counter-reset: h4}
-  h4 {counter-reset: h5}
-  h5 {counter-reset: h6}
-  h2:before {counter-increment: h2; content: counter(h2) ". "}
-  h3:before {counter-increment: h3; content: counter(h2) "." counter(h3) ". "}
-  h4:before {counter-increment: h4; content: counter(h2) "." counter(h3) "." counter(h4) ". "}
-  h5:before {counter-increment: h5; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) ". "}
-  h6:before {counter-increment: h6; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) ". "}
-  h2.nocount:before, h3.nocount:before, h4.nocount:before, h5.nocount:before, h6.nocount:before { content: ""; counter-increment: none }*/
+.post-body h1 tt,
+.post-body h1 code {
+  font-size: inherit;
+}
+.post-body h2 tt,
+.post-body h2 code {
+  font-size: inherit;
+}
+.post-body h3 tt,
+.post-body h3 code {
+  font-size: inherit;
+}
+.post-body h4 tt,
+.post-body h4 code {
+  font-size: inherit;
+}
+.post-body h5 tt,
+.post-body h5 code {
+  font-size: inherit;
+}
+.post-body h6 tt,
+.post-body h6 code {
+  font-size: inherit;
+}
+.post-body h1 {
+  padding-bottom: 0.3em;
+  font-size: 1.9em;
+  line-height: 1.2;
+  border-bottom: 1px solid #eee;
+}
+.post-body h2 {
+  padding-bottom: 0.3em;
+  font-size: 1.75em;
+  line-height: 1.225;
+  border-bottom: 1px solid #eee;
+}
+.post-body h3 {
+  font-size: 1.5em;
+  line-height: 1.43;
+}
+.post-body h4 {
+  font-size: 1.25em;
+}
+.post-body h5 {
+  font-size: 1em;
+}
+.post-body h6 {
+  font-size: 1em;
+}
+.post-body p,
+.post-body blockquote,
+.post-body ul,
+.post-body ol,
+.post-body dl {
+  margin: 0.8em 0;
+}
+.post-body li>ol,
+.post-body li>ul {
+  margin: 0 0;
+}
+.post-body hr {
+  height: 2px;
+  padding: 0;
+  margin: 16px 0;
+  background-color: #e7e7e7;
+  border: 0 none;
+  overflow: hidden;
+  box-sizing: content-box;
+}
+.post-body li p.first {
+  display: inline-block;
+}
+.post-body ul,
+.post-body ol {
+  padding-left: 30px;
+}
+.post-body ul:first-child,
+.post-body ol:first-child {
+  margin-top: 0;
+}
+.post-body ul:last-child,
+.post-body ol:last-child {
+  margin-bottom: 0;
+}
+.post-body blockquote {
+  border-left: 4px solid #dfe2e5;
+  padding: 0 15px;
+  color: #777;
+}
+.post-body blockquote blockquote {
+  padding-right: 0;
+}
+.post-body code,
+.post-body tt {
+  border: 1px solid #e7eaed;
+  background-color: #f8f8f8;
+  border-radius: 3px;
+  padding: 0;
+  padding: 2px 4px 0px 4px;
+  font-size: 0.9em;
+}
+.post-body code {
+  background-color: #f3f4f4;
+  padding: 0 2px 0 2px;
+}

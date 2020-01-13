@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -285,7 +285,7 @@
       
         <p>介绍了在spark中DataFrame和DataSet，以及它们之间的相互转换。</p>
 <a id="more"></a>
-<h1>概念分析</h1>
+<h1 id="概念分析"><a class="header-anchor" href="#概念分析"></a>概念分析</h1>
 <p><strong>DataFrame</strong></p>
 <p>类似传统数据库的二维表格，除了数据以外，还记录数据的结构信息，即schema。也就是普通RDD添加结构化信息得到。</p>
 <p><strong>DataSet</strong></p>
@@ -318,7 +318,7 @@
 <p>同理，<strong>Row</strong>中数据没类型，没办法在编译的时候检查是否有类型错误（弱类型的概念）；相反<strong>普通对象</strong>可以（强类型）。</p>
 </li>
 </ul>
-<h1>RDD、DataFrame和DataSet转换</h1>
+<h1 id="RDD、DataFrame和DataSet转换"><a class="header-anchor" href="#RDD、DataFrame和DataSet转换"></a>RDD、DataFrame和DataSet转换</h1>
 <p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dataframe2dataset.png" alt></p>
 <p><strong>注意</strong></p>
 <ul>
@@ -332,31 +332,31 @@
 <p>DataSet -&gt; RDD时，变成了<code>RDD[User]</code></p>
 </li>
 </ul>
-<h1>使用</h1>
-<h2 id="SQL风格（主要）"><a class="header-anchor" href="#SQL风格（主要）">¶</a>SQL风格（主要）</h2>
+<h1 id="使用"><a class="header-anchor" href="#使用"></a>使用</h1>
+<h2 id="SQL风格（主要）"><a class="header-anchor" href="#SQL风格（主要）"></a>SQL风格（主要）</h2>
 <ul>
 <li>创建一个DataFrame</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val df: DataFrame = spark.read.json(<span class="string">"people.json"</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">val df: DataFrame = spark.read.json(<span class="string">"people.json"</span>)</span><br></pre></td></tr></table></figure>
 <ul>
 <li>对DataFrame创建一个临时表(临时表是Session范围内有效，也可以创建全局的)</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.createOrReplaceTempView(<span class="string">"people"</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">df.createOrReplaceTempView(<span class="string">"people"</span>)</span><br></pre></td></tr></table></figure>
 <ul>
 <li>通过SQL语句实现对表的操作</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spark.sql(<span class="string">"SELECT * FROM people"</span>).show()</span><br></pre></td></tr></table></figure>
-<h2 id="DSL风格（次要）"><a class="header-anchor" href="#DSL风格（次要）">¶</a>DSL风格（次要）</h2>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">spark.sql(<span class="string">"SELECT * FROM people"</span>).show()</span><br></pre></td></tr></table></figure>
+<h2 id="DSL风格（次要）"><a class="header-anchor" href="#DSL风格（次要）"></a>DSL风格（次要）</h2>
 <ul>
 <li>创建一个DataFrame</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val df: DataFrame = spark.read.json(<span class="string">"people.json"</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">val df: DataFrame = spark.read.json(<span class="string">"people.json"</span>)</span><br></pre></td></tr></table></figure>
 <ul>
 <li>使用DataFrame的api</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.select(<span class="string">"name"</span>).show()</span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.select($<span class="string">"name"</span>, $<span class="string">"age"</span> + <span class="number">1</span>).show()</span><br></pre></td></tr></table></figure>
-<h1>小结</h1>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">df.select(<span class="string">"name"</span>).show()</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">df.select($<span class="string">"name"</span>, $<span class="string">"age"</span> + <span class="number">1</span>).show()</span><br></pre></td></tr></table></figure>
+<h1 id="小结"><a class="header-anchor" href="#小结"></a>小结</h1>
 <p><code>DataFrame</code>和<code>Dataset</code>都是为了方便我们执行sql的，因此当我们把数据转化成它们之后，写好sql逻辑，剩下的就交给咱们spark吧！</p>
 
     </div>
@@ -444,7 +444,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">概念分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">RDD、DataFrame和DataSet转换</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL风格（主要）"><span class="nav-number">3.1.</span> <span class="nav-text">¶SQL风格（主要）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DSL风格（次要）"><span class="nav-number">3.2.</span> <span class="nav-text">¶DSL风格（次要）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">小结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概念分析"><span class="nav-text">概念分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RDD、DataFrame和DataSet转换"><span class="nav-text">RDD、DataFrame和DataSet转换</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用"><span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL风格（主要）"><span class="nav-text">SQL风格（主要）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DSL风格（次要）"><span class="nav-text">DSL风格（次要）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-text">小结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

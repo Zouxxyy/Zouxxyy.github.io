@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -277,11 +277,11 @@
       
         <p>本文是《深入理解Java虚拟机（第二版）》第三章的笔记</p>
 <a id="more"></a>
-<h1>如何判断对象为垃圾对象</h1>
-<h2 id="引用计数法"><a class="header-anchor" href="#引用计数法">¶</a>引用计数法</h2>
+<h1 id="如何判断对象为垃圾对象"><a class="header-anchor" href="#如何判断对象为垃圾对象"></a>如何判断对象为垃圾对象</h1>
+<h2 id="引用计数法"><a class="header-anchor" href="#引用计数法"></a>引用计数法</h2>
 <p>给对象添加一个引用计数器，每当有个对象引用它时，计数器加1；引用失效时计数器减1；为0时对象不可能被再引用。</p>
 <p>没有使用的原因：很难解决<strong>对象之间相互循环引用</strong>的问题</p>
-<h2 id="可达性分析算法"><a class="header-anchor" href="#可达性分析算法">¶</a>可达性分析算法</h2>
+<h2 id="可达性分析算法"><a class="header-anchor" href="#可达性分析算法"></a>可达性分析算法</h2>
 <p>看作为GC Roots的对象作为起始点，和<strong>它连通的是可用的，反之不可用</strong>。</p>
 <p>如下情况的对象可以作为GC Roots：</p>
 <ul>
@@ -290,22 +290,22 @@
 <li>方法区中的常量引用的对象</li>
 </ul>
 <p>当对象不可达时，会执行<code>fianlize()</code>，但该方法自会被自动调用一次，有点像c++的析构函数，书上说最好别用。</p>
-<h2 id="引用的分类"><a class="header-anchor" href="#引用的分类">¶</a>引用的分类</h2>
+<h2 id="引用的分类"><a class="header-anchor" href="#引用的分类"></a>引用的分类</h2>
 <ul>
 <li>强引用：<code>Objece obj = new Object()</code>，永远不会被垃圾搜集回收</li>
 <li>软引用：<code>SoftReference</code>类实现，可以存活第一次回收，但第二次就GG</li>
 <li>弱引用：<code>WeakReference</code>类实现，第一次就GG</li>
 <li>虚引用：<code>PhantomReference</code>类实现，<strong>不能通过它取得实例</strong>，唯一作用就是当该对象被回收时会收到一个系统通知。</li>
 </ul>
-<h1>如何回收</h1>
-<h2 id="垃圾收集算法"><a class="header-anchor" href="#垃圾收集算法">¶</a>垃圾收集算法</h2>
+<h1 id="如何回收"><a class="header-anchor" href="#如何回收"></a>如何回收</h1>
+<h2 id="垃圾收集算法"><a class="header-anchor" href="#垃圾收集算法"></a>垃圾收集算法</h2>
 <ul>
 <li>标记-清除算法：（老年代）先标记，再清除。缺点：效率低，内存碎片化</li>
 <li>复制算法：（新生代）HotSpot虚拟机把内存分为Eden和2块Survivor区，把在Eden和Survivor中 存活的对象 复制到空闲的一块Survivor中。不够时可以向老年代担保。</li>
 <li>标记-整理算法：（老年代）标记 -&gt; 移动到一起 -&gt; 清理</li>
 <li>分代收集算法：把内存分为新生代和老年代。根据年代选则合适的算法。</li>
 </ul>
-<h2 id="垃圾收集器"><a class="header-anchor" href="#垃圾收集器">¶</a>垃圾收集器</h2>
+<h2 id="垃圾收集器"><a class="header-anchor" href="#垃圾收集器"></a>垃圾收集器</h2>
 <table>
 <thead>
 <tr>
@@ -336,7 +336,7 @@
 <li>并行（Parallel）：多条垃圾收集线程并行工作，但此时用户线程仍处于等待状态。</li>
 <li>并发（Concurrent）：用户线程与垃圾收集线程同时执行。</li>
 </ul>
-<h1>如何分配</h1>
+<h1 id="如何分配"><a class="header-anchor" href="#如何分配"></a>如何分配</h1>
 <p>以HosSpot收集器的分配和回收策略为例</p>
 <ul>
 <li>优先分配在Eden</li>
@@ -431,7 +431,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">如何判断对象为垃圾对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引用计数法"><span class="nav-number">1.1.</span> <span class="nav-text">¶引用计数法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#可达性分析算法"><span class="nav-number">1.2.</span> <span class="nav-text">¶可达性分析算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引用的分类"><span class="nav-number">1.3.</span> <span class="nav-text">¶引用的分类</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">如何回收</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#垃圾收集算法"><span class="nav-number">2.1.</span> <span class="nav-text">¶垃圾收集算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">2.2.</span> <span class="nav-text">¶垃圾收集器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">如何分配</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#如何判断对象为垃圾对象"><span class="nav-text">如何判断对象为垃圾对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引用计数法"><span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#可达性分析算法"><span class="nav-text">可达性分析算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引用的分类"><span class="nav-text">引用的分类</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何回收"><span class="nav-text">如何回收</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#垃圾收集算法"><span class="nav-text">垃圾收集算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#垃圾收集器"><span class="nav-text">垃圾收集器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何分配"><span class="nav-text">如何分配</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

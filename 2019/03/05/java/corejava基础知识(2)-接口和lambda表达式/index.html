@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -277,23 +277,23 @@
       
         <p>本文是对 java 接口和lambda表达式的总结</p>
 <a id="more"></a>
-<h1>接口</h1>
-<h2 id="接口概念"><a class="header-anchor" href="#接口概念">¶</a>接口概念</h2>
+<h1 id="接口"><a class="header-anchor" href="#接口"></a>接口</h1>
+<h2 id="接口概念"><a class="header-anchor" href="#接口概念"></a>接口概念</h2>
 <p>接口是对类的一组需求的描述，类遵从特定的描述，实现这项服务。<br>
 例如：<br>
 这是Camprable接口</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Comparable</span>&lt;<span class="title">T</span>&gt;</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(T other)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Comparable</span>&lt;<span class="title">T</span>&gt;</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(T other)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>然后在类中实现这一接口:</p>
 <ol>
 <li>将类声明为实现给定的接口</li>
 <li>对接口中<strong>所有</strong>方法进行定义</li>
 </ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Employee</span> <span class="keyword">implements</span> <span class="title">Comparable</span>&lt;<span class="title">Employee</span>&gt;</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(Employee other)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Double.compare(salary, other.salary);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="接口特性"><a class="header-anchor" href="#接口特性">¶</a>接口特性</h2>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Employee</span> <span class="keyword">implements</span> <span class="title">Comparable</span>&lt;<span class="title">Employee</span>&gt;</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(Employee other)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Double.compare(salary, other.salary);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="接口特性"><a class="header-anchor" href="#接口特性"></a>接口特性</h2>
 <ul>
 <li>接口不是类，不能用new实例化一个接口，可是能声明接口变量，然后再引用实现了该接口的类对象</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Compararble x;</span><br><span class="line">x = <span class="keyword">new</span> Employee(...); <span class="comment">//ok</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Compararble x;</span><br><span class="line">x = <span class="keyword">new</span> Employee(...); <span class="comment">//ok</span></span><br></pre></td></tr></table></figure>
 <p>解释：</p>
 <p>可能会问这样的接口变量有啥用呢？？举个定时器的例子，Timer函数 需要接收 一个操作函数 ，但是我们不能直接传函数进去，所以我们把接口变量（引用实现了该接口的类）传进去。同时我们可以发现接口里的方法<strong>不是静态方法</strong>，因为我们需要先新建对象。</p>
 <p>当然 javase8 中可以用 <strong>lambda表达式</strong> 传函数，见下文 lambda 表达式</p>
@@ -309,7 +309,7 @@
 <li>接口中不含实例域，却可以包含常量（publice static final)</li>
 <li>可以为接口提供默认实现</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Comparable</span>&lt;&lt;<span class="title">T</span>&gt;</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">default</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(T other)</span></span>&#123;<span class="keyword">return</span> <span class="number">0</span>&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Comparable</span>&lt;&lt;<span class="title">T</span>&gt;</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">default</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(T other)</span></span>&#123;<span class="keyword">return</span> <span class="number">0</span>&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ul>
 <li>
 <p>一个类可以有多个接口</p>
@@ -322,16 +322,16 @@
 <ul>
 <li>只有一个抽象方法，并用lambda表达式替代，这种接口叫<strong>函数式接口</strong>；不含任何方法的接口叫<strong>标记接口</strong>，如 Cloneable。</li>
 </ul>
-<h2 id="解决接口冲突"><a class="header-anchor" href="#解决接口冲突">¶</a>解决接口冲突</h2>
+<h2 id="解决接口冲突"><a class="header-anchor" href="#解决接口冲突"></a>解决接口冲突</h2>
 <p>同名，且参数类型相同下：</p>
 <p>1）超类优先</p>
 <p>2）接口冲突：只要其中一个接口提供了默认方法，就会报错；如果都不提供，就是抽象类。</p>
 <p>ps. 类优先的机制确保了与java SE 7 的兼容，因为那时没有默认方法。</p>
-<h1>lambda表达式</h1>
-<h2 id="为什么引入lambda表达式呢？"><a class="header-anchor" href="#为什么引入lambda表达式呢？">¶</a>为什么引入lambda表达式呢？</h2>
+<h1 id="lambda表达式"><a class="header-anchor" href="#lambda表达式"></a>lambda表达式</h1>
+<h2 id="为什么引入lambda表达式呢？"><a class="header-anchor" href="#为什么引入lambda表达式呢？"></a>为什么引入lambda表达式呢？</h2>
 <p><code>Arrays.sort(strings, new LengthComparator());</code></p>
 <p>这段代码用定制的比较器完成字符串排序，可以看出它传入了一个对象（接口），这个对象实现了Camparable接口，对象里面有compare方法。我们主要目的就是想传递这个方法，但是Java之前只能通过构造对象，来传递该方法。于是lambda表达式正式引入！</p>
-<h2 id="lambda表达式语法"><a class="header-anchor" href="#lambda表达式语法">¶</a>lambda表达式语法</h2>
+<h2 id="lambda表达式语法"><a class="header-anchor" href="#lambda表达式语法"></a>lambda表达式语法</h2>
 <p>例子：</p>
 <p><code>(String first, String second) -&gt; {...}</code></p>
 <p>把它替换到之前到代码中：</p>
@@ -343,7 +343,7 @@
 <code>(int) -&gt; {if(x &gt;= 0) return 1;} //不合法</code></li>
 <li>对于只有一个抽象方法的接口，可以提供一个lambda，就像例子；这种接口称为函数式接口。常的用函数式接口有：Predicate, Consumer, Function, Supplier 等等。</li>
 </ul>
-<h2 id="方法引用与lambda"><a class="header-anchor" href="#方法引用与lambda">¶</a>方法引用与lambda</h2>
+<h2 id="方法引用与lambda"><a class="header-anchor" href="#方法引用与lambda"></a>方法引用与lambda</h2>
 <p>假如想传递的 lambda 已经有了现成的方法，那么可以用方法引用来代替lambda。<br>
 三种情况：</p>
 <ol>
@@ -369,7 +369,7 @@
 </ul>
 </li>
 </ol>
-<h2 id="变量作用域"><a class="header-anchor" href="#变量作用域">¶</a>变量作用域</h2>
+<h2 id="变量作用域"><a class="header-anchor" href="#变量作用域"></a>变量作用域</h2>
 <p>lambda 表达式可以访问外围方法或类中的变量，但需注意：</p>
 <ul>
 <li>该变量必须是最终变量，不可以重新赋值；如String</li>
@@ -461,7 +461,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">接口</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#接口概念"><span class="nav-number">1.1.</span> <span class="nav-text">¶接口概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口特性"><span class="nav-number">1.2.</span> <span class="nav-text">¶接口特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决接口冲突"><span class="nav-number">1.3.</span> <span class="nav-text">¶解决接口冲突</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">lambda表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么引入lambda表达式呢？"><span class="nav-number">2.1.</span> <span class="nav-text">¶为什么引入lambda表达式呢？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lambda表达式语法"><span class="nav-number">2.2.</span> <span class="nav-text">¶lambda表达式语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法引用与lambda"><span class="nav-number">2.3.</span> <span class="nav-text">¶方法引用与lambda</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量作用域"><span class="nav-number">2.4.</span> <span class="nav-text">¶变量作用域</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#接口"><span class="nav-text">接口</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#接口概念"><span class="nav-text">接口概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口特性"><span class="nav-text">接口特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决接口冲突"><span class="nav-text">解决接口冲突</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#lambda表达式"><span class="nav-text">lambda表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么引入lambda表达式呢？"><span class="nav-text">为什么引入lambda表达式呢？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lambda表达式语法"><span class="nav-text">lambda表达式语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法引用与lambda"><span class="nav-text">方法引用与lambda</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量作用域"><span class="nav-text">变量作用域</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -283,7 +283,7 @@
       
         <p>让命令在后台跑起来！</p>
 <a id="more"></a>
-<h1>&amp;</h1>
+<h1 id><a class="header-anchor" href="#"></a>&amp;</h1>
 <p>用法：<code>指令 &amp;</code></p>
 <p>说明： 将指令放入后台执行，会将输出打印到前台，<strong>当执行该指令的终端gg时，它也gg</strong></p>
 <p>终止方法：</p>
@@ -291,7 +291,7 @@
 <li><code>jobs</code> 查看它 -&gt; <code>fg %num</code> 取出它 -&gt; <code>Ctrl+c</code>终止它</li>
 <li>直接退出终端</li>
 </ul>
-<h1>nohup</h1>
+<h1 id="nohup"><a class="header-anchor" href="#nohup"></a>nohup</h1>
 <p>用法：<code>nohup 指令 &amp;</code></p>
 <p>说明： 将指令放入后台执行，不会将输出打印到前台，<strong>当执行该指令的终端gg时，它不gg</strong></p>
 <p>终止方法：</p>
@@ -299,7 +299,7 @@
 <li>未退出终端时：<code>jobs</code> 查看它 -&gt; <code>fg %num</code> 取出它 -&gt; <code>Ctrl+c</code>终止它</li>
 <li>退出终端时：在新终端连接中，找到PID号，kill它</li>
 </ul>
-<h1>tmux</h1>
+<h1 id="tmux"><a class="header-anchor" href="#tmux"></a>tmux</h1>
 <p>简介：</p>
 <p>tmux可以在后台新建一个终端，并且用户退出后创建的终端仍然存在</p>
 <p>用法：</p>
@@ -323,7 +323,7 @@
 <li>删除指定session</li>
 </ul>
 <p><code>tmux kill-session -t $session_name</code></p>
-<h1>总结</h1>
+<h1 id="总结"><a class="header-anchor" href="#总结"></a>总结</h1>
 <ul>
 <li>
 <p>&amp;  简单，安全，退出终端，程序自动结束</p>
@@ -420,7 +420,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">&amp;</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">nohup</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">tmux</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-text">&amp;</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#nohup"><span class="nav-text">nohup</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#tmux"><span class="nav-text">tmux</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

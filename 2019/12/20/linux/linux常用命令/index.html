@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -283,41 +283,41 @@
       
         <p>一些用过的linux命令</p>
 <a id="more"></a>
-<h1>文件</h1>
+<h1 id="文件"><a class="header-anchor" href="#文件"></a>文件</h1>
 <ol>
 <li><strong>查看目录内子目录所使用的空间</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ du -h  --max-depth=1</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ du -h  --max-depth=1</span><br></pre></td></tr></table></figure>
 <ol start="2">
 <li><strong>改变文件（夹）拥有者</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ chown (-R) zxy filename</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ chown (-R) zxy filename</span><br></pre></td></tr></table></figure>
 <ol start="3">
 <li><strong>改变文件权限</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ chmod 755 filename</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ chmod 755 filename</span><br></pre></td></tr></table></figure>
 <ol start="4">
 <li><strong>压缩与解压</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tar 压缩，-p 保留权限，-z 使用 gzip</span></span><br><span class="line">$ tar cvpfz /mnt/data/homeback.tgz /home</span><br><span class="line"></span><br><span class="line"><span class="comment"># tar 解压</span></span><br><span class="line">$ tar xvpfz /mnt/data/homeback.tgz -C /</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># tar 压缩，-p 保留权限，-z 使用 gzip</span></span><br><span class="line">$ tar cvpfz /mnt/data/homeback.tgz /home</span><br><span class="line"></span><br><span class="line"><span class="comment"># tar 解压</span></span><br><span class="line">$ tar xvpfz /mnt/data/homeback.tgz -C /</span><br></pre></td></tr></table></figure>
 <ol start="5">
 <li><strong>查看磁盘使用情况</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ df -h</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ df -h</span><br></pre></td></tr></table></figure>
 <ol start="6">
 <li><strong>创建软连接</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ln -s ./hadoop-2.7.7 ./hadoop</span><br></pre></td></tr></table></figure>
-<h1>系统</h1>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ln -s ./hadoop-2.7.7 ./hadoop</span><br></pre></td></tr></table></figure>
+<h1 id="系统"><a class="header-anchor" href="#系统"></a>系统</h1>
 <ol>
 <li>端口使用</li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 显示 tcp，udp 的端口和进程等相关情况</span></span><br><span class="line">$ netstat -tunlp</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 显示 tcp，udp 的端口和进程等相关情况</span></span><br><span class="line">$ netstat -tunlp</span><br></pre></td></tr></table></figure>
 <ol start="2">
 <li>批量删除进程</li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">kill</span> -9 `ps -ef |grep xxx|awk <span class="string">'&#123;print $2&#125;'</span>`</span><br></pre></td></tr></table></figure>
-<h1>vim</h1>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">kill</span> -9 `ps -ef |grep xxx|awk <span class="string">'&#123;print $2&#125;'</span>`</span><br></pre></td></tr></table></figure>
+<h1 id="vim"><a class="header-anchor" href="#vim"></a>vim</h1>
 <table>
 <thead>
 <tr>
@@ -344,27 +344,27 @@
 </tr>
 </tbody>
 </table>
-<h1>服务器</h1>
+<h1 id="服务器"><a class="header-anchor" href="#服务器"></a>服务器</h1>
 <ol>
 <li><strong>添加用户</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ adduser username</span><br><span class="line">$ passwd username</span><br><span class="line"><span class="comment"># 赋予root权限</span></span><br><span class="line">$ vim /etc/sudoers</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ adduser username</span><br><span class="line">$ passwd username</span><br><span class="line"><span class="comment"># 赋予root权限</span></span><br><span class="line">$ vim /etc/sudoers</span><br></pre></td></tr></table></figure>
 <ol start="2">
 <li><strong>免密登陆</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 方式1</span></span><br><span class="line">$ ssh-copy-id -i ~/.ssh/id_rsa.pub zxy@10.0.0.1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方式2</span></span><br><span class="line">$ ssh zxy@10.0.0.1 <span class="string">"cat &gt;&gt; ~/.ssh/authorized_keys"</span> &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 方式1</span></span><br><span class="line">$ ssh-copy-id -i ~/.ssh/id_rsa.pub zxy@10.0.0.1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方式2</span></span><br><span class="line">$ ssh zxy@10.0.0.1 <span class="string">"cat &gt;&gt; ~/.ssh/authorized_keys"</span> &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure>
 <ol start="3">
 <li><strong>传输文件</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 源文件 -&gt; 目的地</span></span><br><span class="line">scp -r zxy@10.0.0.1:/home/zxy/filename  /Users/zxy/Desktop/</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 源文件 -&gt; 目的地</span></span><br><span class="line">scp -r zxy@10.0.0.1:/home/zxy/filename  /Users/zxy/Desktop/</span><br></pre></td></tr></table></figure>
 <ol start="4">
 <li><strong>配置网卡ip地址</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># (1) 修改对应网卡配置文件（centos）</span></span><br><span class="line">$ sudo vim /etc/sysconfig/network-scripts/ifcfg-em1</span><br><span class="line"></span><br><span class="line"><span class="comment"># (2) 重启生效</span></span><br><span class="line">$ sudo service network restart</span><br><span class="line"></span><br><span class="line"><span class="comment"># (3) 查看效果</span></span><br><span class="line">$ ifconfig</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># (1) 修改对应网卡配置文件（centos）</span></span><br><span class="line">$ sudo vim /etc/sysconfig/network-scripts/ifcfg-em1</span><br><span class="line"></span><br><span class="line"><span class="comment"># (2) 重启生效</span></span><br><span class="line">$ sudo service network restart</span><br><span class="line"></span><br><span class="line"><span class="comment"># (3) 查看效果</span></span><br><span class="line">$ ifconfig</span><br></pre></td></tr></table></figure>
 <ol start="5">
 <li><strong>使用 nfs 服务器</strong></li>
 </ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 解释：</span></span><br><span class="line"><span class="comment"># /mnt/storage2/data                     用于共享的目录</span></span><br><span class="line"><span class="comment"># *                                      客户端：所有主机</span></span><br><span class="line"><span class="comment"># rw                                     可读可写</span></span><br><span class="line"><span class="comment"># sync                                   数据同步，效率低，但可以保证数据的一致性</span></span><br><span class="line"><span class="comment"># no_root_squash                         让root保持权限，也就是让客户端的root相当于服务端的root</span></span><br><span class="line"><span class="comment"># all_squash,anonuid=1001,anongid=1001   客户端写数据时，普通用户名强转成指定名字（1001）</span></span><br><span class="line"><span class="comment"># no_all_squash 默认                      客户端写数据时，保持用户名</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># (1) 修改 exports </span></span><br><span class="line">$ sudo vim /etc/exports </span><br><span class="line"></span><br><span class="line"><span class="comment"># /mnt/storage2/data  该目录统一用户 1001（cluster集群使用）</span></span><br><span class="line">/mnt/storage2/data *(rw,sync,no_root_squash,all_squash,anonuid=1001,anongid=1001)</span><br><span class="line"><span class="comment"># /mnt/storage2/users 该目录用于共享，保持个人用户名</span></span><br><span class="line">/mnt/storage2/users *(rw,sync,no_root_squash)</span><br><span class="line"></span><br><span class="line"><span class="comment"># (2) 服务端 挂载（更新）</span></span><br><span class="line">$ exportfs -arv</span><br><span class="line"></span><br><span class="line"><span class="comment"># (3) 客户端 挂载</span></span><br><span class="line">$ mount -t nfs storage-2:/mnt/storage2/data /home/cluster/Storage2</span><br><span class="line">$ mount -t nfs storage-2:/mnt/storage2/users /mnt/users</span><br><span class="line"></span><br><span class="line"><span class="comment"># (4) 客户端 卸载</span></span><br><span class="line">$ umount /mnt/users</span><br><span class="line"></span><br><span class="line"><span class="comment"># (5) 服务端 卸载</span></span><br><span class="line">$ exportfs -auv</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 解释：</span></span><br><span class="line"><span class="comment"># /mnt/storage2/data                     用于共享的目录</span></span><br><span class="line"><span class="comment"># *                                      客户端：所有主机</span></span><br><span class="line"><span class="comment"># rw                                     可读可写</span></span><br><span class="line"><span class="comment"># sync                                   数据同步，效率低，但可以保证数据的一致性</span></span><br><span class="line"><span class="comment"># no_root_squash                         让root保持权限，也就是让客户端的root相当于服务端的root</span></span><br><span class="line"><span class="comment"># all_squash,anonuid=1001,anongid=1001   客户端写数据时，普通用户名强转成指定名字（1001）</span></span><br><span class="line"><span class="comment"># no_all_squash 默认                      客户端写数据时，保持用户名</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># (1) 修改 exports </span></span><br><span class="line">$ sudo vim /etc/exports </span><br><span class="line"></span><br><span class="line"><span class="comment"># /mnt/storage2/data  该目录统一用户 1001（cluster集群使用）</span></span><br><span class="line">/mnt/storage2/data *(rw,sync,no_root_squash,all_squash,anonuid=1001,anongid=1001)</span><br><span class="line"><span class="comment"># /mnt/storage2/users 该目录用于共享，保持个人用户名</span></span><br><span class="line">/mnt/storage2/users *(rw,sync,no_root_squash)</span><br><span class="line"></span><br><span class="line"><span class="comment"># (2) 服务端 挂载（更新）</span></span><br><span class="line">$ exportfs -arv</span><br><span class="line"></span><br><span class="line"><span class="comment"># (3) 客户端 挂载</span></span><br><span class="line">$ mount -t nfs storage-2:/mnt/storage2/data /home/cluster/Storage2</span><br><span class="line">$ mount -t nfs storage-2:/mnt/storage2/users /mnt/users</span><br><span class="line"></span><br><span class="line"><span class="comment"># (4) 客户端 卸载</span></span><br><span class="line">$ umount /mnt/users</span><br><span class="line"></span><br><span class="line"><span class="comment"># (5) 服务端 卸载</span></span><br><span class="line">$ exportfs -auv</span><br></pre></td></tr></table></figure>
     </div>
 
     
@@ -449,7 +449,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">vim</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">服务器</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#文件"><span class="nav-text">文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#系统"><span class="nav-text">系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#vim"><span class="nav-text">vim</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#服务器"><span class="nav-text">服务器</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

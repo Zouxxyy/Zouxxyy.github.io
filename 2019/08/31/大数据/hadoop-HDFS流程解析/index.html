@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -282,10 +282,10 @@
       
         <p>介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互</p>
 <a id="more"></a>
-<h1>HDFS写数据</h1>
-<h2 id="流程图"><a class="header-anchor" href="#流程图">¶</a>流程图</h2>
+<h1 id="HDFS写数据"><a class="header-anchor" href="#HDFS写数据"></a>HDFS写数据</h1>
+<h2 id="流程图"><a class="header-anchor" href="#流程图"></a>流程图</h2>
 <p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/readHDFS.png?raw=true" alt="HDFS写数据" title="HDFS写数据"></p>
-<h2 id="具体步骤"><a class="header-anchor" href="#具体步骤">¶</a>具体步骤</h2>
+<h2 id="具体步骤"><a class="header-anchor" href="#具体步骤"></a>具体步骤</h2>
 <ol>
 <li>客户端调用DS模块向NameNode请求上传文件。</li>
 <li>NameNode会检查目标文件和父目录是否已存在，再返回是否可以上传</li>
@@ -297,15 +297,15 @@
 <li>当一个Block（0-128M）传输完成之后，客户端再次请求NameNode上传第二个Block的服务器。（重复执行3-7步）。</li>
 <li>向NameNode汇报上传完毕。</li>
 </ol>
-<h2 id="注意事项"><a class="header-anchor" href="#注意事项">¶</a>注意事项</h2>
+<h2 id="注意事项"><a class="header-anchor" href="#注意事项"></a>注意事项</h2>
 <ul>
 <li>DataNode位置选择，以默认3副本为例：第一个副本是最近的一般是它自己；第二个副本选择同一机架（同一路由）的不同节点；第三个副本是另一机架的随机节点。</li>
 <li>数据传递以包为单位，第一个节点收到一个包，就把包传递给下一个DataNode。并不是等数据传完，再传递。</li>
 </ul>
-<h1>HDFS读数据</h1>
-<h2 id="流程图-v2"><a class="header-anchor" href="#流程图-v2">¶</a>流程图</h2>
+<h1 id="HDFS读数据"><a class="header-anchor" href="#HDFS读数据"></a>HDFS读数据</h1>
+<h2 id="流程图-v2"><a class="header-anchor" href="#流程图-v2"></a>流程图</h2>
 <p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/writeHDFS.png?raw=true" alt="HDFS读数据" title="HDFS读数据"></p>
-<h2 id="具体步骤-v2"><a class="header-anchor" href="#具体步骤-v2">¶</a>具体步骤</h2>
+<h2 id="具体步骤-v2"><a class="header-anchor" href="#具体步骤-v2"></a>具体步骤</h2>
 <ol>
 <li>客户端调用DS模块向NameNode请求下载文件。</li>
 <li>NameNode会检查目标文件是否存在，再通过查询元数据，返回文件块所在的DataNode地址。</li>
@@ -314,14 +314,14 @@
 <li>当一个Block（0-128M）传输完成之后，客户端再次请求下载Block2。（重复执行2-4步）。</li>
 <li>向NameNode汇报下载完毕。</li>
 </ol>
-<h2 id="注意事项-v2"><a class="header-anchor" href="#注意事项-v2">¶</a>注意事项</h2>
+<h2 id="注意事项-v2"><a class="header-anchor" href="#注意事项-v2"></a>注意事项</h2>
 <ul>
 <li>如果块的第一个副本请求失败，会向第二个副本请求，依次类推。</li>
 </ul>
-<h1>NameNode和SecondaryNameNode</h1>
-<h2 id="流程图-v3"><a class="header-anchor" href="#流程图-v3">¶</a>流程图</h2>
+<h1 id="NameNode和SecondaryNameNode"><a class="header-anchor" href="#NameNode和SecondaryNameNode"></a>NameNode和SecondaryNameNode</h1>
+<h2 id="流程图-v3"><a class="header-anchor" href="#流程图-v3"></a>流程图</h2>
 <p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/NNand2NN.png?raw=true" alt="NameNode和SecondaryNameNode" title="NameNode和SecondaryNameNode"></p>
-<h2 id="具体步骤-v3"><a class="header-anchor" href="#具体步骤-v3">¶</a>具体步骤</h2>
+<h2 id="具体步骤-v3"><a class="header-anchor" href="#具体步骤-v3"></a>具体步骤</h2>
 <p>第一阶段：NameNode</p>
 <ol>
 <li>第一次启动NameNode（格式化）后，会创建Fsimage（镜像文件）和Edits（编辑日志）文件。以后启动，会直接加载镜像文件和编辑日志到内存，此时会进行合并操作。</li>
@@ -340,7 +340,7 @@
 <li>拷贝fsimage.chkpoint到NameNode。</li>
 <li>NameNode将fsimage.chkpoint重新命名成fsimage。</li>
 </ol>
-<h2 id="注意事项-v3"><a class="header-anchor" href="#注意事项-v3">¶</a>注意事项</h2>
+<h2 id="注意事项-v3"><a class="header-anchor" href="#注意事项-v3"></a>注意事项</h2>
 <ul>
 <li>Fsimage 和 Edits文件？</li>
 </ul>
@@ -358,10 +358,10 @@
 <li>Secondary NameNode是热备份吗？</li>
 </ul>
 <p>不是，可以发现Secondary NameNode合并的是滚动前的edis，它总是比NameNode的编辑日志少一点。</p>
-<h1>DataNode和NameNode</h1>
-<h2 id="流程图-v4"><a class="header-anchor" href="#流程图-v4">¶</a>流程图</h2>
+<h1 id="DataNode和NameNode"><a class="header-anchor" href="#DataNode和NameNode"></a>DataNode和NameNode</h1>
+<h2 id="流程图-v4"><a class="header-anchor" href="#流程图-v4"></a>流程图</h2>
 <p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/DataNode.png?raw=true" alt="NameNode和DataNode" title="NameNode和DataNode"></p>
-<h2 id="具体步骤-v4"><a class="header-anchor" href="#具体步骤-v4">¶</a>具体步骤</h2>
+<h2 id="具体步骤-v4"><a class="header-anchor" href="#具体步骤-v4"></a>具体步骤</h2>
 <ol>
 <li>DataNode启动后向NameNode注册。</li>
 <li>NameNode告知注册成功。</li>
@@ -369,7 +369,7 @@
 <li>DataNode每3秒发送一次心跳，心跳返回结果带有NameNode给该DataNode的命令如复制块数据到另一台机器，或删除某个数据块。</li>
 <li>超过10分钟没有收到心跳，表示该节点不可用。</li>
 </ol>
-<h2 id="注意事项-v4"><a class="header-anchor" href="#注意事项-v4">¶</a>注意事项</h2>
+<h2 id="注意事项-v4"><a class="header-anchor" href="#注意事项-v4"></a>注意事项</h2>
 <ul>
 <li>一个数据块在DataNode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据包括数据块的长度、校验和 以及时间戳。</li>
 <li>节点增加：新节点配置好后，自动向NameNode注册的。</li>
@@ -461,7 +461,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">HDFS写数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图"><span class="nav-number">1.1.</span> <span class="nav-text">¶流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤"><span class="nav-number">1.2.</span> <span class="nav-text">¶具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项"><span class="nav-number">1.3.</span> <span class="nav-text">¶注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">HDFS读数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-v2"><span class="nav-number">2.1.</span> <span class="nav-text">¶流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-v2"><span class="nav-number">2.2.</span> <span class="nav-text">¶具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-v2"><span class="nav-number">2.3.</span> <span class="nav-text">¶注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">NameNode和SecondaryNameNode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-v3"><span class="nav-number">3.1.</span> <span class="nav-text">¶流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-v3"><span class="nav-number">3.2.</span> <span class="nav-text">¶具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-v3"><span class="nav-number">3.3.</span> <span class="nav-text">¶注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">DataNode和NameNode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-v4"><span class="nav-number">4.1.</span> <span class="nav-text">¶流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-v4"><span class="nav-number">4.2.</span> <span class="nav-text">¶具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-v4"><span class="nav-number">4.3.</span> <span class="nav-text">¶注意事项</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#HDFS写数据"><span class="nav-text">HDFS写数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤"><span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项"><span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HDFS读数据"><span class="nav-text">HDFS读数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-v2"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-v2"><span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-v2"><span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NameNode和SecondaryNameNode"><span class="nav-text">NameNode和SecondaryNameNode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-v3"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-v3"><span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-v3"><span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#DataNode和NameNode"><span class="nav-text">DataNode和NameNode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-v4"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-v4"><span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-v4"><span class="nav-text">注意事项</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

@@ -25,7 +25,7 @@
     version: '7.6.0',
     exturl: false,
     sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":true,"show_result":true,"style":null},
     back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
@@ -277,9 +277,9 @@
       
         <p>本文是对 java 视图的总结。</p>
 <a id="more"></a>
-<h1>集合包装器视图</h1>
+<h1 id="集合包装器视图"><a class="header-anchor" href="#集合包装器视图"></a>集合包装器视图</h1>
 <p><code>Array</code>包装成<code>List</code>:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Card[] cardArray = <span class="keyword">new</span> Card[<span class="number">52</span>];</span><br><span class="line">List&lt;Card&gt; cardList = Arrays.asList(cardArray);</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Card[] cardArray = <span class="keyword">new</span> Card[<span class="number">52</span>];</span><br><span class="line">List&lt;Card&gt; cardList = Arrays.asList(cardArray);</span><br></pre></td></tr></table></figure>
 <p><code>Arrays</code>类的静态方法 <code>asList</code> 将返回一个包装了 <code>List</code> 的包装器。 注意返回的是<strong>视图对象</strong>，它只能使用<code>get</code> ，<code>set</code>方法。</p>
 <p><code>Map</code>包装成<code>Set</code>:</p>
 <ul>
@@ -288,27 +288,27 @@
 <li><code>Col1ection&lt;V&gt; values()</code> 返回映射中所有值的一个集合视图。</li>
 </ul>
 <p>可以从集视图中删除元素，映射中对应的键和值也会被删除， 不过不能增加任何元素。</p>
-<h1>子范围视图</h1>
+<h1 id="子范围视图"><a class="header-anchor" href="#子范围视图"></a>子范围视图</h1>
 <p>可以为集合建立子范围视图</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">List group2 =staff.subList(<span class="number">10</span>, <span class="number">20</span>); <span class="comment">// 列表的子范围</span></span><br><span class="line"></span><br><span class="line"><span class="function">SortedSet&lt;E&gt; <span class="title">subSet</span><span class="params">(E from, E to)</span></span>; <span class="comment">//有序集根据排序顺序建立子视图</span></span><br><span class="line"><span class="function">SortedSet&lt;E&gt; <span class="title">headSet</span><span class="params">(E to)</span></span>;</span><br><span class="line"><span class="function">SortedSet&lt;E&gt; <span class="title">tailSet</span><span class="params">(E from)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">SortedMap&lt;K, V&gt; <span class="title">subMap</span><span class="params">(K from, K to)</span></span>; <span class="comment">//和有序集同理</span></span><br><span class="line"><span class="function">SortedMap&lt;K, V&gt; <span class="title">headMap</span><span class="params">(K to)</span></span>;</span><br><span class="line"><span class="function">SortedMap&lt;K, V&gt; <span class="title">tailMap</span><span class="params">(K from)</span></span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List group2 =staff.subList(<span class="number">10</span>, <span class="number">20</span>); <span class="comment">// 列表的子范围</span></span><br><span class="line"></span><br><span class="line"><span class="function">SortedSet&lt;E&gt; <span class="title">subSet</span><span class="params">(E from, E to)</span></span>; <span class="comment">//有序集根据排序顺序建立子视图</span></span><br><span class="line"><span class="function">SortedSet&lt;E&gt; <span class="title">headSet</span><span class="params">(E to)</span></span>;</span><br><span class="line"><span class="function">SortedSet&lt;E&gt; <span class="title">tailSet</span><span class="params">(E from)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">SortedMap&lt;K, V&gt; <span class="title">subMap</span><span class="params">(K from, K to)</span></span>; <span class="comment">//和有序集同理</span></span><br><span class="line"><span class="function">SortedMap&lt;K, V&gt; <span class="title">headMap</span><span class="params">(K to)</span></span>;</span><br><span class="line"><span class="function">SortedMap&lt;K, V&gt; <span class="title">tailMap</span><span class="params">(K from)</span></span>;</span><br></pre></td></tr></table></figure>
 <p>注意：</p>
 <ul>
 <li>范围是左闭右开</li>
 <li>可以将任何操作应用于子范围， 并且能够自动地反映到原范围。</li>
 <li>对顺序集合对子集合添加元素时，新元素必须在子范围内</li>
 </ul>
-<h1>不可修改的视图</h1>
+<h1 id="不可修改的视图"><a class="header-anchor" href="#不可修改的视图"></a>不可修改的视图</h1>
 <p>顾名思义生成不可修改的视图，如果发现试图对集合进行修改，就抛出一个异常。当然原对象肯定还是可以修改的。</p>
 <p>例如：生成一个不可修改的Map视图:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">TreeMap&lt;String, Integer&gt; scores = <span class="keyword">new</span> TreeMap&lt;&gt;();</span><br><span class="line">...</span><br><span class="line">Map&lt;String, Integer&gt; umMap = Collections.synchronizedSortedMap(scores);</span><br></pre></td></tr></table></figure>
-<h1>同步视图</h1>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">TreeMap&lt;String, Integer&gt; scores = <span class="keyword">new</span> TreeMap&lt;&gt;();</span><br><span class="line">...</span><br><span class="line">Map&lt;String, Integer&gt; umMap = Collections.synchronizedSortedMap(scores);</span><br></pre></td></tr></table></figure>
+<h1 id="同步视图"><a class="header-anchor" href="#同步视图"></a>同步视图</h1>
 <p>类库的设计者使用视图机制来确保常规集合的线程安全，而不是实现线程安全的集合类。</p>
 <p>例如：新建一个线程安全的Map:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, Employee〉map = Collections.synchronizedMap(<span class="keyword">new</span> HashMap&lt;String, Employee&gt;());</span><br></pre></td></tr></table></figure>
-<h1>受查视图</h1>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;String, Employee〉map = Collections.synchronizedMap(<span class="keyword">new</span> HashMap&lt;String, Employee&gt;());</span><br></pre></td></tr></table></figure>
+<h1 id="受查视图"><a class="header-anchor" href="#受查视图"></a>受查视图</h1>
 <p>受查视图可以查出 将错误类型的元素混人泛型集合 这种情况。</p>
 <p>例如：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; safestrings = Collections.checkedList(strings，String,<span class="class"><span class="keyword">class</span>)</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; safestrings = Collections.checkedList(strings，String,<span class="class"><span class="keyword">class</span>)</span>;</span><br></pre></td></tr></table></figure>
 <p>当加入错误类型时，会得到错误报告。</p>
 
     </div>
@@ -395,7 +395,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">1.</span> <span class="nav-text">集合包装器视图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">2.</span> <span class="nav-text">子范围视图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">3.</span> <span class="nav-text">不可修改的视图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">4.</span> <span class="nav-text">同步视图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#null"><span class="nav-number">5.</span> <span class="nav-text">受查视图</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#集合包装器视图"><span class="nav-text">集合包装器视图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#子范围视图"><span class="nav-text">子范围视图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#不可修改的视图"><span class="nav-text">不可修改的视图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#同步视图"><span class="nav-text">同步视图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#受查视图"><span class="nav-text">受查视图</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
