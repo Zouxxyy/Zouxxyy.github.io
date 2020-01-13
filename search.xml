@@ -114,7 +114,7 @@
 <p><strong>ShuffleSpill</strong>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
 </li>
 <li>
-<p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/" target="_blank" rel="noopener">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
+<p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/" target="_blank" rel="noopener">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
 </li>
 <li>
 <p><strong>ShuffleWrite</strong>生成的合并大文件：BlockId：<code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code></p>
@@ -148,9 +148,10 @@
   <entry>
     <title>spark源码-cache和persist</title>
     <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/</url>
-    <content><![CDATA[<h1 id="简介"><a class="header-anchor" href="#简介"></a>简介</h1>
-<p>复杂的任务中，某个中间转换结果可能会被多次调用，此时可以使用 spark 的缓存功能，将计算的中间过程缓存在内存或者磁盘中，以便再次使用，减少不必要的计算。</p>
+    <content><![CDATA[<p>介绍spark的缓存功能</p>
 <a id="more"></a>
+<h1 id="简介"><a class="header-anchor" href="#简介"></a>简介</h1>
+<p>复杂的任务中，某个中间转换结果可能会被多次调用，此时可以使用 spark 的缓存功能，将计算的中间过程缓存在内存或者磁盘中，以便再次使用，减少不必要的计算。</p>
 <h1 id="特点"><a class="header-anchor" href="#特点"></a>特点</h1>
 <ul>
 <li>懒加载，只有RDD触发action时才会进行计算并且缓存</li>

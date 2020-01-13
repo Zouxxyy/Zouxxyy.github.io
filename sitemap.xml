@@ -4,7 +4,14 @@
   <url>
     <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/</loc>
     
-    <lastmod>2020-01-13T07:27:55.057Z</lastmod>
+    <lastmod>2020-01-13T08:36:21.137Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/</loc>
+    
+    <lastmod>2020-01-13T08:20:11.823Z</lastmod>
     
   </url>
   
@@ -26,13 +33,6 @@
     <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-MemoryManager%E5%92%8CMemoryStore/</loc>
     
     <lastmod>2020-01-13T01:50:02.542Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/</loc>
-    
-    <lastmod>2020-01-11T13:45:07.630Z</lastmod>
     
   </url>
   

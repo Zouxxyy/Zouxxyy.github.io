@@ -392,7 +392,7 @@ td {
   background-image: linear-gradient(#fcfcfc, #eee);
   border: 1px solid #d5d5d5;
   border-radius: 3px;
-  font-size: 0.8125em;
+  font-size: 0.875em;
   right: 4px;
   top: 8px;
 }
@@ -1078,7 +1078,7 @@ pre .javascript .function {
 .menu-item span.exturl {
   border-bottom: 0;
   display: block;
-  font-size: 0.8125em;
+  font-size: 0.875em;
   transition-property: border-color;
   transition-delay: 0s;
   transition-duration: 0.2s;
@@ -1184,14 +1184,14 @@ pre .javascript .function {
 .links-of-author span.exturl {
   border-bottom-color: #555;
   display: inline-block;
-  font-size: 0.8125em;
+  font-size: 0.875em;
   margin-bottom: 10px;
   margin-right: 10px;
   vertical-align: middle;
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #ff0652;
+  background: #66a6ff;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -1222,11 +1222,11 @@ pre .javascript .function {
   color: #fff;
 }
 .links-of-blogroll {
-  font-size: 0.8125em;
+  font-size: 0.875em;
   margin-top: 10px;
 }
 .links-of-blogroll-title {
-  font-size: 0.875em;
+  font-size: 1em;
   font-weight: 600;
   margin-top: 0;
 }
@@ -1278,7 +1278,7 @@ pre .javascript .function {
   color: #555;
   cursor: pointer;
   display: inline-block;
-  font-size: 0.875em;
+  font-size: 1em;
 }
 .sidebar-nav li.sidebar-nav-overview {
   margin-left: 10px;
@@ -1325,7 +1325,7 @@ pre .javascript .function {
   overflow-y: auto;
 }
 .post-toc {
-  font-size: 0.875em;
+  font-size: 1em;
 }
 .post-toc ol {
   list-style: none;
@@ -1407,7 +1407,7 @@ pre .javascript .function {
 }
 .footer {
   color: #999;
-  font-size: 0.875em;
+  font-size: 1em;
   padding: 20px 0;
 }
 .footer.footer-fixed {
@@ -1542,13 +1542,13 @@ pre .javascript .function {
   }
 }
 .post-body span.exturl .fa {
-  font-size: 0.875em;
+  font-size: 1em;
   margin-left: 4px;
 }
 .post-body .image-caption,
 .post-body .figure .caption {
   color: #999;
-  font-size: 0.875em;
+  font-size: 1em;
   font-weight: bold;
   line-height: 1;
   margin: -20px auto 15px;
@@ -1687,7 +1687,7 @@ pre .javascript .function {
   width: 4px;
 }
 .posts-collapse .fa-external-link {
-  font-size: 0.875em;
+  font-size: 1em;
   margin-left: 5px;
 }
 .post-eof {
@@ -1831,7 +1831,7 @@ pre .javascript .function {
   visibility: visible;
 }
 .posts-expand .post-title-link .fa {
-  font-size: 0.875em;
+  font-size: 1em;
   margin-left: 5px;
 }
 .posts-expand .post-meta {
@@ -1842,7 +1842,7 @@ pre .javascript .function {
   text-align: center;
 }
 .posts-expand .post-meta .post-description {
-  font-size: 0.875em;
+  font-size: 1em;
   margin-top: 2px;
 }
 .posts-expand .post-meta time {
@@ -1882,7 +1882,7 @@ pre .javascript .function {
 .post-nav-item a {
   border-bottom: none;
   display: block;
-  font-size: 0.875em;
+  font-size: 1em;
   line-height: 1.6;
   position: relative;
 }
@@ -1938,7 +1938,7 @@ pre .javascript .function {
 }
 .post-tags a {
   display: inline-block;
-  font-size: 0.8125em;
+  font-size: 0.875em;
 }
 .post-tags a:not(:last-child) {
   margin-right: 10px;
@@ -1957,7 +1957,7 @@ pre .javascript .function {
 }
 .social-like {
   display: flex;
-  font-size: 0.875em;
+  font-size: 1em;
   justify-content: center;
   text-align: center;
 }
@@ -2604,11 +2604,7 @@ ul.breadcrumb li + li:last-child {
   padding: 0;
 }
 .post-body {
-  color: #333;
   line-height: 1.6;
-}
-.post-body html {
-  font-size: 16px;
 }
 .post-body h1,
 .post-body h2,
@@ -2736,4 +2732,15 @@ ul.breadcrumb li + li:last-child {
 .post-body code {
   background-color: #f3f4f4;
   padding: 0 2px 0 2px;
+}
+body {
+  background: url("https://i.loli.net/2020/01/13/2sgGBabmWfIvzDE.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: 50% 50%;
+}
+.main-inner {
+  background: #fff;
+  opacity: 0.93;
 }

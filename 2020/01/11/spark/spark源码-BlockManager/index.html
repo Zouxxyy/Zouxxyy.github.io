@@ -54,7 +54,7 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="每台节点（driver and executors）的block的总管理者，主要功能就是在本地或者远程的store中(堆内内存、磁盘、堆外内存) put、get、 block。 作为总管理者，BlockManager 依赖众多对象。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-01-13T07:27:55.057Z">
+<meta property="og:updated_time" content="2020-01-13T08:36:21.137Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark源码-BlockManager">
 <meta name="twitter:description" content="每台节点（driver and executors）的block的总管理者，主要功能就是在本地或者远程的store中(堆内内存、磁盘、堆外内存) put、get、 block。 作为总管理者，BlockManager 依赖众多对象。">
@@ -235,7 +235,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-01-13 15:27:55" itemprop="dateModified" datetime="2020-01-13T15:27:55+08:00">2020-01-13</time>
+                <time title="修改时间：2020-01-13 16:36:21" itemprop="dateModified" datetime="2020-01-13T16:36:21+08:00">2020-01-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -392,7 +392,7 @@
 <p><strong>ShuffleSpill</strong>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
 </li>
 <li>
-<p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/" target="_blank" rel="noopener">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
+<p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/" target="_blank" rel="noopener">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
 </li>
 <li>
 <p><strong>ShuffleWrite</strong>生成的合并大文件：BlockId：<code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code></p>
