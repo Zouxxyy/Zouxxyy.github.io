@@ -19,7 +19,7 @@
 <script id="hexo-configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    hostname: new URL('http://yoursite.com').hostname,
+    hostname: new URL('https://zouxxyy.github.io').hostname,
     root: '/',
     scheme: 'Pisces',
     version: '7.6.0',
@@ -50,7 +50,7 @@
 <meta name="keywords" content="java,jvm">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM(2)-Java内存区域与内存溢出异常">
-<meta property="og:url" content="http://yoursite.com/2019/03/22/java/JVM-2-Java内存区域与内存溢出异常/index.html">
+<meta property="og:url" content="https://zouxxyy.github.io/2019/03/22/java/JVM-2-Java内存区域与内存溢出异常/index.html">
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="本文是《深入理解Java虚拟机（第二版）》第二章的笔记">
 <meta property="og:locale" content="zh-CN">
@@ -65,7 +65,7 @@
 <meta name="twitter:description" content="本文是《深入理解Java虚拟机（第二版）》第二章的笔记">
 <meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/3/21/1699e42932e70b62?w=652&h=625&f=png&s=45434">
 
-<link rel="canonical" href="http://yoursite.com/2019/03/22/java/JVM-2-Java内存区域与内存溢出异常/">
+<link rel="canonical" href="https://zouxxyy.github.io/2019/03/22/java/JVM-2-Java内存区域与内存溢出异常/">
 
 
 <script id="page-configurations">
@@ -211,7 +211,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/22/java/JVM-2-Java内存区域与内存溢出异常/">
+    <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/2019/03/22/java/JVM-2-Java内存区域与内存溢出异常/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/me.png">
@@ -321,7 +321,7 @@
 <p>例子：String类在常量池的数据结构类似于HashSet,是唯一的。</p>
 <p><img src="https://user-gold-cdn.xitu.io/2019/3/21/169a02588d5caac4?w=612&amp;h=354&amp;f=png&amp;s=27965" alt></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">String s1 = <span class="string">"abc"</span>;</span><br><span class="line">String s2 = <span class="string">"abc"</span>; <span class="comment">// 存放在方法区的常量池（字节码常量）唯一</span></span><br><span class="line"></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line">String s3 = <span class="keyword">new</span> String(<span class="string">"abc"</span>); <span class="comment">// 用了new，所以在堆中创建</span></span><br><span class="line"></span><br><span class="line">System.out.println(s1 == s3); <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">System.out.println(s1 == s3.intern()); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
-<p>注意哦jdk1.8 String常量池搬到了堆中。如果想对<code>intern()</code>了解更多，可以看我的这篇<a href="https://zouxxyy.github.io/2019/03/22/JDK1-8-String%E5%B8%B8%E9%87%8F%E6%B1%A0%E8%AF%A6%E8%A7%A3/#more" target="_blank" rel="noopener">博客</a>。</p>
+<p>注意哦jdk1.8 String常量池搬到了堆中。如果想对<code>intern()</code>了解更多，可以看我的这篇<a href="https://zouxxyy.github.io/2019/03/22/JDK1-8-String%E5%B8%B8%E9%87%8F%E6%B1%A0%E8%AF%A6%E8%A7%A3/#more">博客</a>。</p>
 <h1 id="HotSpot对象揭秘"><a class="header-anchor" href="#HotSpot对象揭秘"></a>HotSpot对象揭秘</h1>
 <h2 id="对象创建"><a class="header-anchor" href="#对象创建"></a>对象创建</h2>
 <p>对象创建简单描述：</p>
@@ -371,6 +371,23 @@
     
     
     
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Zouxxyy
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://zouxxyy.github.io/2019/03/22/java/JVM-2-Java内存区域与内存溢出异常/" title="JVM(2)-Java内存区域与内存溢出异常">https://zouxxyy.github.io/2019/03/22/java/JVM-2-Java内存区域与内存溢出异常/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
 
       <footer class="post-footer">
           <div class="post-tags">
@@ -516,11 +533,6 @@
   </span>
   <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
 </div>
-  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0
-  </div>
-  <span class="post-meta-divider">|</span>
-  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
-  </div>
 
         
 

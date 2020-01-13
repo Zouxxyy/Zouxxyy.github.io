@@ -114,7 +114,7 @@
 <p><strong>ShuffleSpill</strong>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
 </li>
 <li>
-<p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/" target="_blank" rel="noopener">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
+<p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
 </li>
 <li>
 <p><strong>ShuffleWrite</strong>生成的合并大文件：BlockId：<code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code></p>
@@ -639,7 +639,7 @@
     <content><![CDATA[<p>spark的唯一 ShuffleReader ：BlockStoreShuffleReader</p>
 <a id="more"></a>
 <h1 id="引入"><a class="header-anchor" href="#引入"></a>引入</h1>
-<p><a href="https://zouxxyy.github.io/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/" target="_blank" rel="noopener">之前</a>提过，<code>getShuffleWrite</code> 只在 <code>ShuffleMapTask</code> 中出现。</p>
+<p><a href="https://zouxxyy.github.io/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/">之前</a>提过，<code>getShuffleWrite</code> 只在 <code>ShuffleMapTask</code> 中出现。</p>
 <p>那么<code>getShuffleRead</code>呢？由于不管哪个 Task 都需要读数据，于是就把该步骤封装在RDD的<code>computer</code>方法中。以下是<code>ShuffleRDD</code>中的<code>computer</code>方法。通过调用 <code>shuffleManager</code> 的 <code>getReader</code> 就获取了本文的主角<code>BlockStoreShuffleReader</code></p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)] = &#123;</span><br><span class="line">  <span class="keyword">val</span> dep = dependencies.head.asInstanceOf[<span class="type">ShuffleDependency</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>]]</span><br><span class="line">  <span class="comment">// 是不是觉得 split.index, split.index + 1 很怪，后面会发现这是怎么回事</span></span><br><span class="line">  <span class="type">SparkEnv</span>.get.shuffleManager.getReader(dep.shuffleHandle, split.index, split.index + <span class="number">1</span>, context)</span><br><span class="line">    .read()</span><br><span class="line">    .asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h1 id="大致流程"><a class="header-anchor" href="#大致流程"></a>大致流程</h1>
@@ -1458,8 +1458,8 @@
         <category>大数据</category>
       </categories>
       <tags>
-        <tag>hbase</tag>
         <tag>配置</tag>
+        <tag>hbase</tag>
       </tags>
   </entry>
   <entry>
@@ -2063,7 +2063,7 @@
 <a id="more"></a>
 <h1 id="流程"><a class="header-anchor" href="#流程"></a>流程</h1>
 <p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png" alt="YARN-Cluster流程图" title="YARN-Cluster流程图"></p>
-<p>主要流程和<a href="https://zouxxyy.github.io/2019/08/31/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/#more" target="_blank" rel="noopener">Yarn的流程</a>一样，不同的就是紫色部分。这里采用的是spark的<strong>yarn-cluster</strong>模式，driver在APPMaster中。</p>
+<p>主要流程和<a href="https://zouxxyy.github.io/2019/08/31/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/#more">Yarn的流程</a>一样，不同的就是紫色部分。这里采用的是spark的<strong>yarn-cluster</strong>模式，driver在APPMaster中。</p>
 <h1 id="细节"><a class="header-anchor" href="#细节"></a>细节</h1>
 <h2 id="解耦思想"><a class="header-anchor" href="#解耦思想"></a>解耦思想</h2>
 <ul>
@@ -2545,7 +2545,7 @@
 <h1 id="为啥要这样"><a class="header-anchor" href="#为啥要这样"></a>为啥要这样</h1>
 <p>可以远程用浏览器看服务器的文件目录，以及各种jupyter的好处：直接改代码，调试，它内嵌的读图也是特别舒服。</p>
 <h1 id="服务器安装jupyter-notebook"><a class="header-anchor" href="#服务器安装jupyter-notebook"></a>服务器安装jupyter notebook</h1>
-<p>我是给服务器装了<a href="https://zouxxyy.github.io/2019/04/10/linux%E4%B8%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%AE%89%E8%A3%85anaconda3-pytorch-fastai/#more" target="_blank" rel="noopener">anaconda</a>，然后就自带了jupyter notebook。</p>
+<p>我是给服务器装了<a href="https://zouxxyy.github.io/2019/04/10/linux%E4%B8%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%AE%89%E8%A3%85anaconda3-pytorch-fastai/#more">anaconda</a>，然后就自带了jupyter notebook。</p>
 <h1 id="配置jupyter-notebook"><a class="header-anchor" href="#配置jupyter-notebook"></a>配置jupyter notebook</h1>
 <ol>
 <li>登陆服务器</li>
@@ -3137,7 +3137,7 @@
 <p>例子：String类在常量池的数据结构类似于HashSet,是唯一的。</p>
 <p><img src="https://user-gold-cdn.xitu.io/2019/3/21/169a02588d5caac4?w=612&amp;h=354&amp;f=png&amp;s=27965" alt></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">String s1 = <span class="string">"abc"</span>;</span><br><span class="line">String s2 = <span class="string">"abc"</span>; <span class="comment">// 存放在方法区的常量池（字节码常量）唯一</span></span><br><span class="line"></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line">String s3 = <span class="keyword">new</span> String(<span class="string">"abc"</span>); <span class="comment">// 用了new，所以在堆中创建</span></span><br><span class="line"></span><br><span class="line">System.out.println(s1 == s3); <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">System.out.println(s1 == s3.intern()); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
-<p>注意哦jdk1.8 String常量池搬到了堆中。如果想对<code>intern()</code>了解更多，可以看我的这篇<a href="https://zouxxyy.github.io/2019/03/22/JDK1-8-String%E5%B8%B8%E9%87%8F%E6%B1%A0%E8%AF%A6%E8%A7%A3/#more" target="_blank" rel="noopener">博客</a>。</p>
+<p>注意哦jdk1.8 String常量池搬到了堆中。如果想对<code>intern()</code>了解更多，可以看我的这篇<a href="https://zouxxyy.github.io/2019/03/22/JDK1-8-String%E5%B8%B8%E9%87%8F%E6%B1%A0%E8%AF%A6%E8%A7%A3/#more">博客</a>。</p>
 <h1 id="HotSpot对象揭秘"><a class="header-anchor" href="#HotSpot对象揭秘"></a>HotSpot对象揭秘</h1>
 <h2 id="对象创建"><a class="header-anchor" href="#对象创建"></a>对象创建</h2>
 <p>对象创建简单描述：</p>
@@ -4024,7 +4024,7 @@
 <li>列表内容</li>
 </ol>
 <p><strong>- 列表嵌套</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1. 一级列表</span><br><span class="line">   1. 二级列表</span><br><span class="line">2. 一级列表</span><br><span class="line">	2. 二级列表</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1. 一级列表</span><br><span class="line">	1. 二级列表</span><br><span class="line">2. 一级列表</span><br><span class="line">	2. 二级列表</span><br></pre></td></tr></table></figure>
 <ol>
 <li>一级列表
 <ol>

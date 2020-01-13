@@ -5,9 +5,9 @@
   
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://yoursite.com/"/>
+  <link href="https://zouxxyy.github.io/"/>
   <updated>2020-01-13T08:36:21.137Z</updated>
-  <id>http://yoursite.com/</id>
+  <id>https://zouxxyy.github.io/</id>
   
   <author>
     <name>Zouxxyy</name>
@@ -18,12 +18,12 @@
   
   <entry>
     <title>spark源码-BlockManager</title>
-    <link href="http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/"/>
-    <id>http://yoursite.com/2020/01/11/spark/spark源码-BlockManager/</id>
+    <link href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/"/>
+    <id>https://zouxxyy.github.io/2020/01/11/spark/spark源码-BlockManager/</id>
     <published>2020-01-11T13:41:08.000Z</published>
     <updated>2020-01-13T08:36:21.137Z</updated>
     
-    <content type="html"><![CDATA[<p>每台节点（driver and executors）的block的总管理者，主要功能就是在本地或者远程的store中(堆内内存、磁盘、堆外内存) put、get、 block。</p><p>作为总管理者，BlockManager 依赖众多对象。</p><a id="more"></a><h1 id="重要成员"><a class="header-anchor" href="#重要成员"></a>重要成员</h1><p>从成员可以大体4类：RPC、传输、内存磁盘的 get or put（本文侧重）、shuffle</p><p><strong>RPC 相关</strong>（todo）</p><ul><li><p>master：BlockManagerMaster，RPC相关</p></li><li><p>rpcEnv</p></li><li><p>blockManagerId：该blockManager的Id，分布式系统</p></li><li><p>slaveEndpoint</p></li></ul><p><strong>块及其传输相关</strong>（todo）</p><ul><li><p>serializerManager：序列化管理者</p></li><li><p>mapOutputTracker：跟踪 shuffle write 的输出</p></li><li><p>blockTransferService：块传输服务（netty）</p></li><li><p>securityManager：块加密</p></li><li><p>remoteReadNioBufferConversion：<code>spark.network.remoteReadNioBufferConversion</code></p></li><li><p>futureExecutionContext</p></li><li><p>maxFailuresBeforeLocationRefresh</p></li><li><p>remoteBlockTempFileManager</p></li></ul><p><strong>内存磁盘相关</strong>：</p><ul><li><p><strong>memoryManager</strong></p></li><li><p><strong>memoryStore</strong></p></li><li><p><strong>diskBlockManager</strong></p></li><li><p><strong>diskStore</strong></p></li><li><p><strong>blockInfoManager</strong></p></li></ul><p><strong>shuffle</strong> 相关</p><ul><li><p>shuffleManager：使用的shuffleManager</p></li><li><p>externalShuffleServiceEnabled：<code>spark.shuffle.service.enabled</code>，是否使用外部排序(todo)，默认false</p></li><li><p>externalShuffleServicePort</p></li><li><p>shuffleServerId</p></li><li><p>shuffleClient：</p></li></ul><h1 id="重点功能"><a class="header-anchor" href="#重点功能"></a>重点功能</h1><h2 id="initialize"><a class="header-anchor" href="#initialize"></a>initialize</h2><p>只有掉用了initialize方法，该BlockManager才可用，看看就行，pass</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">initialize</span></span>(appId: <span class="type">String</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">  blockTransferService.init(<span class="keyword">this</span>)</span><br><span class="line">  shuffleClient.init(appId)</span><br><span class="line"></span><br><span class="line">  blockReplicationPolicy = &#123;</span><br><span class="line">    <span class="keyword">val</span> priorityClass = conf.get(</span><br><span class="line">      <span class="string">"spark.storage.replication.policy"</span>, classOf[<span class="type">RandomBlockReplicationPolicy</span>].getName)</span><br><span class="line">    <span class="keyword">val</span> clazz = <span class="type">Utils</span>.classForName(priorityClass)</span><br><span class="line">    <span class="keyword">val</span> ret = clazz.newInstance.asInstanceOf[<span class="type">BlockReplicationPolicy</span>]</span><br><span class="line">    logInfo(<span class="string">s"Using <span class="subst">$priorityClass</span> for block replication policy"</span>)</span><br><span class="line">    ret</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> id =</span><br><span class="line">    <span class="type">BlockManagerId</span>(executorId, blockTransferService.hostName, blockTransferService.port, <span class="type">None</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> idFromMaster = master.registerBlockManager(</span><br><span class="line">    id,</span><br><span class="line">    maxOnHeapMemory,</span><br><span class="line">    maxOffHeapMemory,</span><br><span class="line">    slaveEndpoint)</span><br><span class="line"></span><br><span class="line">  blockManagerId = <span class="keyword">if</span> (idFromMaster != <span class="literal">null</span>) idFromMaster <span class="keyword">else</span> id</span><br><span class="line"></span><br><span class="line">  shuffleServerId = <span class="keyword">if</span> (externalShuffleServiceEnabled) &#123;</span><br><span class="line">    logInfo(<span class="string">s"external shuffle service port = <span class="subst">$externalShuffleServicePort</span>"</span>)</span><br><span class="line">    <span class="type">BlockManagerId</span>(executorId, blockTransferService.hostName, externalShuffleServicePort)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    blockManagerId</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Register Executors' configuration with the local shuffle service, if one should exist.</span></span><br><span class="line">  <span class="keyword">if</span> (externalShuffleServiceEnabled &amp;&amp; !blockManagerId.isDriver) &#123;</span><br><span class="line">    registerWithExternalShuffleServer()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  logInfo(<span class="string">s"Initialized BlockManager: <span class="subst">$blockManagerId</span>"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="Put"><a class="header-anchor" href="#Put"></a>Put</h2><p>block就是文件，所以只要有spark计算有写文件操作（内存和磁盘），那么就要用到 put。</p><p>内容较多，我的学习目标是：先<strong>思考清楚spark计算流程</strong>，至于BlockManager内部弄明白<strong>调用流程和store的选择</strong>即可。能力有限，下面的方式并不是全部。</p><h3 id="RDD-cache"><a class="header-anchor" href="#RDD-cache"></a>RDD cache</h3><p>RDD 的缓存 参见我写的spark cache：第一次执行时，自然是存。并且存完后也要读，因为该函数就是要get，这里就不提读步骤。</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下doPutIterator的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.putIteratorAsValues 注意</span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.putIteratorAsBytes  注意</span><br><span class="line">                 -<span class="literal">false</span>-&gt; diskStore.put</span><br><span class="line"><span class="comment">//注意： 当level为内存和磁盘时，会先存内存，内存不足再存磁盘</span></span><br></pre></td></tr></table></figure><h3 id="Broadcast"><a class="header-anchor" href="#Broadcast"></a>Broadcast</h3><p>广播变量的存储</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.writeBlocks -&gt; putSingle</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">putSingle -&gt; putIterator -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// doPutIterator 同理</span></span><br></pre></td></tr></table></figure><h3 id="RDD-block-Replication"><a class="header-anchor" href="#RDD-block-Replication"></a>RDD block Replication</h3><blockquote><p>当RDD的storage level中的_replication大于1时，BlockManager需要将block数据发到另一个远程结点以备份，此时BlockManager会向远程结点发送UploadBlock消息，远程结点在收到该消息后会申请存储内存以存放收到的block数据。</p></blockquote><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManage，分2类</span></span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receive -&gt; <span class="keyword">match</span> uploadBlock -&gt; putBlockData</span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receiveStream -&gt; putBlockDataAsStream</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">putBlockData -&gt; putBytes -&gt; doPutBytes -&gt; doPut</span><br><span class="line">putBlockDataAsStream -&gt; 看不懂 -&gt; putBytes -&gt; doPutBytes -&gt; doPut</span><br><span class="line"></span><br><span class="line"><span class="comment">// doPutBytes 存储逻辑和 doPutIterator 基本一样</span></span><br><span class="line"><span class="comment">// 区别是 doPutIterator 输入是 Iterator[T]；doPutBytes 输入是 ChunkedByteBuffer，它需要先反序列化</span></span><br><span class="line"><span class="comment">// 分析：doPutIterator 是缓存步骤计算得到的自然是java对象； doPutBytes 是节点传自然是序列化的</span></span><br></pre></td></tr></table></figure><h3 id="Shuffle-相关"><a class="header-anchor" href="#Shuffle-相关"></a>Shuffle 相关</h3><p>Shuffle时有许多写磁盘的操作，它们都是使用了一个专门的直接将数据写入磁盘的类：</p><p>DiskWriter：<code>DiskBlockObjectWriter</code>，而它通过BlockManaged得到。</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getDiskWriter</span></span>(</span><br><span class="line">  blockId: <span class="type">BlockId</span>,</span><br><span class="line">  file: <span class="type">File</span>,</span><br><span class="line">  serializerInstance: <span class="type">SerializerInstance</span>,</span><br><span class="line">  bufferSize: <span class="type">Int</span>,</span><br><span class="line">  writeMetrics: <span class="type">ShuffleWriteMetrics</span>): <span class="type">DiskBlockObjectWriter</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> syncWrites = conf.getBoolean(<span class="string">"spark.shuffle.sync"</span>, <span class="literal">false</span>)</span><br><span class="line">  <span class="keyword">new</span> <span class="type">DiskBlockObjectWriter</span>(file, serializerManager, serializerInstance, bufferSize,</span><br><span class="line">                            syncWrites, writeMetrics, blockId)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 通用流程</span></span><br><span class="line"><span class="comment">// 1. 得到 DiskWriter</span></span><br><span class="line"><span class="keyword">val</span> writer = blockManager.getDiskWriter(xxx)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 将数据写入DiskWriter</span></span><br><span class="line">writer.write(xxx)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 提交并返回偏移和大小</span></span><br><span class="line"><span class="keyword">val</span> fileSegment = writer.commitAndGet()</span><br></pre></td></tr></table></figure><p>主要有下列情况</p><ul><li><p><strong>ShuffleSpill</strong>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p></li><li><p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/" target="_blank" rel="noopener">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p></li><li><p><strong>ShuffleWrite</strong>生成的合并大文件：BlockId：<code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code></p></li></ul><h2 id="get"><a class="header-anchor" href="#get"></a>get</h2><p>有写就有读，与写不同的是：<strong>写只能写本地，读可以读本地和远程</strong>，这个我想应该很好理解。</p><h3 id="RDD-cache-v2"><a class="header-anchor" href="#RDD-cache-v2"></a>RDD cache</h3><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; get -&gt; getLocalValues</span><br><span class="line">                       -&gt; getRemoteValues -&gt; getRemoteBytes -&gt; 反序列</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下 getLocalValues 的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.getValues </span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.getBytes  -&gt; 反序列</span><br><span class="line">                 -<span class="literal">false</span>-&gt; level.useDisk      -<span class="literal">true</span>--&gt; diskStore.getBytes    -&gt; 反序列</span><br></pre></td></tr></table></figure><h3 id="Broadcast-v2"><a class="header-anchor" href="#Broadcast-v2"></a>Broadcast</h3><p>广播变量的读取比较简单</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.readBroadcastBlock -&gt; getLocalValues</span><br></pre></td></tr></table></figure><h3 id="RDD-block-Replication-v2"><a class="header-anchor" href="#RDD-block-Replication-v2"></a>RDD block Replication</h3><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManage，只有一类</span></span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receive -&gt; <span class="keyword">match</span> openBlocks -&gt; getBlockData</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getBlockData -&gt; getLocalBytes</span><br></pre></td></tr></table></figure><h3 id="Shuffle-相关-v2"><a class="header-anchor" href="#Shuffle-相关-v2"></a>Shuffle 相关</h3><p>shuffle read 阶段：<code>BlockStoreShuffleReader</code> 核心是<code>ShuffleBlockFetcherIterator</code></p><p>现在可以理解它们名字的含义了，就是去fetch write阶段写下的block，</p><p>分本地<code>localBlocks</code> 和远程  <code>remoteBlocks</code></p><p>这部分内容较复杂，需结合rpc，先pass</p><h1 id="小结"><a class="header-anchor" href="#小结"></a>小结</h1><p>BlockManager 块管理者，使用它时，直接get、put即可；而之前对其底层结构的了解这一过程还是很有意思的，同时使我对spark有了更深的认识。</p><p>至此，spark文件系统告一段落，以后学了rpc再回来看文件系统的rpc。</p>]]></content>
+    <content type="html"><![CDATA[<p>每台节点（driver and executors）的block的总管理者，主要功能就是在本地或者远程的store中(堆内内存、磁盘、堆外内存) put、get、 block。</p><p>作为总管理者，BlockManager 依赖众多对象。</p><a id="more"></a><h1 id="重要成员"><a class="header-anchor" href="#重要成员"></a>重要成员</h1><p>从成员可以大体4类：RPC、传输、内存磁盘的 get or put（本文侧重）、shuffle</p><p><strong>RPC 相关</strong>（todo）</p><ul><li><p>master：BlockManagerMaster，RPC相关</p></li><li><p>rpcEnv</p></li><li><p>blockManagerId：该blockManager的Id，分布式系统</p></li><li><p>slaveEndpoint</p></li></ul><p><strong>块及其传输相关</strong>（todo）</p><ul><li><p>serializerManager：序列化管理者</p></li><li><p>mapOutputTracker：跟踪 shuffle write 的输出</p></li><li><p>blockTransferService：块传输服务（netty）</p></li><li><p>securityManager：块加密</p></li><li><p>remoteReadNioBufferConversion：<code>spark.network.remoteReadNioBufferConversion</code></p></li><li><p>futureExecutionContext</p></li><li><p>maxFailuresBeforeLocationRefresh</p></li><li><p>remoteBlockTempFileManager</p></li></ul><p><strong>内存磁盘相关</strong>：</p><ul><li><p><strong>memoryManager</strong></p></li><li><p><strong>memoryStore</strong></p></li><li><p><strong>diskBlockManager</strong></p></li><li><p><strong>diskStore</strong></p></li><li><p><strong>blockInfoManager</strong></p></li></ul><p><strong>shuffle</strong> 相关</p><ul><li><p>shuffleManager：使用的shuffleManager</p></li><li><p>externalShuffleServiceEnabled：<code>spark.shuffle.service.enabled</code>，是否使用外部排序(todo)，默认false</p></li><li><p>externalShuffleServicePort</p></li><li><p>shuffleServerId</p></li><li><p>shuffleClient：</p></li></ul><h1 id="重点功能"><a class="header-anchor" href="#重点功能"></a>重点功能</h1><h2 id="initialize"><a class="header-anchor" href="#initialize"></a>initialize</h2><p>只有掉用了initialize方法，该BlockManager才可用，看看就行，pass</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">initialize</span></span>(appId: <span class="type">String</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">  blockTransferService.init(<span class="keyword">this</span>)</span><br><span class="line">  shuffleClient.init(appId)</span><br><span class="line"></span><br><span class="line">  blockReplicationPolicy = &#123;</span><br><span class="line">    <span class="keyword">val</span> priorityClass = conf.get(</span><br><span class="line">      <span class="string">"spark.storage.replication.policy"</span>, classOf[<span class="type">RandomBlockReplicationPolicy</span>].getName)</span><br><span class="line">    <span class="keyword">val</span> clazz = <span class="type">Utils</span>.classForName(priorityClass)</span><br><span class="line">    <span class="keyword">val</span> ret = clazz.newInstance.asInstanceOf[<span class="type">BlockReplicationPolicy</span>]</span><br><span class="line">    logInfo(<span class="string">s"Using <span class="subst">$priorityClass</span> for block replication policy"</span>)</span><br><span class="line">    ret</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> id =</span><br><span class="line">    <span class="type">BlockManagerId</span>(executorId, blockTransferService.hostName, blockTransferService.port, <span class="type">None</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> idFromMaster = master.registerBlockManager(</span><br><span class="line">    id,</span><br><span class="line">    maxOnHeapMemory,</span><br><span class="line">    maxOffHeapMemory,</span><br><span class="line">    slaveEndpoint)</span><br><span class="line"></span><br><span class="line">  blockManagerId = <span class="keyword">if</span> (idFromMaster != <span class="literal">null</span>) idFromMaster <span class="keyword">else</span> id</span><br><span class="line"></span><br><span class="line">  shuffleServerId = <span class="keyword">if</span> (externalShuffleServiceEnabled) &#123;</span><br><span class="line">    logInfo(<span class="string">s"external shuffle service port = <span class="subst">$externalShuffleServicePort</span>"</span>)</span><br><span class="line">    <span class="type">BlockManagerId</span>(executorId, blockTransferService.hostName, externalShuffleServicePort)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    blockManagerId</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Register Executors' configuration with the local shuffle service, if one should exist.</span></span><br><span class="line">  <span class="keyword">if</span> (externalShuffleServiceEnabled &amp;&amp; !blockManagerId.isDriver) &#123;</span><br><span class="line">    registerWithExternalShuffleServer()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  logInfo(<span class="string">s"Initialized BlockManager: <span class="subst">$blockManagerId</span>"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="Put"><a class="header-anchor" href="#Put"></a>Put</h2><p>block就是文件，所以只要有spark计算有写文件操作（内存和磁盘），那么就要用到 put。</p><p>内容较多，我的学习目标是：先<strong>思考清楚spark计算流程</strong>，至于BlockManager内部弄明白<strong>调用流程和store的选择</strong>即可。能力有限，下面的方式并不是全部。</p><h3 id="RDD-cache"><a class="header-anchor" href="#RDD-cache"></a>RDD cache</h3><p>RDD 的缓存 参见我写的spark cache：第一次执行时，自然是存。并且存完后也要读，因为该函数就是要get，这里就不提读步骤。</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下doPutIterator的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.putIteratorAsValues 注意</span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.putIteratorAsBytes  注意</span><br><span class="line">                 -<span class="literal">false</span>-&gt; diskStore.put</span><br><span class="line"><span class="comment">//注意： 当level为内存和磁盘时，会先存内存，内存不足再存磁盘</span></span><br></pre></td></tr></table></figure><h3 id="Broadcast"><a class="header-anchor" href="#Broadcast"></a>Broadcast</h3><p>广播变量的存储</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.writeBlocks -&gt; putSingle</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">putSingle -&gt; putIterator -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// doPutIterator 同理</span></span><br></pre></td></tr></table></figure><h3 id="RDD-block-Replication"><a class="header-anchor" href="#RDD-block-Replication"></a>RDD block Replication</h3><blockquote><p>当RDD的storage level中的_replication大于1时，BlockManager需要将block数据发到另一个远程结点以备份，此时BlockManager会向远程结点发送UploadBlock消息，远程结点在收到该消息后会申请存储内存以存放收到的block数据。</p></blockquote><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManage，分2类</span></span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receive -&gt; <span class="keyword">match</span> uploadBlock -&gt; putBlockData</span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receiveStream -&gt; putBlockDataAsStream</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">putBlockData -&gt; putBytes -&gt; doPutBytes -&gt; doPut</span><br><span class="line">putBlockDataAsStream -&gt; 看不懂 -&gt; putBytes -&gt; doPutBytes -&gt; doPut</span><br><span class="line"></span><br><span class="line"><span class="comment">// doPutBytes 存储逻辑和 doPutIterator 基本一样</span></span><br><span class="line"><span class="comment">// 区别是 doPutIterator 输入是 Iterator[T]；doPutBytes 输入是 ChunkedByteBuffer，它需要先反序列化</span></span><br><span class="line"><span class="comment">// 分析：doPutIterator 是缓存步骤计算得到的自然是java对象； doPutBytes 是节点传自然是序列化的</span></span><br></pre></td></tr></table></figure><h3 id="Shuffle-相关"><a class="header-anchor" href="#Shuffle-相关"></a>Shuffle 相关</h3><p>Shuffle时有许多写磁盘的操作，它们都是使用了一个专门的直接将数据写入磁盘的类：</p><p>DiskWriter：<code>DiskBlockObjectWriter</code>，而它通过BlockManaged得到。</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getDiskWriter</span></span>(</span><br><span class="line">  blockId: <span class="type">BlockId</span>,</span><br><span class="line">  file: <span class="type">File</span>,</span><br><span class="line">  serializerInstance: <span class="type">SerializerInstance</span>,</span><br><span class="line">  bufferSize: <span class="type">Int</span>,</span><br><span class="line">  writeMetrics: <span class="type">ShuffleWriteMetrics</span>): <span class="type">DiskBlockObjectWriter</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> syncWrites = conf.getBoolean(<span class="string">"spark.shuffle.sync"</span>, <span class="literal">false</span>)</span><br><span class="line">  <span class="keyword">new</span> <span class="type">DiskBlockObjectWriter</span>(file, serializerManager, serializerInstance, bufferSize,</span><br><span class="line">                            syncWrites, writeMetrics, blockId)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 通用流程</span></span><br><span class="line"><span class="comment">// 1. 得到 DiskWriter</span></span><br><span class="line"><span class="keyword">val</span> writer = blockManager.getDiskWriter(xxx)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 将数据写入DiskWriter</span></span><br><span class="line">writer.write(xxx)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 提交并返回偏移和大小</span></span><br><span class="line"><span class="keyword">val</span> fileSegment = writer.commitAndGet()</span><br></pre></td></tr></table></figure><p>主要有下列情况</p><ul><li><p><strong>ShuffleSpill</strong>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p></li><li><p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p></li><li><p><strong>ShuffleWrite</strong>生成的合并大文件：BlockId：<code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code></p></li></ul><h2 id="get"><a class="header-anchor" href="#get"></a>get</h2><p>有写就有读，与写不同的是：<strong>写只能写本地，读可以读本地和远程</strong>，这个我想应该很好理解。</p><h3 id="RDD-cache-v2"><a class="header-anchor" href="#RDD-cache-v2"></a>RDD cache</h3><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; get -&gt; getLocalValues</span><br><span class="line">                       -&gt; getRemoteValues -&gt; getRemoteBytes -&gt; 反序列</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下 getLocalValues 的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.getValues </span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.getBytes  -&gt; 反序列</span><br><span class="line">                 -<span class="literal">false</span>-&gt; level.useDisk      -<span class="literal">true</span>--&gt; diskStore.getBytes    -&gt; 反序列</span><br></pre></td></tr></table></figure><h3 id="Broadcast-v2"><a class="header-anchor" href="#Broadcast-v2"></a>Broadcast</h3><p>广播变量的读取比较简单</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.readBroadcastBlock -&gt; getLocalValues</span><br></pre></td></tr></table></figure><h3 id="RDD-block-Replication-v2"><a class="header-anchor" href="#RDD-block-Replication-v2"></a>RDD block Replication</h3><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManage，只有一类</span></span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receive -&gt; <span class="keyword">match</span> openBlocks -&gt; getBlockData</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getBlockData -&gt; getLocalBytes</span><br></pre></td></tr></table></figure><h3 id="Shuffle-相关-v2"><a class="header-anchor" href="#Shuffle-相关-v2"></a>Shuffle 相关</h3><p>shuffle read 阶段：<code>BlockStoreShuffleReader</code> 核心是<code>ShuffleBlockFetcherIterator</code></p><p>现在可以理解它们名字的含义了，就是去fetch write阶段写下的block，</p><p>分本地<code>localBlocks</code> 和远程  <code>remoteBlocks</code></p><p>这部分内容较复杂，需结合rpc，先pass</p><h1 id="小结"><a class="header-anchor" href="#小结"></a>小结</h1><p>BlockManager 块管理者，使用它时，直接get、put即可；而之前对其底层结构的了解这一过程还是很有意思的，同时使我对spark有了更深的认识。</p><p>至此，spark文件系统告一段落，以后学了rpc再回来看文件系统的rpc。</p>]]></content>
     
     <summary type="html">
     
@@ -32,17 +32,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark源码-cache和persist</title>
-    <link href="http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/"/>
-    <id>http://yoursite.com/2020/01/11/spark/spark源码-cache和persist/</id>
+    <link href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/"/>
+    <id>https://zouxxyy.github.io/2020/01/11/spark/spark源码-cache和persist/</id>
     <published>2020-01-11T13:40:44.000Z</published>
     <updated>2020-01-13T08:20:11.823Z</updated>
     
@@ -54,17 +54,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark源码-block</title>
-    <link href="http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-block/"/>
-    <id>http://yoursite.com/2020/01/11/spark/spark源码-block/</id>
+    <link href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-block/"/>
+    <id>https://zouxxyy.github.io/2020/01/11/spark/spark源码-block/</id>
     <published>2020-01-11T13:40:28.000Z</published>
     <updated>2020-01-13T02:08:02.512Z</updated>
     
@@ -77,17 +77,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark源码-DiskBlockManager和DiskStore</title>
-    <link href="http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-DiskBlockManager%E5%92%8CDiskStore/"/>
-    <id>http://yoursite.com/2020/01/11/spark/spark源码-DiskBlockManager和DiskStore/</id>
+    <link href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-DiskBlockManager%E5%92%8CDiskStore/"/>
+    <id>https://zouxxyy.github.io/2020/01/11/spark/spark源码-DiskBlockManager和DiskStore/</id>
     <published>2020-01-11T13:40:04.000Z</published>
     <updated>2020-01-13T02:04:19.550Z</updated>
     
@@ -99,17 +99,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark源码-MemoryManager和MemoryStore</title>
-    <link href="http://yoursite.com/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-MemoryManager%E5%92%8CMemoryStore/"/>
-    <id>http://yoursite.com/2020/01/11/spark/spark源码-MemoryManager和MemoryStore/</id>
+    <link href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-MemoryManager%E5%92%8CMemoryStore/"/>
+    <id>https://zouxxyy.github.io/2020/01/11/spark/spark源码-MemoryManager和MemoryStore/</id>
     <published>2020-01-11T13:39:34.000Z</published>
     <updated>2020-01-13T01:50:02.542Z</updated>
     
@@ -121,17 +121,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>我的2019</title>
-    <link href="http://yoursite.com/2019/12/31/%E9%9A%8F%E7%AC%94/%E6%88%91%E7%9A%842019/"/>
-    <id>http://yoursite.com/2019/12/31/随笔/我的2019/</id>
+    <link href="https://zouxxyy.github.io/2019/12/31/%E9%9A%8F%E7%AC%94/%E6%88%91%E7%9A%842019/"/>
+    <id>https://zouxxyy.github.io/2019/12/31/随笔/我的2019/</id>
     <published>2019-12-31T08:59:34.000Z</published>
     <updated>2020-01-02T01:06:30.500Z</updated>
     
@@ -143,15 +143,15 @@
     
     </summary>
     
-      <category term="随笔" scheme="http://yoursite.com/categories/%E9%9A%8F%E7%AC%94/"/>
+      <category term="随笔" scheme="https://zouxxyy.github.io/categories/%E9%9A%8F%E7%AC%94/"/>
     
     
   </entry>
   
   <entry>
     <title>分布式版本控制系统-Git</title>
-    <link href="http://yoursite.com/2019/12/31/%E5%B7%A5%E5%85%B7/%E5%88%86%E5%B8%83%E5%BC%8F%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F-Git/"/>
-    <id>http://yoursite.com/2019/12/31/工具/分布式版本控制系统-Git/</id>
+    <link href="https://zouxxyy.github.io/2019/12/31/%E5%B7%A5%E5%85%B7/%E5%88%86%E5%B8%83%E5%BC%8F%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F-Git/"/>
+    <id>https://zouxxyy.github.io/2019/12/31/工具/分布式版本控制系统-Git/</id>
     <published>2019-12-31T01:10:52.000Z</published>
     <updated>2019-12-31T01:14:45.901Z</updated>
     
@@ -166,19 +166,19 @@
     
     </summary>
     
-      <category term="Tools" scheme="http://yoursite.com/categories/Tools/"/>
+      <category term="Tools" scheme="https://zouxxyy.github.io/categories/Tools/"/>
     
     
   </entry>
   
   <entry>
     <title>spark源码-shuffle之BlockStoreShuffleReader</title>
-    <link href="http://yoursite.com/2019/12/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBlockStoreShuffleReader/"/>
-    <id>http://yoursite.com/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/</id>
+    <link href="https://zouxxyy.github.io/2019/12/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBlockStoreShuffleReader/"/>
+    <id>https://zouxxyy.github.io/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/</id>
     <published>2019-12-30T01:33:22.000Z</published>
     <updated>2020-01-10T09:30:57.239Z</updated>
     
-    <content type="html"><![CDATA[<p>spark的唯一 ShuffleReader ：BlockStoreShuffleReader</p><a id="more"></a><h1 id="引入"><a class="header-anchor" href="#引入"></a>引入</h1><p><a href="https://zouxxyy.github.io/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/" target="_blank" rel="noopener">之前</a>提过，<code>getShuffleWrite</code> 只在 <code>ShuffleMapTask</code> 中出现。</p><p>那么<code>getShuffleRead</code>呢？由于不管哪个 Task 都需要读数据，于是就把该步骤封装在RDD的<code>computer</code>方法中。以下是<code>ShuffleRDD</code>中的<code>computer</code>方法。通过调用 <code>shuffleManager</code> 的 <code>getReader</code> 就获取了本文的主角<code>BlockStoreShuffleReader</code></p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)] = &#123;</span><br><span class="line">  <span class="keyword">val</span> dep = dependencies.head.asInstanceOf[<span class="type">ShuffleDependency</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>]]</span><br><span class="line">  <span class="comment">// 是不是觉得 split.index, split.index + 1 很怪，后面会发现这是怎么回事</span></span><br><span class="line">  <span class="type">SparkEnv</span>.get.shuffleManager.getReader(dep.shuffleHandle, split.index, split.index + <span class="number">1</span>, context)</span><br><span class="line">    .read()</span><br><span class="line">    .asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h1 id="大致流程"><a class="header-anchor" href="#大致流程"></a>大致流程</h1><ol><li><p><strong>获取初始迭代器<code>ShuffleBlockFetcherIterator</code></strong>（<code>Iterator[(BlockId, InputStream)</code>）</p></li><li><p><strong>反序列化出实例，并生成 k,v 迭代器</strong>（<code>Iterator[(key, value)]</code>）</p></li><li><p><strong>添加readMetrics，再封装成<code>InterruptibleIterator</code></strong></p></li><li><p><strong>进行聚合操作</strong>。分有无聚合，当有聚合时，又分是否执行过map聚合</p></li><li><p><strong>进行排序操作</strong>。分有无排序。</p></li></ol><p><code>BlockStoreShuffleReader </code> 要干的事其实很容易理解，就是把<strong>不同 block 中同一分区的record</strong>，拉到指定的 reducer 中，再对它进行<strong>聚合和排序</strong>即可。一个 reducer 处理一个分区。</p><h1 id="源码"><a class="header-anchor" href="#源码"></a>源码</h1><h2 id="获取初始迭代器ShuffleBlockFetcherIterator"><a class="header-anchor" href="#获取初始迭代器ShuffleBlockFetcherIterator"></a>获取初始迭代器<code>ShuffleBlockFetcherIterator</code></h2><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 获取初始迭代器 ShuffleBlockFetcherIterator</span></span><br><span class="line"><span class="keyword">val</span> wrappedStreams = <span class="keyword">new</span> <span class="type">ShuffleBlockFetcherIterator</span>(</span><br><span class="line">  context,</span><br><span class="line">  blockManager.shuffleClient, <span class="comment">// 默认是 NettyBlockTransferService，如果使用外部shuffle系统则使用 ExternalShuffleClient</span></span><br><span class="line">  blockManager,</span><br><span class="line">  <span class="comment">// 通过它得到 2元tuple : (BlockManagerId, Seq[(BlockId, BlockSize)])</span></span><br><span class="line">  mapOutputTracker.getMapSizesByExecutorId(handle.shuffleId, startPartition, endPartition),</span><br><span class="line">  serializerManager.wrapStream,</span><br><span class="line">  <span class="comment">// Note: we use getSizeAsMb when no suffix is provided for backwards compatibility</span></span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.getSizeAsMb(<span class="string">"spark.reducer.maxSizeInFlight"</span>, <span class="string">"48m"</span>) * <span class="number">1024</span> * <span class="number">1024</span>,</span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.getInt(<span class="string">"spark.reducer.maxReqsInFlight"</span>, <span class="type">Int</span>.<span class="type">MaxValue</span>),</span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.get(config.<span class="type">REDUCER_MAX_BLOCKS_IN_FLIGHT_PER_ADDRESS</span>),</span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.get(config.<span class="type">MAX_REMOTE_BLOCK_SIZE_FETCH_TO_MEM</span>),</span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.getBoolean(<span class="string">"spark.shuffle.detectCorrupt"</span>, <span class="literal">true</span>))</span><br></pre></td></tr></table></figure><p>这是 <code>mapOutputTracker.getMapSizesByExecutorId</code> 里的关键步骤</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">convertMapStatuses</span></span>(</span><br><span class="line">    shuffleId: <span class="type">Int</span>,</span><br><span class="line">    startPartition: <span class="type">Int</span>,</span><br><span class="line">    endPartition: <span class="type">Int</span>,</span><br><span class="line">    statuses: <span class="type">Array</span>[<span class="type">MapStatus</span>]): <span class="type">Iterator</span>[(<span class="type">BlockManagerId</span>, <span class="type">Seq</span>[(<span class="type">BlockId</span>, <span class="type">Long</span>)])] = &#123;</span><br><span class="line">  assert (statuses != <span class="literal">null</span>)</span><br><span class="line">  <span class="keyword">val</span> splitsByAddress = <span class="keyword">new</span> <span class="type">HashMap</span>[<span class="type">BlockManagerId</span>, <span class="type">ListBuffer</span>[(<span class="type">BlockId</span>, <span class="type">Long</span>)]]</span><br><span class="line">  <span class="comment">// mapTask 的个数决定了 Seq[(BlockId, BlockSize)] 内元素的个数，很好理解</span></span><br><span class="line">  <span class="keyword">for</span> ((status, mapId) &lt;- statuses.iterator.zipWithIndex) &#123;</span><br><span class="line">    <span class="keyword">if</span> (status == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">val</span> errorMessage = <span class="string">s"Missing an output location for shuffle <span class="subst">$shuffleId</span>"</span></span><br><span class="line">      logError(errorMessage)</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">MetadataFetchFailedException</span>(shuffleId, startPartition, errorMessage)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 左闭右开，因此前面的 （split.index, split.index + 1）中的 split.index + 1，并没有什么软用  </span></span><br><span class="line">      <span class="keyword">for</span> (part &lt;- startPartition until endPartition) &#123;</span><br><span class="line">        <span class="keyword">val</span> size = status.getSizeForBlock(part)</span><br><span class="line">        <span class="keyword">if</span> (size != <span class="number">0</span>) &#123;</span><br><span class="line">          splitsByAddress.getOrElseUpdate(status.location, <span class="type">ListBuffer</span>()) +=</span><br><span class="line">              ((<span class="type">ShuffleBlockId</span>(shuffleId, mapId, part), size))</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  splitsByAddress.iterator</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p><code>ShuffleBlockFetcherIterator  </code>这个迭代器的具体实现比较复杂，简单介绍下：</p><ul><li><p>分本地数据块 和 远程数据块</p></li><li><p>本地数据块直接调用 <code>BlockManager.getBlockData</code></p></li><li><p>远程数据块采用Netty通过网络获取</p></li></ul><p>下面是 <code>IndexShuffleBlockResolver</code> 中的 <code>getBlockData</code>。我们的索引文件（indexFile）终于派上用场</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getBlockData</span></span>(blockId: <span class="type">ShuffleBlockId</span>): <span class="type">ManagedBuffer</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> indexFile = getIndexFile(blockId.shuffleId, blockId.mapId)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> channel = <span class="type">Files</span>.newByteChannel(indexFile.toPath)</span><br><span class="line">  <span class="comment">// 根据reduceId选择索引</span></span><br><span class="line">  channel.position(blockId.reduceId * <span class="number">8</span>L)</span><br><span class="line">  <span class="keyword">val</span> in = <span class="keyword">new</span> <span class="type">DataInputStream</span>(<span class="type">Channels</span>.newInputStream(channel))</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> offset = in.readLong()</span><br><span class="line">    <span class="keyword">val</span> nextOffset = in.readLong()</span><br><span class="line">    <span class="keyword">val</span> actualPosition = channel.position()</span><br><span class="line">    <span class="keyword">val</span> expectedPosition = blockId.reduceId * <span class="number">8</span>L + <span class="number">16</span></span><br><span class="line">    <span class="keyword">if</span> (actualPosition != expectedPosition) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">Exception</span>(<span class="string">s"SPARK-22982: Incorrect channel position after index file reads: "</span> +</span><br><span class="line">        <span class="string">s"expected <span class="subst">$expectedPosition</span> but actual position was <span class="subst">$actualPosition</span>."</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">FileSegmentManagedBuffer</span>(</span><br><span class="line">      transportConf,</span><br><span class="line">      getDataFile(blockId.shuffleId, blockId.mapId),</span><br><span class="line">      offset,</span><br><span class="line">      nextOffset - offset)</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    in.close()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="反序列化出实例，并生成-k-v-迭代器"><a class="header-anchor" href="#反序列化出实例，并生成-k-v-迭代器"></a>反序列化出实例，并生成 k,v 迭代器</h2><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> serializerInstance = dep.serializer.newInstance()</span><br><span class="line"></span><br><span class="line"><span class="comment">// Create a key/value iterator for each stream</span></span><br><span class="line"><span class="keyword">val</span> recordIter = wrappedStreams.flatMap &#123; <span class="keyword">case</span> (blockId, wrappedStream) =&gt;</span><br><span class="line">  serializerInstance.deserializeStream(wrappedStream).asKeyValueIterator</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="添加readMetrics，再封装成InterruptibleIterator"><a class="header-anchor" href="#添加readMetrics，再封装成InterruptibleIterator"></a>添加readMetrics，再封装成<code>InterruptibleIterator</code></h2><p>readMetrics 里都是些记录数据，用于监控展示</p><p><code>InterruptibleIterator</code> 封装了任务中断功能</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Update the context task metrics for each record read.</span></span><br><span class="line"><span class="keyword">val</span> readMetrics = context.taskMetrics.createTempShuffleReadMetrics()</span><br><span class="line"><span class="keyword">val</span> metricIter = <span class="type">CompletionIterator</span>[(<span class="type">Any</span>, <span class="type">Any</span>), <span class="type">Iterator</span>[(<span class="type">Any</span>, <span class="type">Any</span>)]](</span><br><span class="line">  recordIter.map &#123; record =&gt;</span><br><span class="line">    readMetrics.incRecordsRead(<span class="number">1</span>) <span class="comment">// sparkUI 里的 record 数</span></span><br><span class="line">    record</span><br><span class="line">  &#125;,</span><br><span class="line">  context.taskMetrics().mergeShuffleReadMetrics())</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> interruptibleIter = <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>[(<span class="type">Any</span>, <span class="type">Any</span>)](context, metricIter)</span><br></pre></td></tr></table></figure><h2 id="进行聚合操作"><a class="header-anchor" href="#进行聚合操作"></a>进行聚合操作</h2><p>分有无聚合，当有聚合时，又分是否在 mapTask 时执行过map聚合</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> aggregatedIter: <span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">C</span>]] = <span class="keyword">if</span> (dep.aggregator.isDefined) &#123;</span><br><span class="line">  <span class="keyword">if</span> (dep.mapSideCombine) &#123;</span><br><span class="line">    <span class="comment">// We are reading values that are already combined</span></span><br><span class="line">    <span class="comment">// 有 mapSideCombine，就是聚合(K, C)</span></span><br><span class="line">    <span class="keyword">val</span> combinedKeyValuesIterator = interruptibleIter.asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)]]</span><br><span class="line">    dep.aggregator.get.combineCombinersByKey(combinedKeyValuesIterator, context)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 无 mapSideCombine，就是聚合(K, V)</span></span><br><span class="line">    <span class="keyword">val</span> keyValuesIterator = interruptibleIter.asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">Nothing</span>)]]</span><br><span class="line">    dep.aggregator.get.combineValuesByKey(keyValuesIterator, context)</span><br><span class="line">  &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="comment">// 不聚合</span></span><br><span class="line">  interruptibleIter.asInstanceOf[<span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">C</span>]]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="进行排序操作"><a class="header-anchor" href="#进行排序操作"></a>进行排序操作</h2><p>分是否需要排序。如果需要，就使用<code>ExternalSorter</code>在分区内部进行排序</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> resultIter = dep.keyOrdering <span class="keyword">match</span> &#123;</span><br><span class="line">  <span class="keyword">case</span> <span class="type">Some</span>(keyOrd: <span class="type">Ordering</span>[<span class="type">K</span>]) =&gt;</span><br><span class="line">    <span class="comment">// Create an ExternalSorter to sort the data.</span></span><br><span class="line">    <span class="keyword">val</span> sorter =</span><br><span class="line">      <span class="keyword">new</span> <span class="type">ExternalSorter</span>[<span class="type">K</span>, <span class="type">C</span>, <span class="type">C</span>](context, ordering = <span class="type">Some</span>(keyOrd), serializer = dep.serializer)</span><br><span class="line">    sorter.insertAll(aggregatedIter)</span><br><span class="line">    context.taskMetrics().incMemoryBytesSpilled(sorter.memoryBytesSpilled)</span><br><span class="line">    context.taskMetrics().incDiskBytesSpilled(sorter.diskBytesSpilled)</span><br><span class="line">    context.taskMetrics().incPeakExecutionMemory(sorter.peakMemoryUsedBytes)</span><br><span class="line">    <span class="comment">// Use completion callback to stop sorter if task was finished/cancelled.</span></span><br><span class="line">    context.addTaskCompletionListener[<span class="type">Unit</span>](_ =&gt; &#123;</span><br><span class="line">      sorter.stop()</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="type">CompletionIterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">C</span>], <span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">C</span>]]](sorter.iterator, sorter.stop())</span><br><span class="line">  <span class="keyword">case</span> <span class="type">None</span> =&gt;</span><br><span class="line">    aggregatedIter</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+    <content type="html"><![CDATA[<p>spark的唯一 ShuffleReader ：BlockStoreShuffleReader</p><a id="more"></a><h1 id="引入"><a class="header-anchor" href="#引入"></a>引入</h1><p><a href="https://zouxxyy.github.io/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/">之前</a>提过，<code>getShuffleWrite</code> 只在 <code>ShuffleMapTask</code> 中出现。</p><p>那么<code>getShuffleRead</code>呢？由于不管哪个 Task 都需要读数据，于是就把该步骤封装在RDD的<code>computer</code>方法中。以下是<code>ShuffleRDD</code>中的<code>computer</code>方法。通过调用 <code>shuffleManager</code> 的 <code>getReader</code> 就获取了本文的主角<code>BlockStoreShuffleReader</code></p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)] = &#123;</span><br><span class="line">  <span class="keyword">val</span> dep = dependencies.head.asInstanceOf[<span class="type">ShuffleDependency</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>]]</span><br><span class="line">  <span class="comment">// 是不是觉得 split.index, split.index + 1 很怪，后面会发现这是怎么回事</span></span><br><span class="line">  <span class="type">SparkEnv</span>.get.shuffleManager.getReader(dep.shuffleHandle, split.index, split.index + <span class="number">1</span>, context)</span><br><span class="line">    .read()</span><br><span class="line">    .asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h1 id="大致流程"><a class="header-anchor" href="#大致流程"></a>大致流程</h1><ol><li><p><strong>获取初始迭代器<code>ShuffleBlockFetcherIterator</code></strong>（<code>Iterator[(BlockId, InputStream)</code>）</p></li><li><p><strong>反序列化出实例，并生成 k,v 迭代器</strong>（<code>Iterator[(key, value)]</code>）</p></li><li><p><strong>添加readMetrics，再封装成<code>InterruptibleIterator</code></strong></p></li><li><p><strong>进行聚合操作</strong>。分有无聚合，当有聚合时，又分是否执行过map聚合</p></li><li><p><strong>进行排序操作</strong>。分有无排序。</p></li></ol><p><code>BlockStoreShuffleReader </code> 要干的事其实很容易理解，就是把<strong>不同 block 中同一分区的record</strong>，拉到指定的 reducer 中，再对它进行<strong>聚合和排序</strong>即可。一个 reducer 处理一个分区。</p><h1 id="源码"><a class="header-anchor" href="#源码"></a>源码</h1><h2 id="获取初始迭代器ShuffleBlockFetcherIterator"><a class="header-anchor" href="#获取初始迭代器ShuffleBlockFetcherIterator"></a>获取初始迭代器<code>ShuffleBlockFetcherIterator</code></h2><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 获取初始迭代器 ShuffleBlockFetcherIterator</span></span><br><span class="line"><span class="keyword">val</span> wrappedStreams = <span class="keyword">new</span> <span class="type">ShuffleBlockFetcherIterator</span>(</span><br><span class="line">  context,</span><br><span class="line">  blockManager.shuffleClient, <span class="comment">// 默认是 NettyBlockTransferService，如果使用外部shuffle系统则使用 ExternalShuffleClient</span></span><br><span class="line">  blockManager,</span><br><span class="line">  <span class="comment">// 通过它得到 2元tuple : (BlockManagerId, Seq[(BlockId, BlockSize)])</span></span><br><span class="line">  mapOutputTracker.getMapSizesByExecutorId(handle.shuffleId, startPartition, endPartition),</span><br><span class="line">  serializerManager.wrapStream,</span><br><span class="line">  <span class="comment">// Note: we use getSizeAsMb when no suffix is provided for backwards compatibility</span></span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.getSizeAsMb(<span class="string">"spark.reducer.maxSizeInFlight"</span>, <span class="string">"48m"</span>) * <span class="number">1024</span> * <span class="number">1024</span>,</span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.getInt(<span class="string">"spark.reducer.maxReqsInFlight"</span>, <span class="type">Int</span>.<span class="type">MaxValue</span>),</span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.get(config.<span class="type">REDUCER_MAX_BLOCKS_IN_FLIGHT_PER_ADDRESS</span>),</span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.get(config.<span class="type">MAX_REMOTE_BLOCK_SIZE_FETCH_TO_MEM</span>),</span><br><span class="line">  <span class="type">SparkEnv</span>.get.conf.getBoolean(<span class="string">"spark.shuffle.detectCorrupt"</span>, <span class="literal">true</span>))</span><br></pre></td></tr></table></figure><p>这是 <code>mapOutputTracker.getMapSizesByExecutorId</code> 里的关键步骤</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">convertMapStatuses</span></span>(</span><br><span class="line">    shuffleId: <span class="type">Int</span>,</span><br><span class="line">    startPartition: <span class="type">Int</span>,</span><br><span class="line">    endPartition: <span class="type">Int</span>,</span><br><span class="line">    statuses: <span class="type">Array</span>[<span class="type">MapStatus</span>]): <span class="type">Iterator</span>[(<span class="type">BlockManagerId</span>, <span class="type">Seq</span>[(<span class="type">BlockId</span>, <span class="type">Long</span>)])] = &#123;</span><br><span class="line">  assert (statuses != <span class="literal">null</span>)</span><br><span class="line">  <span class="keyword">val</span> splitsByAddress = <span class="keyword">new</span> <span class="type">HashMap</span>[<span class="type">BlockManagerId</span>, <span class="type">ListBuffer</span>[(<span class="type">BlockId</span>, <span class="type">Long</span>)]]</span><br><span class="line">  <span class="comment">// mapTask 的个数决定了 Seq[(BlockId, BlockSize)] 内元素的个数，很好理解</span></span><br><span class="line">  <span class="keyword">for</span> ((status, mapId) &lt;- statuses.iterator.zipWithIndex) &#123;</span><br><span class="line">    <span class="keyword">if</span> (status == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">val</span> errorMessage = <span class="string">s"Missing an output location for shuffle <span class="subst">$shuffleId</span>"</span></span><br><span class="line">      logError(errorMessage)</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">MetadataFetchFailedException</span>(shuffleId, startPartition, errorMessage)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 左闭右开，因此前面的 （split.index, split.index + 1）中的 split.index + 1，并没有什么软用  </span></span><br><span class="line">      <span class="keyword">for</span> (part &lt;- startPartition until endPartition) &#123;</span><br><span class="line">        <span class="keyword">val</span> size = status.getSizeForBlock(part)</span><br><span class="line">        <span class="keyword">if</span> (size != <span class="number">0</span>) &#123;</span><br><span class="line">          splitsByAddress.getOrElseUpdate(status.location, <span class="type">ListBuffer</span>()) +=</span><br><span class="line">              ((<span class="type">ShuffleBlockId</span>(shuffleId, mapId, part), size))</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  splitsByAddress.iterator</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p><code>ShuffleBlockFetcherIterator  </code>这个迭代器的具体实现比较复杂，简单介绍下：</p><ul><li><p>分本地数据块 和 远程数据块</p></li><li><p>本地数据块直接调用 <code>BlockManager.getBlockData</code></p></li><li><p>远程数据块采用Netty通过网络获取</p></li></ul><p>下面是 <code>IndexShuffleBlockResolver</code> 中的 <code>getBlockData</code>。我们的索引文件（indexFile）终于派上用场</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getBlockData</span></span>(blockId: <span class="type">ShuffleBlockId</span>): <span class="type">ManagedBuffer</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> indexFile = getIndexFile(blockId.shuffleId, blockId.mapId)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> channel = <span class="type">Files</span>.newByteChannel(indexFile.toPath)</span><br><span class="line">  <span class="comment">// 根据reduceId选择索引</span></span><br><span class="line">  channel.position(blockId.reduceId * <span class="number">8</span>L)</span><br><span class="line">  <span class="keyword">val</span> in = <span class="keyword">new</span> <span class="type">DataInputStream</span>(<span class="type">Channels</span>.newInputStream(channel))</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> offset = in.readLong()</span><br><span class="line">    <span class="keyword">val</span> nextOffset = in.readLong()</span><br><span class="line">    <span class="keyword">val</span> actualPosition = channel.position()</span><br><span class="line">    <span class="keyword">val</span> expectedPosition = blockId.reduceId * <span class="number">8</span>L + <span class="number">16</span></span><br><span class="line">    <span class="keyword">if</span> (actualPosition != expectedPosition) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">Exception</span>(<span class="string">s"SPARK-22982: Incorrect channel position after index file reads: "</span> +</span><br><span class="line">        <span class="string">s"expected <span class="subst">$expectedPosition</span> but actual position was <span class="subst">$actualPosition</span>."</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">FileSegmentManagedBuffer</span>(</span><br><span class="line">      transportConf,</span><br><span class="line">      getDataFile(blockId.shuffleId, blockId.mapId),</span><br><span class="line">      offset,</span><br><span class="line">      nextOffset - offset)</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    in.close()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="反序列化出实例，并生成-k-v-迭代器"><a class="header-anchor" href="#反序列化出实例，并生成-k-v-迭代器"></a>反序列化出实例，并生成 k,v 迭代器</h2><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> serializerInstance = dep.serializer.newInstance()</span><br><span class="line"></span><br><span class="line"><span class="comment">// Create a key/value iterator for each stream</span></span><br><span class="line"><span class="keyword">val</span> recordIter = wrappedStreams.flatMap &#123; <span class="keyword">case</span> (blockId, wrappedStream) =&gt;</span><br><span class="line">  serializerInstance.deserializeStream(wrappedStream).asKeyValueIterator</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="添加readMetrics，再封装成InterruptibleIterator"><a class="header-anchor" href="#添加readMetrics，再封装成InterruptibleIterator"></a>添加readMetrics，再封装成<code>InterruptibleIterator</code></h2><p>readMetrics 里都是些记录数据，用于监控展示</p><p><code>InterruptibleIterator</code> 封装了任务中断功能</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Update the context task metrics for each record read.</span></span><br><span class="line"><span class="keyword">val</span> readMetrics = context.taskMetrics.createTempShuffleReadMetrics()</span><br><span class="line"><span class="keyword">val</span> metricIter = <span class="type">CompletionIterator</span>[(<span class="type">Any</span>, <span class="type">Any</span>), <span class="type">Iterator</span>[(<span class="type">Any</span>, <span class="type">Any</span>)]](</span><br><span class="line">  recordIter.map &#123; record =&gt;</span><br><span class="line">    readMetrics.incRecordsRead(<span class="number">1</span>) <span class="comment">// sparkUI 里的 record 数</span></span><br><span class="line">    record</span><br><span class="line">  &#125;,</span><br><span class="line">  context.taskMetrics().mergeShuffleReadMetrics())</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> interruptibleIter = <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>[(<span class="type">Any</span>, <span class="type">Any</span>)](context, metricIter)</span><br></pre></td></tr></table></figure><h2 id="进行聚合操作"><a class="header-anchor" href="#进行聚合操作"></a>进行聚合操作</h2><p>分有无聚合，当有聚合时，又分是否在 mapTask 时执行过map聚合</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> aggregatedIter: <span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">C</span>]] = <span class="keyword">if</span> (dep.aggregator.isDefined) &#123;</span><br><span class="line">  <span class="keyword">if</span> (dep.mapSideCombine) &#123;</span><br><span class="line">    <span class="comment">// We are reading values that are already combined</span></span><br><span class="line">    <span class="comment">// 有 mapSideCombine，就是聚合(K, C)</span></span><br><span class="line">    <span class="keyword">val</span> combinedKeyValuesIterator = interruptibleIter.asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)]]</span><br><span class="line">    dep.aggregator.get.combineCombinersByKey(combinedKeyValuesIterator, context)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 无 mapSideCombine，就是聚合(K, V)</span></span><br><span class="line">    <span class="keyword">val</span> keyValuesIterator = interruptibleIter.asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">Nothing</span>)]]</span><br><span class="line">    dep.aggregator.get.combineValuesByKey(keyValuesIterator, context)</span><br><span class="line">  &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="comment">// 不聚合</span></span><br><span class="line">  interruptibleIter.asInstanceOf[<span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">C</span>]]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="进行排序操作"><a class="header-anchor" href="#进行排序操作"></a>进行排序操作</h2><p>分是否需要排序。如果需要，就使用<code>ExternalSorter</code>在分区内部进行排序</p><figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> resultIter = dep.keyOrdering <span class="keyword">match</span> &#123;</span><br><span class="line">  <span class="keyword">case</span> <span class="type">Some</span>(keyOrd: <span class="type">Ordering</span>[<span class="type">K</span>]) =&gt;</span><br><span class="line">    <span class="comment">// Create an ExternalSorter to sort the data.</span></span><br><span class="line">    <span class="keyword">val</span> sorter =</span><br><span class="line">      <span class="keyword">new</span> <span class="type">ExternalSorter</span>[<span class="type">K</span>, <span class="type">C</span>, <span class="type">C</span>](context, ordering = <span class="type">Some</span>(keyOrd), serializer = dep.serializer)</span><br><span class="line">    sorter.insertAll(aggregatedIter)</span><br><span class="line">    context.taskMetrics().incMemoryBytesSpilled(sorter.memoryBytesSpilled)</span><br><span class="line">    context.taskMetrics().incDiskBytesSpilled(sorter.diskBytesSpilled)</span><br><span class="line">    context.taskMetrics().incPeakExecutionMemory(sorter.peakMemoryUsedBytes)</span><br><span class="line">    <span class="comment">// Use completion callback to stop sorter if task was finished/cancelled.</span></span><br><span class="line">    context.addTaskCompletionListener[<span class="type">Unit</span>](_ =&gt; &#123;</span><br><span class="line">      sorter.stop()</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="type">CompletionIterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">C</span>], <span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">C</span>]]](sorter.iterator, sorter.stop())</span><br><span class="line">  <span class="keyword">case</span> <span class="type">None</span> =&gt;</span><br><span class="line">    aggregatedIter</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
     
     <summary type="html">
     
@@ -186,17 +186,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark杂谈-指定文件在HDFS中的写入节点</title>
-    <link href="http://yoursite.com/2019/12/28/spark/spark%E6%9D%82%E8%B0%88-%E6%8C%87%E5%AE%9A%E6%96%87%E4%BB%B6%E5%9C%A8HDFS%E4%B8%AD%E7%9A%84%E5%86%99%E5%85%A5%E8%8A%82%E7%82%B9/"/>
-    <id>http://yoursite.com/2019/12/28/spark/spark杂谈-指定文件在HDFS中的写入节点/</id>
+    <link href="https://zouxxyy.github.io/2019/12/28/spark/spark%E6%9D%82%E8%B0%88-%E6%8C%87%E5%AE%9A%E6%96%87%E4%BB%B6%E5%9C%A8HDFS%E4%B8%AD%E7%9A%84%E5%86%99%E5%85%A5%E8%8A%82%E7%82%B9/"/>
+    <id>https://zouxxyy.github.io/2019/12/28/spark/spark杂谈-指定文件在HDFS中的写入节点/</id>
     <published>2019-12-28T06:52:51.000Z</published>
     <updated>2019-12-28T06:56:53.632Z</updated>
     
@@ -208,19 +208,19 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
-      <category term="HDFS" scheme="http://yoursite.com/tags/HDFS/"/>
+      <category term="HDFS" scheme="https://zouxxyy.github.io/tags/HDFS/"/>
     
   </entry>
   
   <entry>
     <title>自动化运维工具-Ansible</title>
-    <link href="http://yoursite.com/2019/12/24/%E5%B7%A5%E5%85%B7/%E8%87%AA%E5%8A%A8%E5%8C%96%E8%BF%90%E7%BB%B4%E5%B7%A5%E5%85%B7-Ansible/"/>
-    <id>http://yoursite.com/2019/12/24/工具/自动化运维工具-Ansible/</id>
+    <link href="https://zouxxyy.github.io/2019/12/24/%E5%B7%A5%E5%85%B7/%E8%87%AA%E5%8A%A8%E5%8C%96%E8%BF%90%E7%BB%B4%E5%B7%A5%E5%85%B7-Ansible/"/>
+    <id>https://zouxxyy.github.io/2019/12/24/工具/自动化运维工具-Ansible/</id>
     <published>2019-12-24T08:11:22.000Z</published>
     <updated>2019-12-24T08:34:27.351Z</updated>
     
@@ -232,17 +232,17 @@
     
     </summary>
     
-      <category term="Tools" scheme="http://yoursite.com/categories/Tools/"/>
+      <category term="Tools" scheme="https://zouxxyy.github.io/categories/Tools/"/>
     
     
-      <category term="运维" scheme="http://yoursite.com/tags/%E8%BF%90%E7%BB%B4/"/>
+      <category term="运维" scheme="https://zouxxyy.github.io/tags/%E8%BF%90%E7%BB%B4/"/>
     
   </entry>
   
   <entry>
     <title>大数据bug记录</title>
-    <link href="http://yoursite.com/2019/12/20/%E5%A4%A7%E6%95%B0%E6%8D%AE/%E5%A4%A7%E6%95%B0%E6%8D%AEbug%E8%AE%B0%E5%BD%95/"/>
-    <id>http://yoursite.com/2019/12/20/大数据/大数据bug记录/</id>
+    <link href="https://zouxxyy.github.io/2019/12/20/%E5%A4%A7%E6%95%B0%E6%8D%AE/%E5%A4%A7%E6%95%B0%E6%8D%AEbug%E8%AE%B0%E5%BD%95/"/>
+    <id>https://zouxxyy.github.io/2019/12/20/大数据/大数据bug记录/</id>
     <published>2019-12-20T03:26:05.000Z</published>
     <updated>2019-12-20T06:38:10.753Z</updated>
     
@@ -254,17 +254,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="bug" scheme="http://yoursite.com/tags/bug/"/>
+      <category term="bug" scheme="https://zouxxyy.github.io/tags/bug/"/>
     
   </entry>
   
   <entry>
     <title>spark调试-常用代码</title>
-    <link href="http://yoursite.com/2019/12/20/spark/spark%E8%B0%83%E8%AF%95-%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/"/>
-    <id>http://yoursite.com/2019/12/20/spark/spark调试-常用代码/</id>
+    <link href="https://zouxxyy.github.io/2019/12/20/spark/spark%E8%B0%83%E8%AF%95-%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/"/>
+    <id>https://zouxxyy.github.io/2019/12/20/spark/spark调试-常用代码/</id>
     <published>2019-12-20T03:13:34.000Z</published>
     <updated>2019-12-20T03:16:15.473Z</updated>
     
@@ -276,17 +276,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>linux-常用命令</title>
-    <link href="http://yoursite.com/2019/12/20/linux/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/"/>
-    <id>http://yoursite.com/2019/12/20/linux/linux常用命令/</id>
+    <link href="https://zouxxyy.github.io/2019/12/20/linux/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/"/>
+    <id>https://zouxxyy.github.io/2019/12/20/linux/linux常用命令/</id>
     <published>2019-12-20T02:16:07.000Z</published>
     <updated>2020-01-07T13:24:34.682Z</updated>
     
@@ -298,17 +298,17 @@
     
     </summary>
     
-      <category term="Linux" scheme="http://yoursite.com/categories/Linux/"/>
+      <category term="Linux" scheme="https://zouxxyy.github.io/categories/Linux/"/>
     
     
-      <category term="shell" scheme="http://yoursite.com/tags/shell/"/>
+      <category term="shell" scheme="https://zouxxyy.github.io/tags/shell/"/>
     
   </entry>
   
   <entry>
     <title>spark源码-shuffle之SortShuffleWriter</title>
-    <link href="http://yoursite.com/2019/12/04/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BSortShuffleWriter/"/>
-    <id>http://yoursite.com/2019/12/04/spark/spark源码-shuffle之SortShuffleWriter/</id>
+    <link href="https://zouxxyy.github.io/2019/12/04/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BSortShuffleWriter/"/>
+    <id>https://zouxxyy.github.io/2019/12/04/spark/spark源码-shuffle之SortShuffleWriter/</id>
     <published>2019-12-04T06:36:32.000Z</published>
     <updated>2020-01-10T09:31:11.570Z</updated>
     
@@ -320,17 +320,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark源码-shuffle之UnsafeShuffleWriter</title>
-    <link href="http://yoursite.com/2019/12/02/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BUnsafeShuffleWriter/"/>
-    <id>http://yoursite.com/2019/12/02/spark/spark源码-shuffle之UnsafeShuffleWriter/</id>
+    <link href="https://zouxxyy.github.io/2019/12/02/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BUnsafeShuffleWriter/"/>
+    <id>https://zouxxyy.github.io/2019/12/02/spark/spark源码-shuffle之UnsafeShuffleWriter/</id>
     <published>2019-12-02T01:25:06.000Z</published>
     <updated>2020-01-11T08:48:16.767Z</updated>
     
@@ -342,17 +342,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark源码-shuffle之BypassMergeSortShuffleWriter</title>
-    <link href="http://yoursite.com/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/"/>
-    <id>http://yoursite.com/2019/11/30/spark/spark源码-shuffle之BypassMergeSortShuffleWriter/</id>
+    <link href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/"/>
+    <id>https://zouxxyy.github.io/2019/11/30/spark/spark源码-shuffle之BypassMergeSortShuffleWriter/</id>
     <published>2019-11-30T10:54:59.000Z</published>
     <updated>2020-01-10T09:31:03.774Z</updated>
     
@@ -364,17 +364,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark源码-shuffle之ShuffleManager</title>
-    <link href="http://yoursite.com/2019/11/29/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/"/>
-    <id>http://yoursite.com/2019/11/29/spark/spark源码-shuffle之ShuffleManager/</id>
+    <link href="https://zouxxyy.github.io/2019/11/29/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/"/>
+    <id>https://zouxxyy.github.io/2019/11/29/spark/spark源码-shuffle之ShuffleManager/</id>
     <published>2019-11-29T06:45:04.000Z</published>
     <updated>2020-01-10T09:31:07.239Z</updated>
     
@@ -386,17 +386,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark源码-Partitioner</title>
-    <link href="http://yoursite.com/2019/11/28/spark/spark%E6%BA%90%E7%A0%81-Partitioner/"/>
-    <id>http://yoursite.com/2019/11/28/spark/spark源码-Partitioner/</id>
+    <link href="https://zouxxyy.github.io/2019/11/28/spark/spark%E6%BA%90%E7%A0%81-Partitioner/"/>
+    <id>https://zouxxyy.github.io/2019/11/28/spark/spark源码-Partitioner/</id>
     <published>2019-11-28T01:42:43.000Z</published>
     <updated>2020-01-10T09:31:00.590Z</updated>
     
@@ -408,17 +408,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>spark杂谈-使用textFile读取HDFS的分区规则</title>
-    <link href="http://yoursite.com/2019/11/27/spark/spark%E6%9D%82%E8%B0%88-%E4%BD%BF%E7%94%A8textFile%E8%AF%BB%E5%8F%96HDFS%E7%9A%84%E5%88%86%E5%8C%BA%E8%A7%84%E5%88%99/"/>
-    <id>http://yoursite.com/2019/11/27/spark/spark杂谈-使用textFile读取HDFS的分区规则/</id>
+    <link href="https://zouxxyy.github.io/2019/11/27/spark/spark%E6%9D%82%E8%B0%88-%E4%BD%BF%E7%94%A8textFile%E8%AF%BB%E5%8F%96HDFS%E7%9A%84%E5%88%86%E5%8C%BA%E8%A7%84%E5%88%99/"/>
+    <id>https://zouxxyy.github.io/2019/11/27/spark/spark杂谈-使用textFile读取HDFS的分区规则/</id>
     <published>2019-11-27T06:43:54.000Z</published>
     <updated>2020-01-10T09:31:18.859Z</updated>
     
@@ -430,17 +430,17 @@
     
     </summary>
     
-      <category term="大数据" scheme="http://yoursite.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+      <category term="大数据" scheme="https://zouxxyy.github.io/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
     
-      <category term="spark" scheme="http://yoursite.com/tags/spark/"/>
+      <category term="spark" scheme="https://zouxxyy.github.io/tags/spark/"/>
     
   </entry>
   
   <entry>
     <title>CentOS根目录扩容</title>
-    <link href="http://yoursite.com/2019/11/23/linux/CentOS%E6%A0%B9%E7%9B%AE%E5%BD%95%E6%89%A9%E5%AE%B9/"/>
-    <id>http://yoursite.com/2019/11/23/linux/CentOS根目录扩容/</id>
+    <link href="https://zouxxyy.github.io/2019/11/23/linux/CentOS%E6%A0%B9%E7%9B%AE%E5%BD%95%E6%89%A9%E5%AE%B9/"/>
+    <id>https://zouxxyy.github.io/2019/11/23/linux/CentOS根目录扩容/</id>
     <published>2019-11-23T08:40:56.000Z</published>
     <updated>2019-11-23T09:13:42.301Z</updated>
     
@@ -452,10 +452,10 @@
     
     </summary>
     
-      <category term="Linux" scheme="http://yoursite.com/categories/Linux/"/>
+      <category term="Linux" scheme="https://zouxxyy.github.io/categories/Linux/"/>
     
     
-      <category term="LVM" scheme="http://yoursite.com/tags/LVM/"/>
+      <category term="LVM" scheme="https://zouxxyy.github.io/tags/LVM/"/>
     
   </entry>
   

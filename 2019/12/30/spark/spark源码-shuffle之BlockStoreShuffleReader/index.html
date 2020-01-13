@@ -19,7 +19,7 @@
 <script id="hexo-configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    hostname: new URL('http://yoursite.com').hostname,
+    hostname: new URL('https://zouxxyy.github.io').hostname,
     root: '/',
     scheme: 'Pisces',
     version: '7.6.0',
@@ -50,7 +50,7 @@
 <meta name="keywords" content="spark">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spark源码-shuffle之BlockStoreShuffleReader">
-<meta property="og:url" content="http://yoursite.com/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/index.html">
+<meta property="og:url" content="https://zouxxyy.github.io/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/index.html">
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="spark的唯一 ShuffleReader ：BlockStoreShuffleReader">
 <meta property="og:locale" content="zh-CN">
@@ -59,7 +59,7 @@
 <meta name="twitter:title" content="spark源码-shuffle之BlockStoreShuffleReader">
 <meta name="twitter:description" content="spark的唯一 ShuffleReader ：BlockStoreShuffleReader">
 
-<link rel="canonical" href="http://yoursite.com/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/">
+<link rel="canonical" href="https://zouxxyy.github.io/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/">
 
 
 <script id="page-configurations">
@@ -205,7 +205,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/">
+    <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/me.png">
@@ -284,7 +284,7 @@
         <p>spark的唯一 ShuffleReader ：BlockStoreShuffleReader</p>
 <a id="more"></a>
 <h1 id="引入"><a class="header-anchor" href="#引入"></a>引入</h1>
-<p><a href="https://zouxxyy.github.io/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/" target="_blank" rel="noopener">之前</a>提过，<code>getShuffleWrite</code> 只在 <code>ShuffleMapTask</code> 中出现。</p>
+<p><a href="https://zouxxyy.github.io/2019/11/29/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/">之前</a>提过，<code>getShuffleWrite</code> 只在 <code>ShuffleMapTask</code> 中出现。</p>
 <p>那么<code>getShuffleRead</code>呢？由于不管哪个 Task 都需要读数据，于是就把该步骤封装在RDD的<code>computer</code>方法中。以下是<code>ShuffleRDD</code>中的<code>computer</code>方法。通过调用 <code>shuffleManager</code> 的 <code>getReader</code> 就获取了本文的主角<code>BlockStoreShuffleReader</code></p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)] = &#123;</span><br><span class="line">  <span class="keyword">val</span> dep = dependencies.head.asInstanceOf[<span class="type">ShuffleDependency</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>]]</span><br><span class="line">  <span class="comment">// 是不是觉得 split.index, split.index + 1 很怪，后面会发现这是怎么回事</span></span><br><span class="line">  <span class="type">SparkEnv</span>.get.shuffleManager.getReader(dep.shuffleHandle, split.index, split.index + <span class="number">1</span>, context)</span><br><span class="line">    .read()</span><br><span class="line">    .asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h1 id="大致流程"><a class="header-anchor" href="#大致流程"></a>大致流程</h1>
@@ -343,6 +343,23 @@
     
     
     
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Zouxxyy
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://zouxxyy.github.io/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/" title="spark源码-shuffle之BlockStoreShuffleReader">https://zouxxyy.github.io/2019/12/30/spark/spark源码-shuffle之BlockStoreShuffleReader/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
 
       <footer class="post-footer">
           <div class="post-tags">
@@ -487,11 +504,6 @@
   </span>
   <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
 </div>
-  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0
-  </div>
-  <span class="post-meta-divider">|</span>
-  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
-  </div>
 
         
 
