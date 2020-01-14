@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/</loc>
+    
+    <lastmod>2020-01-14T09:27:06.616Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://zouxxyy.github.io/2020/01/14/spark/spark%E6%BA%90%E7%A0%81-Broadcast/</loc>
+    
+    <lastmod>2020-01-14T09:24:35.423Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-block/</loc>
+    
+    <lastmod>2020-01-14T09:14:16.429Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://zouxxyy.github.io/2019/02/26/%E5%B7%A5%E5%85%B7/hello-hexo/</loc>
     
     <lastmod>2020-01-13T12:42:42.728Z</lastmod>
@@ -9,23 +30,9 @@
   </url>
   
   <url>
-    <loc>https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/</loc>
-    
-    <lastmod>2020-01-13T08:36:21.137Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/</loc>
     
     <lastmod>2020-01-13T08:20:11.823Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-block/</loc>
-    
-    <lastmod>2020-01-13T02:08:02.512Z</lastmod>
     
   </url>
   

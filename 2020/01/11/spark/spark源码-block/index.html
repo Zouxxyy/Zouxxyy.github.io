@@ -54,7 +54,7 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="首先明确spark有个自己文件系统，block就是里面的一个文件。如：缓存后的RDD的一个分区是一个block；计算产生的临时文件也是block。任何你要存的东西都是block。 因此既然它是文件，它就有文件名、元信息、锁、数据，理解它们，你就理解了block！">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-01-13T02:08:02.512Z">
+<meta property="og:updated_time" content="2020-01-14T09:14:16.429Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark源码-block">
 <meta name="twitter:description" content="首先明确spark有个自己文件系统，block就是里面的一个文件。如：缓存后的RDD的一个分区是一个block；计算产生的临时文件也是block。任何你要存的东西都是block。 因此既然它是文件，它就有文件名、元信息、锁、数据，理解它们，你就理解了block！">
@@ -235,7 +235,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-01-13 10:08:02" itemprop="dateModified" datetime="2020-01-13T10:08:02+08:00">2020-01-13</time>
+                <time title="修改时间：2020-01-14 17:14:16" itemprop="dateModified" datetime="2020-01-14T17:14:16+08:00">2020-01-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -288,7 +288,7 @@
 <p>每个Block都有个ID与之一一对应，这个<strong>BlockId也就是该文件的文件名</strong></p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BlockId</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">name</span></span>: <span class="type">String</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// RDDBlockId、ShuffleBlockId什么的都是它的子类</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">asRDDId</span></span>: <span class="type">Option</span>[<span class="type">RDDBlockId</span>] = <span class="keyword">if</span> (isRDD) <span class="type">Some</span>(asInstanceOf[<span class="type">RDDBlockId</span>]) <span class="keyword">else</span> <span class="type">None</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">isRDD</span></span>: <span class="type">Boolean</span> = isInstanceOf[<span class="type">RDDBlockId</span>]</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">isShuffle</span></span>: <span class="type">Boolean</span> = isInstanceOf[<span class="type">ShuffleBlockId</span>]</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">isBroadcast</span></span>: <span class="type">Boolean</span> = isInstanceOf[<span class="type">BroadcastBlockId</span>]</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span></span>: <span class="type">String</span> = name</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>理解了取名的规则，你就对spark的计算流程理解了。例如：</p>
-<p>todo：理解剩余的 BlockId</p>
+<p>todo：理解全部的 BlockId</p>
 <p><strong>普通RDD</strong>：</p>
 <ul>
 <li>RDDBlockId <code>&quot;rdd_&quot; + rddId + &quot;_&quot; + splitIndex</code></li>
@@ -302,6 +302,11 @@
 </ul>
 <p><strong>ShuffleBlockId 就是ShuffleWrite时单个task生成的那个大文件，ShuffleDataBlockId是这个大文件的临时叫法，ShuffleIndexBlockId是索引文件</strong>。而它们由<strong>shuffleId、mapId、reduceId</strong> 3者共同确定。</p>
 <p>注意：<strong>reduceId是0（<code>NOOP_REDUCE_ID</code>）</strong>，因为<strong>SortShuffle最后生成的是1个大文件</strong>，所以这个reduceid没什么软用。理解清楚SortShuffleManager和被淘汰的HashShuffleManager的区别，骚年。</p>
+<p><strong>broadcast</strong>：</p>
+<ul>
+<li>BroadcastBlockId <code>&quot;broadcast_&quot; + broadcastId + (if (field == &quot;&quot;) &quot;&quot; else &quot;_&quot; + field)</code></li>
+</ul>
+<p>广播变量的存储，分两种：原对象形成的block，直接是 broadcast_&quot; + broadcastId；还有原对象<strong>切分</strong>成的小块，后接块序号。</p>
 <p><strong>临时文件</strong>：</p>
 <ul>
 <li>
@@ -497,7 +502,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-count">56</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

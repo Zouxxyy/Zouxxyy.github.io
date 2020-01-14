@@ -54,7 +54,7 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="每台节点（driver and executors）的block的总管理者，主要功能就是在本地或者远程的store中(堆内内存、磁盘、堆外内存) put、get、 block。 作为总管理者，BlockManager 依赖众多对象。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-01-13T08:36:21.137Z">
+<meta property="og:updated_time" content="2020-01-14T09:27:06.616Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark源码-BlockManager">
 <meta name="twitter:description" content="每台节点（driver and executors）的block的总管理者，主要功能就是在本地或者远程的store中(堆内内存、磁盘、堆外内存) put、get、 block。 作为总管理者，BlockManager 依赖众多对象。">
@@ -235,7 +235,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-01-13 16:36:21" itemprop="dateModified" datetime="2020-01-13T16:36:21+08:00">2020-01-13</time>
+                <time title="修改时间：2020-01-14 17:27:06" itemprop="dateModified" datetime="2020-01-14T17:27:06+08:00">2020-01-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -375,7 +375,7 @@
 <p>RDD 的缓存 参见我写的spark cache：第一次执行时，自然是存。并且存完后也要读，因为该函数就是要get，这里就不提读步骤。</p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下doPutIterator的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.putIteratorAsValues 注意</span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.putIteratorAsBytes  注意</span><br><span class="line">                 -<span class="literal">false</span>-&gt; diskStore.put</span><br><span class="line"><span class="comment">//注意： 当level为内存和磁盘时，会先存内存，内存不足再存磁盘</span></span><br></pre></td></tr></table></figure>
 <h3 id="Broadcast"><a class="header-anchor" href="#Broadcast"></a>Broadcast</h3>
-<p>广播变量的存储</p>
+<p>广播变量的存储。这只是简版，想看详细的<a href="https://zouxxyy.github.io/2020/01/14/spark/spark%E6%BA%90%E7%A0%81-Broadcast/">参照</a>。</p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.writeBlocks -&gt; putSingle</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">putSingle -&gt; putIterator -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// doPutIterator 同理</span></span><br></pre></td></tr></table></figure>
 <h3 id="RDD-block-Replication"><a class="header-anchor" href="#RDD-block-Replication"></a>RDD block Replication</h3>
 <blockquote>
@@ -403,7 +403,7 @@
 <h3 id="RDD-cache-v2"><a class="header-anchor" href="#RDD-cache-v2"></a>RDD cache</h3>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; get -&gt; getLocalValues</span><br><span class="line">                       -&gt; getRemoteValues -&gt; getRemoteBytes -&gt; 反序列</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下 getLocalValues 的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.getValues </span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.getBytes  -&gt; 反序列</span><br><span class="line">                 -<span class="literal">false</span>-&gt; level.useDisk      -<span class="literal">true</span>--&gt; diskStore.getBytes    -&gt; 反序列</span><br></pre></td></tr></table></figure>
 <h3 id="Broadcast-v2"><a class="header-anchor" href="#Broadcast-v2"></a>Broadcast</h3>
-<p>广播变量的读取比较简单</p>
+<p>广播变量的读取。这只是简版，想看详细的<a href="https://zouxxyy.github.io/2020/01/14/spark/spark%E6%BA%90%E7%A0%81-Broadcast/">参照</a>。</p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.readBroadcastBlock -&gt; getLocalValues</span><br></pre></td></tr></table></figure>
 <h3 id="RDD-block-Replication-v2"><a class="header-anchor" href="#RDD-block-Replication-v2"></a>RDD block Replication</h3>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManage，只有一类</span></span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receive -&gt; <span class="keyword">match</span> openBlocks -&gt; getBlockData</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getBlockData -&gt; getLocalBytes</span><br></pre></td></tr></table></figure>
@@ -453,7 +453,10 @@
     <a href="/2020/01/11/spark/spark源码-cache和persist/" rel="prev" title="spark源码-cache和persist">
       <i class="fa fa-chevron-left"></i> spark源码-cache和persist
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/14/spark/spark源码-Broadcast/" rel="next" title="spark源码-Broadcast">
+      spark源码-Broadcast <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -530,7 +533,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-count">56</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
