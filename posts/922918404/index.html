@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://zouxxyy.github.io').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互">
+<meta name="keywords" content="HDFS,hadoop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hadoop-HDFS流程解析">
+<meta property="og:url" content="https://zouxxyy.github.io/posts/922918404/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/J7wzPWbQpBIgsH3.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/nh45VUlZBjywe1d.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/oTxaRfPXkVrsO2g.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/Gz1VEYR7hq32ymX.png">
+<meta property="og:updated_time" content="2020-01-16T09:04:05.467Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hadoop-HDFS流程解析">
+<meta name="twitter:description" content="介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/16/J7wzPWbQpBIgsH3.png">
+
+<link rel="canonical" href="https://zouxxyy.github.io/posts/922918404/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>hadoop-HDFS流程解析 | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/posts/922918404/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          hadoop-HDFS流程解析
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-31 15:04:57" itemprop="dateCreated datePublished" datetime="2019-08-31T15:04:57+08:00">2019-08-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-01-16 17:04:05" itemprop="dateModified" datetime="2020-01-16T17:04:05+08:00">2020-01-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/posts/922918404/" class="post-meta-item leancloud_visitors" data-flag-title="hadoop-HDFS流程解析" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/posts/922918404/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/posts/922918404/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互</p>
+<a id="more"></a>
+<h1 id="HDFS写数据"><a class="header-anchor" href="#HDFS写数据"></a>HDFS写数据</h1>
+<h2 id="流程图"><a class="header-anchor" href="#流程图"></a>流程图</h2>
+<p><img src="https://i.loli.net/2020/01/16/J7wzPWbQpBIgsH3.png" alt="readHDFS.png"></p>
+<h2 id="具体步骤"><a class="header-anchor" href="#具体步骤"></a>具体步骤</h2>
+<ol>
+<li>客户端调用DS模块向NameNode请求上传文件。</li>
+<li>NameNode会检查目标文件和父目录是否已存在，再返回是否可以上传</li>
+<li>假设文件为200M，客户端请求上传第一个 Block ，希望得到DataNode服务器位置。</li>
+<li>NameNode返回3个DataNode节点，分别为dn1、dn2、dn3，用它们存储数据。</li>
+<li>客户端通过FSDataOutputStream模块请求dn1建立上传数据通道，dn1收到请求会继续请求dn2，然后dn2请求dn3，直到将这个通信管道建立完成。</li>
+<li>dn3、dn2、dn1逐级应答客户端。</li>
+<li>客户端开始往dn1上传第一个Block（先从磁盘读取数据放到一个本地内存缓存），以Packet为单位，dn1收到一个Packet就会传给dn2，dn2传给dn3；dn1每传一个packet会放入一个应答队列等待应答。（类似队列，以Packet为单位）</li>
+<li>当一个Block（0-128M）传输完成之后，客户端再次请求NameNode上传第二个Block的服务器。（重复执行3-7步）。</li>
+<li>向NameNode汇报上传完毕。</li>
+</ol>
+<h2 id="注意事项"><a class="header-anchor" href="#注意事项"></a>注意事项</h2>
+<ul>
+<li>DataNode位置选择，以默认3副本为例：第一个副本是最近的一般是它自己；第二个副本选择同一机架（同一路由）的不同节点；第三个副本是另一机架的随机节点。</li>
+<li>数据传递以包为单位，第一个节点收到一个包，就把包传递给下一个DataNode。并不是等数据传完，再传递。</li>
+</ul>
+<h1 id="HDFS读数据"><a class="header-anchor" href="#HDFS读数据"></a>HDFS读数据</h1>
+<h2 id="流程图-v2"><a class="header-anchor" href="#流程图-v2"></a>流程图</h2>
+<p><img src="https://i.loli.net/2020/01/16/nh45VUlZBjywe1d.png" alt="writeHDFS.png"></p>
+<h2 id="具体步骤-v2"><a class="header-anchor" href="#具体步骤-v2"></a>具体步骤</h2>
+<ol>
+<li>客户端调用DS模块向NameNode请求下载文件。</li>
+<li>NameNode会检查目标文件是否存在，再通过查询元数据，返回文件块所在的DataNode地址。</li>
+<li>客户端通过FSDataInputStream模块向dn1（就近挑选）请求读取 Block1。</li>
+<li>DataNode开始传输数据给客户端（从磁盘里面读取数据输入流，以Packet为单位来做校验）。客户端以Packet为单位接收，先在本地缓存，然后写入目标文件。</li>
+<li>当一个Block（0-128M）传输完成之后，客户端再次请求下载Block2。（重复执行2-4步）。</li>
+<li>向NameNode汇报下载完毕。</li>
+</ol>
+<h2 id="注意事项-v2"><a class="header-anchor" href="#注意事项-v2"></a>注意事项</h2>
+<ul>
+<li>如果块的第一个副本请求失败，会向第二个副本请求，依次类推。</li>
+</ul>
+<h1 id="NameNode和SecondaryNameNode"><a class="header-anchor" href="#NameNode和SecondaryNameNode"></a>NameNode和SecondaryNameNode</h1>
+<h2 id="流程图-v3"><a class="header-anchor" href="#流程图-v3"></a>流程图</h2>
+<p><img src="https://i.loli.net/2020/01/16/oTxaRfPXkVrsO2g.png" alt="NNand2NN.png"></p>
+<h2 id="具体步骤-v3"><a class="header-anchor" href="#具体步骤-v3"></a>具体步骤</h2>
+<p>第一阶段：NameNode</p>
+<ol>
+<li>第一次启动NameNode（格式化）后，会创建Fsimage（镜像文件）和Edits（编辑日志）文件。以后启动，会直接加载镜像文件和编辑日志到内存，此时会进行合并操作。</li>
+<li>假设此时客户端提出了增删改的请求。</li>
+<li>NameNode记录之前的编辑日志（edits_n），更新新日志到滚动日志（edits_inprogress_n）中。</li>
+<li>日志记录完毕后，NameNode在内存中对数据进行增删改。</li>
+</ol>
+<p>第二阶段：SecondaryNameNode</p>
+<ol>
+<li>Secondary NameNode向NameNode询问是否需要CheckPoint。</li>
+<li>如果需要，Secondary NameNode请求执行CheckPoint。</li>
+<li>NameNode滚动日志。</li>
+<li>将滚动前的编辑日志（edits_001）和镜像文件(fsimage)拷贝到Secondary NameNode。</li>
+<li>Secondary NameNode加载编辑日志和镜像文件到内存，并合并。</li>
+<li>合并后，生成新的镜像文件fsimage.chkpoint。</li>
+<li>拷贝fsimage.chkpoint到NameNode。</li>
+<li>NameNode将fsimage.chkpoint重新命名成fsimage。</li>
+</ol>
+<h2 id="注意事项-v3"><a class="header-anchor" href="#注意事项-v3"></a>注意事项</h2>
+<ul>
+<li>Fsimage 和 Edits文件？</li>
+</ul>
+<p>fsimage是NameNode内存中元数据序列化后形成的文件。Edits中记录客户端更新元数据信息的每一步操作。每次执行增删改时，先改日志再改文件。好处是：如果保证中途gg，可以保证操作不丢失，便于复原。</p>
+<ul>
+<li>为啥要Secondary NameNode？</li>
+</ul>
+<p>首先要知道只有NameNode重启时，edit.log才会合并到fsimage文件中，所以运行时间久了就会有3个问题：edis.log文件会变的很大；NameNode下次重启会花费很长时间；fsimage文件文件很旧，如果中途挂掉就很睿智。</p>
+<p>为了解决上述问题，SecondaryNameNode诞生，每隔一定时间辅助合并NameNode的edit.log到fsimage文件中。从上述流程图就可以发现，它做的就是这个。</p>
+<ul>
+<li>什么时候执行CheckPoint？</li>
+</ul>
+<p>（1） 用户定时 （2）edit.log 满了</p>
+<ul>
+<li>Secondary NameNode是热备份吗？</li>
+</ul>
+<p>不是，可以发现Secondary NameNode合并的是滚动前的edis，它总是比NameNode的编辑日志少一点。</p>
+<h1 id="DataNode和NameNode"><a class="header-anchor" href="#DataNode和NameNode"></a>DataNode和NameNode</h1>
+<h2 id="流程图-v4"><a class="header-anchor" href="#流程图-v4"></a>流程图</h2>
+<p><img src="https://i.loli.net/2020/01/16/Gz1VEYR7hq32ymX.png" alt="DataNode.png"></p>
+<h2 id="具体步骤-v4"><a class="header-anchor" href="#具体步骤-v4"></a>具体步骤</h2>
+<ol>
+<li>DataNode启动后向NameNode注册。</li>
+<li>NameNode告知注册成功。</li>
+<li>DataNode周期性（1小时）的向NameNode上报所有的块信息。</li>
+<li>DataNode每3秒发送一次心跳，心跳返回结果带有NameNode给该DataNode的命令如复制块数据到另一台机器，或删除某个数据块。</li>
+<li>超过10分钟没有收到心跳，表示该节点不可用。</li>
+</ol>
+<h2 id="注意事项-v4"><a class="header-anchor" href="#注意事项-v4"></a>注意事项</h2>
+<ul>
+<li>一个数据块在DataNode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据包括数据块的长度、校验和 以及时间戳。</li>
+<li>节点增加：新节点配置好后，自动向NameNode注册的。</li>
+<li>节点退役：NameNode可以通过白名单指定需要的节点；通过黑名单指定不要的节点。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Zouxxyy
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://zouxxyy.github.io/posts/922918404/" title="hadoop-HDFS流程解析">https://zouxxyy.github.io/posts/922918404/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/HDFS/" rel="tag"># HDFS</a>
+              <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/3537618435/" rel="prev" title="hadoop-MapReduce流程解析">
+      <i class="fa fa-chevron-left"></i> hadoop-MapReduce流程解析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/908130272/" rel="next" title="hadoop-Yarn流程解析">
+      hadoop-Yarn流程解析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#HDFS写数据"><span class="nav-text">HDFS写数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤"><span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项"><span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HDFS读数据"><span class="nav-text">HDFS读数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-v2"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-v2"><span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-v2"><span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NameNode和SecondaryNameNode"><span class="nav-text">NameNode和SecondaryNameNode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-v3"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-v3"><span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-v3"><span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#DataNode和NameNode"><span class="nav-text">DataNode和NameNode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图-v4"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤-v4"><span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项-v4"><span class="nav-text">注意事项</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

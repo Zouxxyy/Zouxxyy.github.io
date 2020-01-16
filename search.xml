@@ -1,30 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Next主题优化</title>
+    <url>/posts/1274524991/</url>
+    <content><![CDATA[<p>版本： hexo v3.9.0，主题 NexT 的 Pisce v7.6.0</p>
+<p>理念：拒绝花哨，实用优先；最小改动，内置优先。</p>
+<a id="more"></a>
+<h1 id="评论和阅读次数"><a class="header-anchor" href="#评论和阅读次数"></a>评论和阅读次数</h1>
+<p>我使用的是<a href="https://valine.js.org/" target="_blank" rel="noopener">Valine</a> ， 修改<code>theme-next/_config.yml</code></p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Valine</span></span><br><span class="line"><span class="comment"># For more information: https://valine.js.org, https://github.com/xCss/Valine</span></span><br><span class="line"><span class="attr">valine:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">appid:</span> <span class="string">xxxxx</span></span><br><span class="line">  <span class="attr">appkey:</span> <span class="string">xxxxx</span></span><br><span class="line">  <span class="attr">verify:</span> <span class="literal">true</span> </span><br><span class="line">  <span class="attr">placeholder:</span> <span class="string">ヾﾉ≧∀≦)o</span> <span class="string">开黑吗！</span> </span><br><span class="line">  <span class="attr">language:</span> <span class="string">zh-cn</span> </span><br><span class="line">  <span class="attr">visitor:</span> <span class="literal">true</span>        <span class="comment"># 计数功能</span></span><br><span class="line">  <span class="attr">comment_count:</span> <span class="literal">false</span> <span class="comment"># 首页不显示评论数</span></span><br></pre></td></tr></table></figure>
+<h1 id="本地搜索"><a class="header-anchor" href="#本地搜索"></a>本地搜索</h1>
+<p>使用内置的<code>local_search</code>，修改 <code>theme-next/_config.yml</code></p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">local_search:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<p>修改 <code>hexohome/_config.yml</code></p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Local Search (zxy)</span></span><br><span class="line"><span class="attr">search:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">search.xml</span></span><br><span class="line">  <span class="attr">field:</span> <span class="string">post</span></span><br><span class="line">  <span class="attr">format:</span> <span class="string">html</span></span><br><span class="line">  <span class="attr">limit:</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+<h1 id="markdown-render"><a class="header-anchor" href="#markdown-render"></a>markdown render</h1>
+<p>卸载原来的render，安装<code>hexo-renderer-markdown-it</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ npm un hexo-renderer-marked --save</span><br><span class="line">$ npm i hexo-renderer-markdown-it --save</span><br></pre></td></tr></table></figure>
+<p>修改 <code>hexohome/_config.yml</code></p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">markdown:</span></span><br><span class="line">  <span class="attr">render:</span></span><br><span class="line">    <span class="attr">html:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">xhtmlOut:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">breaks:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">linkify:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">typographer:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">quotes:</span> <span class="string">'“”‘’'</span></span><br><span class="line">  <span class="attr">plugins:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">markdown-it-abbr</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">markdown-it-footnote</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">markdown-it-ins</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">markdown-it-sub</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">markdown-it-sup</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">markdown-it-mark</span></span><br><span class="line">  <span class="attr">anchors:</span></span><br><span class="line">    <span class="attr">level:</span> <span class="number">1</span></span><br><span class="line">    <span class="attr">collisionSuffix:</span> <span class="string">'v'</span></span><br><span class="line">    <span class="attr">permalink:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">permalinkClass:</span> <span class="string">header-anchor</span></span><br><span class="line">    <span class="attr">permalinkSymbol:</span> <span class="string">''</span></span><br></pre></td></tr></table></figure>
+<h1 id="自定义CSS"><a class="header-anchor" href="#自定义CSS"></a>自定义CSS</h1>
+<p>next7 改动，在指定的用户目录添加自定义文件，再修改 <code>theme-next/_config.yml</code></p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">custom_file_path:</span></span><br><span class="line">  <span class="attr">variable:</span> <span class="string">source/_data/variables.styl</span></span><br><span class="line">  <span class="attr">style:</span> <span class="string">source/_data/styles.styl</span></span><br></pre></td></tr></table></figure>
+<p>我的修改：</p>
+<ul>
+<li>
+<p>在<code>source/_data/styles.style</code> 中改了些样式，如行间距、标题大小、代码块样式、背景图片等</p>
+</li>
+<li>
+<p>在<code>source/_data/styles.styl</code>中修改常量，修改字体大小和颜色</p>
+</li>
+</ul>
+<h1 id="文章置顶"><a class="header-anchor" href="#文章置顶"></a>文章置顶</h1>
+<p><a href="https://www.zhyong.cn/posts/fc22/" target="_blank" rel="noopener">参考</a>，它改了主题内的文件，个人不是很喜欢。应该也可以通过添加custom_file，从而不改动原文件。</p>
+<h1 id="license"><a class="header-anchor" href="#license"></a>license</h1>
+<p>修改 <code>theme-next/_config.yml</code></p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">creative_commons:</span></span><br><span class="line">  <span class="attr">license:</span> <span class="string">by-nc-sa</span></span><br><span class="line">  <span class="attr">sidebar:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">post:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">language:</span></span><br></pre></td></tr></table></figure>
+<h1 id="文章唯一标示"><a class="header-anchor" href="#文章唯一标示"></a>文章唯一标示</h1>
+<p><a href="https://github.com/rozbo/hexo-abbrlink" target="_blank" rel="noopener">参考</a></p>
+<p>安装：<code>npm install hexo-abbrlink --save</code></p>
+<p>修改 <code>hexohome/_config.yml</code></p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># permalink: :year/:month/:day/:title/</span></span><br><span class="line"><span class="attr">permalink:</span> <span class="string">posts/:abbrlink/</span></span><br><span class="line"><span class="attr">abbrlink:</span></span><br><span class="line">  <span class="attr">alg:</span> <span class="string">crc32</span>  <span class="comment">#support crc16(default) and crc32</span></span><br><span class="line">  <span class="attr">rep:</span> <span class="string">dec</span>    <span class="comment">#support dec(default) and hex</span></span><br><span class="line"><span class="attr">permalink_defaults:</span></span><br></pre></td></tr></table></figure>
+]]></content>
+  </entry>
+  <entry>
     <title>spark-学习目录</title>
-    <url>/2020/01/16/spark/spark-%E5%AD%A6%E4%B9%A0%E7%9B%AE%E5%BD%95/</url>
+    <url>/posts/4149240108/</url>
     <content><![CDATA[<p>spark基础、源码分析、杂谈</p>
 <a id="more"></a>
 <h1 id="基础"><a class="header-anchor" href="#基础"></a>基础</h1>
 <ul>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/09/09/spark/spark%E5%9F%BA%E7%A1%80-%E7%AA%84%E3%80%81%E5%AE%BD%E4%BE%9D%E8%B5%96%E5%92%8C%E4%BB%BB%E5%8A%A1%E5%88%92%E5%88%86/">窄、宽依赖和任务划分</a></p>
+<p><a href="https://zouxxyy.github.io/posts/560408338/">窄、宽依赖和任务划分</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/09/09/spark/spark%E5%9F%BA%E7%A1%80-DataFrame%E5%92%8CDataSet/">DataFrame和DataSet</a></p>
+<p><a href="https://zouxxyy.github.io/posts/2917570157/">DataFrame和DataSet</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/09/02/spark/spark%E5%9F%BA%E7%A1%80-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/">Yarn流程解析</a></p>
+<p><a href="https://zouxxyy.github.io/posts/2293825606/">Yarn流程解析</a></p>
 </li>
 </ul>
 <h1 id="源码"><a class="header-anchor" href="#源码"></a>源码</h1>
 <h2 id="RDD"><a class="header-anchor" href="#RDD"></a>RDD</h2>
 <ul>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/11/28/spark/spark%E6%BA%90%E7%A0%81-Partitioner/">Partitioner</a></p>
+<p><a href="https://zouxxyy.github.io/posts/2462407740/">Partitioner</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2020/01/15/spark/spark%E6%BA%90%E7%A0%81-dependency/">dependency</a></p>
+<p><a href="https://zouxxyy.github.io/posts/815686758/">dependency</a></p>
 </li>
 <li>
 <p>rdd</p>
@@ -34,19 +77,19 @@
 <h2 id="shuffle"><a class="header-anchor" href="#shuffle"></a>shuffle</h2>
 <ul>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/11/29/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/">ShuffleManager</a></p>
+<p><a href="https://zouxxyy.github.io/posts/3804946387/">ShuffleManager</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/">BypassMergeSortShuffleWriter</a></p>
+<p><a href="https://zouxxyy.github.io/posts/1175370685/">BypassMergeSortShuffleWriter</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/12/02/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BUnsafeShuffleWriter/">UnsafeShuffleWriter</a></p>
+<p><a href="https://zouxxyy.github.io/posts/2513573613/">UnsafeShuffleWriter</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/12/04/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BSortShuffleWriter/">SortShuffleWriter</a></p>
+<p><a href="https://zouxxyy.github.io/posts/2591058846/">SortShuffleWriter</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/12/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBlockStoreShuffleReader/">BlockStoreShuffleReader</a></p>
+<p><a href="https://zouxxyy.github.io/posts/1991864631/">BlockStoreShuffleReader</a></p>
 </li>
 <li>
 <p>ShuffleBlockFetcherIterator</p>
@@ -55,16 +98,16 @@
 <h2 id="文件系统"><a class="header-anchor" href="#文件系统"></a>文件系统</h2>
 <ul>
 <li>
-<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-MemoryManager%E5%92%8CMemoryStore/">MemoryManager 和 MemoryPool</a></p>
+<p><a href="https://zouxxyy.github.io/posts/318537563/">MemoryManager 和 MemoryPool</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-DiskBlockManager%E5%92%8CDiskStore/">DiskBlockManager 和 DiskStore</a></p>
+<p><a href="https://zouxxyy.github.io/posts/3282537882/">DiskBlockManager 和 DiskStore</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-block/">block</a></p>
+<p><a href="https://zouxxyy.github.io/posts/3339636628/">block</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/">BlockManager</a></p>
+<p><a href="https://zouxxyy.github.io/posts/2184925517/">BlockManager</a></p>
 </li>
 <li>
 <p>BlockManagerRPC</p>
@@ -73,10 +116,10 @@
 <h2 id="持久化和共享"><a class="header-anchor" href="#持久化和共享"></a>持久化和共享</h2>
 <ul>
 <li>
-<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/">cache 和 persist</a></p>
+<p><a href="https://zouxxyy.github.io/posts/2354185139/">cache 和 persist</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2020/01/14/spark/spark%E6%BA%90%E7%A0%81-Broadcast/">Broadcast</a></p>
+<p><a href="https://zouxxyy.github.io/posts/95613829/">Broadcast</a></p>
 </li>
 <li>
 <p>累加器</p>
@@ -92,10 +135,10 @@
 <h1 id="杂谈"><a class="header-anchor" href="#杂谈"></a>杂谈</h1>
 <ul>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/11/27/spark/spark%E6%9D%82%E8%B0%88-%E4%BD%BF%E7%94%A8textFile%E8%AF%BB%E5%8F%96HDFS%E7%9A%84%E5%88%86%E5%8C%BA%E8%A7%84%E5%88%99/">使用textFile读取HDFS的分区规则</a></p>
+<p><a href="https://zouxxyy.github.io/posts/1024335420/">使用textFile读取HDFS的分区规则</a></p>
 </li>
 <li>
-<p><a href="https://zouxxyy.github.io/2019/12/28/spark/spark%E6%9D%82%E8%B0%88-%E6%8C%87%E5%AE%9A%E6%96%87%E4%BB%B6%E5%9C%A8HDFS%E4%B8%AD%E7%9A%84%E5%86%99%E5%85%A5%E8%8A%82%E7%82%B9/">指定文件在HDFS中的写入节点</a></p>
+<p><a href="https://zouxxyy.github.io/posts/1731798916/">指定文件在HDFS中的写入节点</a></p>
 </li>
 </ul>
 ]]></content>
@@ -108,7 +151,7 @@
   </entry>
   <entry>
     <title>spark源码-dependency</title>
-    <url>/2020/01/15/spark/spark%E6%BA%90%E7%A0%81-dependency/</url>
+    <url>/posts/815686758/</url>
     <content><![CDATA[<p>每个RDD都有 dependencies，分窄依赖和宽依赖（ShuffleDependency）。遇到 ShuffleDependency 划分stage。</p>
 <a id="more"></a>
 <h1 id="窄依赖"><a class="header-anchor" href="#窄依赖"></a>窄依赖</h1>
@@ -166,7 +209,7 @@
   </entry>
   <entry>
     <title>spark源码-Broadcast</title>
-    <url>/2020/01/14/spark/spark%E6%BA%90%E7%A0%81-Broadcast/</url>
+    <url>/posts/95613829/</url>
     <content><![CDATA[<h1 id="简介"><a class="header-anchor" href="#简介"></a>简介</h1>
 <p>使用spark时，针对大的、只读、大家都要用的变量，可以使用 broadcast 提高性能：</p>
 <ul>
@@ -231,7 +274,7 @@
   </entry>
   <entry>
     <title>spark源码-BlockManager</title>
-    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/</url>
+    <url>/posts/2184925517/</url>
     <content><![CDATA[<p>每台节点（driver and executors）的block的总管理者，主要功能就是在本地或者远程的store中(堆内内存、磁盘、堆外内存) put、get、 block。</p>
 <p>作为总管理者，BlockManager 依赖众多对象。</p>
 <a id="more"></a>
@@ -326,7 +369,7 @@
 <p>RDD 的缓存 参见我写的spark cache：第一次执行时，自然是存。并且存完后也要读，因为该函数就是要get，这里就不提读步骤。</p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下doPutIterator的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.putIteratorAsValues 注意</span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.putIteratorAsBytes  注意</span><br><span class="line">                 -<span class="literal">false</span>-&gt; diskStore.put</span><br><span class="line"><span class="comment">//注意： 当level为内存和磁盘时，会先存内存，内存不足再存磁盘</span></span><br></pre></td></tr></table></figure>
 <h3 id="Broadcast"><a class="header-anchor" href="#Broadcast"></a>Broadcast</h3>
-<p>广播变量的存储。这只是简版，想看详细的<a href="https://zouxxyy.github.io/2020/01/14/spark/spark%E6%BA%90%E7%A0%81-Broadcast/">参照</a>。</p>
+<p>广播变量的存储。这只是简版，想看详细的<a href="https://zouxxyy.github.io/posts/95613829/">参照</a>。</p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.writeBlocks -&gt; putSingle</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">putSingle -&gt; putIterator -&gt; doPutIterator -&gt; doput</span><br><span class="line"></span><br><span class="line"><span class="comment">// doPutIterator 同理</span></span><br></pre></td></tr></table></figure>
 <h3 id="RDD-block-Replication"><a class="header-anchor" href="#RDD-block-Replication"></a>RDD block Replication</h3>
 <blockquote>
@@ -343,7 +386,7 @@
 <p><strong>ShuffleSpill</strong>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
 </li>
 <li>
-<p><strong>BypassShuffle</strong><a href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/">前3步</a>：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
+<p><strong>BypassShuffle</strong>的前3步：BlockId：<code>temp_shuffle_ + “randomUUID”</code></p>
 </li>
 <li>
 <p><strong>ShuffleWrite</strong>生成的合并大文件：BlockId：<code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code></p>
@@ -354,7 +397,7 @@
 <h3 id="RDD-cache-v2"><a class="header-anchor" href="#RDD-cache-v2"></a>RDD cache</h3>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">ShuffleMapTask</span>/<span class="type">ResultTask</span>.runTask  -&gt; <span class="type">RDD</span>.iterator -&gt; <span class="type">RDD</span>.getOrCompute -&gt; getOrElseUpdate</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getOrElseUpdate -&gt; get -&gt; getLocalValues</span><br><span class="line">                       -&gt; getRemoteValues -&gt; getRemoteBytes -&gt; 反序列</span><br><span class="line"></span><br><span class="line"><span class="comment">// 细看下 getLocalValues 的流程</span></span><br><span class="line">level.useMemory  -<span class="literal">true</span>--&gt; level.deserialized -<span class="literal">true</span>--&gt; memoryStore.getValues </span><br><span class="line">                                             -<span class="literal">false</span>-&gt; memoryStore.getBytes  -&gt; 反序列</span><br><span class="line">                 -<span class="literal">false</span>-&gt; level.useDisk      -<span class="literal">true</span>--&gt; diskStore.getBytes    -&gt; 反序列</span><br></pre></td></tr></table></figure>
 <h3 id="Broadcast-v2"><a class="header-anchor" href="#Broadcast-v2"></a>Broadcast</h3>
-<p>广播变量的读取。这只是简版，想看详细的<a href="https://zouxxyy.github.io/2020/01/14/spark/spark%E6%BA%90%E7%A0%81-Broadcast/">参照</a>。</p>
+<p>广播变量的读取。这只是简版，想看详细的<a href="https://zouxxyy.github.io/posts/95613829/">参照</a>。</p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManager</span></span><br><span class="line"><span class="type">TorrentBroadcast</span>.readBroadcastBlock -&gt; getLocalValues</span><br></pre></td></tr></table></figure>
 <h3 id="RDD-block-Replication-v2"><a class="header-anchor" href="#RDD-block-Replication-v2"></a>RDD block Replication</h3>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高层调用BlockManage，只有一类</span></span><br><span class="line"><span class="type">NettyBlockRpcServer</span>.receive -&gt; <span class="keyword">match</span> openBlocks -&gt; getBlockData</span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockManager内部</span></span><br><span class="line">getBlockData -&gt; getLocalBytes</span><br></pre></td></tr></table></figure>
@@ -376,7 +419,7 @@
   </entry>
   <entry>
     <title>spark源码-cache和persist</title>
-    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/</url>
+    <url>/posts/2354185139/</url>
     <content><![CDATA[<p>介绍spark的缓存功能</p>
 <a id="more"></a>
 <h1 id="简介"><a class="header-anchor" href="#简介"></a>简介</h1>
@@ -419,7 +462,7 @@
   </entry>
   <entry>
     <title>spark源码-block</title>
-    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-block/</url>
+    <url>/posts/3339636628/</url>
     <content><![CDATA[<p><strong>首先明确spark有个自己文件系统，block就是里面的一个文件</strong>。如：缓存后<strong>的RDD的一个分区是一个block；计算产生的</strong>临时文件<strong>也是block</strong>。<strong>任何你要存的东西都是block</strong>。</p>
 <p>因此既然它是文件，它就有<strong>文件名</strong>、<strong>元信息</strong>、<strong>锁</strong>、<strong>数据</strong>，理解它们，你就理解了block！</p>
 <a id="more"></a>
@@ -533,7 +576,7 @@
   </entry>
   <entry>
     <title>spark源码-DiskBlockManager和DiskStore</title>
-    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-DiskBlockManager%E5%92%8CDiskStore/</url>
+    <url>/posts/3282537882/</url>
     <content><![CDATA[<p>本文将磁盘文件的存储和管理，注意设计两个类 DiskBlockManager 和 DiskStore</p>
 <a id="more"></a>
 <h1 id="DiskBlockManager"><a class="header-anchor" href="#DiskBlockManager"></a>DiskBlockManager</h1>
@@ -610,7 +653,7 @@
   </entry>
   <entry>
     <title>spark源码-MemoryManager和MemoryStore</title>
-    <url>/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-MemoryManager%E5%92%8CMemoryStore/</url>
+    <url>/posts/318537563/</url>
     <content><![CDATA[<p>它俩的对象和方法较多，需要耐心反复看。</p>
 <a id="more"></a>
 <h1 id="MemoryManager"><a class="header-anchor" href="#MemoryManager"></a>MemoryManager</h1>
@@ -718,7 +761,7 @@
   </entry>
   <entry>
     <title>我的2019</title>
-    <url>/2019/12/31/%E9%9A%8F%E7%AC%94/%E6%88%91%E7%9A%842019/</url>
+    <url>/posts/1046274710/</url>
     <content><![CDATA[<p>2019小结，多图慎点</p>
 <a id="more"></a>
 <h1 id="github"><a class="header-anchor" href="#github"></a>github</h1>
@@ -752,7 +795,7 @@
   </entry>
   <entry>
     <title>分布式版本控制系统-Git</title>
-    <url>/2019/12/31/%E5%B7%A5%E5%85%B7/%E5%88%86%E5%B8%83%E5%BC%8F%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F-Git/</url>
+    <url>/posts/1625217789/</url>
     <content><![CDATA[<p>本文主要包括Git的用法加底层</p>
 <h1 id="使用"><a class="header-anchor" href="#使用"></a>使用</h1>
 <h2 id="初始化相关"><a class="header-anchor" href="#初始化相关"></a>初始化相关</h2>
@@ -869,7 +912,7 @@
   </entry>
   <entry>
     <title>spark源码-shuffle之BlockStoreShuffleReader</title>
-    <url>/2019/12/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBlockStoreShuffleReader/</url>
+    <url>/posts/1991864631/</url>
     <content><![CDATA[<p>spark的唯一 ShuffleReader ：BlockStoreShuffleReader</p>
 <a id="more"></a>
 <h1 id="引入"><a class="header-anchor" href="#引入"></a>引入</h1>
@@ -936,7 +979,7 @@
   </entry>
   <entry>
     <title>spark杂谈-指定文件在HDFS中的写入节点</title>
-    <url>/2019/12/28/spark/spark%E6%9D%82%E8%B0%88-%E6%8C%87%E5%AE%9A%E6%96%87%E4%BB%B6%E5%9C%A8HDFS%E4%B8%AD%E7%9A%84%E5%86%99%E5%85%A5%E8%8A%82%E7%82%B9/</url>
+    <url>/posts/1731798916/</url>
     <content><![CDATA[<p>项目中需要指定文件写到HDFS的具体哪个节点，通过查找API，找到一种解决办法。以 <code>TextOutputFormat</code> 为例测试</p>
 <a id="more"></a>
 <h1 id="write"><a class="header-anchor" href="#write"></a>write</h1>
@@ -960,7 +1003,7 @@
   </entry>
   <entry>
     <title>自动化运维工具-Ansible</title>
-    <url>/2019/12/24/%E5%B7%A5%E5%85%B7/%E8%87%AA%E5%8A%A8%E5%8C%96%E8%BF%90%E7%BB%B4%E5%B7%A5%E5%85%B7-Ansible/</url>
+    <url>/posts/2159299108/</url>
     <content><![CDATA[<p>Ansible 是一个开源的基于 OpenSSH 的自动化配置管理工具。可以用它来配置系统、部署软件和编排更高级的 IT 任务，比如持续部署或零停机更新。管理员可以通过 Ansible 在成百上千台计算机上同时执行指令(任务)，这是<a href="https://ansible-tran.readthedocs.io/en/latest/index.html" target="_blank" rel="noopener">官方文档</a>。</p>
 <a id="more"></a>
 <h1 id="配置组"><a class="header-anchor" href="#配置组"></a>配置组</h1>
@@ -1018,7 +1061,7 @@
   </entry>
   <entry>
     <title>大数据bug记录</title>
-    <url>/2019/12/20/%E5%A4%A7%E6%95%B0%E6%8D%AE/%E5%A4%A7%E6%95%B0%E6%8D%AEbug%E8%AE%B0%E5%BD%95/</url>
+    <url>/posts/1363335059/</url>
     <content><![CDATA[<p>记录遇到的简单bug</p>
 <a id="more"></a>
 <h1 id="201911-201912"><a class="header-anchor" href="#201911-201912"></a>201911-201912</h1>
@@ -1044,7 +1087,7 @@
   </entry>
   <entry>
     <title>spark调试-常用代码</title>
-    <url>/2019/12/20/spark/spark%E8%B0%83%E8%AF%95-%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/</url>
+    <url>/posts/119214868/</url>
     <content><![CDATA[<p>一些我用到的调试代码</p>
 <a id="more"></a>
 <h1 id="统计每个分区的record个数"><a class="header-anchor" href="#统计每个分区的record个数"></a>统计每个分区的record个数</h1>
@@ -1062,7 +1105,7 @@
   </entry>
   <entry>
     <title>linux-常用命令</title>
-    <url>/2019/12/20/linux/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <url>/posts/2601952716/</url>
     <content><![CDATA[<p>一些用过的linux命令</p>
 <a id="more"></a>
 <h1 id="文件"><a class="header-anchor" href="#文件"></a>文件</h1>
@@ -1156,7 +1199,7 @@
   </entry>
   <entry>
     <title>spark源码-shuffle之SortShuffleWriter</title>
-    <url>/2019/12/04/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BSortShuffleWriter/</url>
+    <url>/posts/2591058846/</url>
     <content><![CDATA[<p>spark 三大ShuffleWriter 之 SortShuffleWriter</p>
 <a id="more"></a>
 <h1 id="特点"><a class="header-anchor" href="#特点"></a>特点</h1>
@@ -1238,7 +1281,7 @@
   </entry>
   <entry>
     <title>spark源码-shuffle之UnsafeShuffleWriter</title>
-    <url>/2019/12/02/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BUnsafeShuffleWriter/</url>
+    <url>/posts/2513573613/</url>
     <content><![CDATA[<p>spark 三大ShuffleWriter 之 UnsafeShuffleWriter</p>
 <a id="more"></a>
 <h1 id="特点"><a class="header-anchor" href="#特点"></a>特点</h1>
@@ -1333,7 +1376,7 @@
   </entry>
   <entry>
     <title>spark源码-shuffle之BypassMergeSortShuffleWriter</title>
-    <url>/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/</url>
+    <url>/posts/1175370685/</url>
     <content><![CDATA[<p>spark 三大ShuffleWriter 之 BypassMergeSortShuffleWriter</p>
 <a id="more"></a>
 <h1 id="特点"><a class="header-anchor" href="#特点"></a>特点</h1>
@@ -1390,7 +1433,7 @@
   </entry>
   <entry>
     <title>spark源码-shuffle之ShuffleManager</title>
-    <url>/2019/11/29/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/</url>
+    <url>/posts/3804946387/</url>
     <content><![CDATA[<p>spark shuffle 学习起始篇，涉及源码中shuffle的相关概念 加 SortShuffleManager</p>
 <a id="more"></a>
 <h1 id="Spark-里的-Shuffle"><a class="header-anchor" href="#Spark-里的-Shuffle"></a>Spark 里的 Shuffle</h1>
@@ -1458,7 +1501,7 @@
   </entry>
   <entry>
     <title>spark源码-Partitioner</title>
-    <url>/2019/11/28/spark/spark%E6%BA%90%E7%A0%81-Partitioner/</url>
+    <url>/posts/2462407740/</url>
     <content><![CDATA[<p>Partitioner（分区器）学习</p>
 <a id="more"></a>
 <h1 id="Partitioner"><a class="header-anchor" href="#Partitioner"></a>Partitioner</h1>
@@ -1502,7 +1545,7 @@
   </entry>
   <entry>
     <title>spark杂谈-使用textFile读取HDFS的分区规则</title>
-    <url>/2019/11/27/spark/spark%E6%9D%82%E8%B0%88-%E4%BD%BF%E7%94%A8textFile%E8%AF%BB%E5%8F%96HDFS%E7%9A%84%E5%88%86%E5%8C%BA%E8%A7%84%E5%88%99/</url>
+    <url>/posts/1024335420/</url>
     <content><![CDATA[<p>使用 textFile 读取HDFS的数据分区规则</p>
 <a id="more"></a>
 <h1 id="跟着源码走"><a class="header-anchor" href="#跟着源码走"></a>跟着源码走</h1>
@@ -1555,7 +1598,7 @@
   </entry>
   <entry>
     <title>CentOS根目录扩容</title>
-    <url>/2019/11/23/linux/CentOS%E6%A0%B9%E7%9B%AE%E5%BD%95%E6%89%A9%E5%AE%B9/</url>
+    <url>/posts/1565783843/</url>
     <content><![CDATA[<p>记录对 /root 目录的扩容</p>
 <a id="more"></a>
 <h1 id="问题：-root-的空间用满了"><a class="header-anchor" href="#问题：-root-的空间用满了"></a>问题：<code>/root</code> 的空间用满了</h1>
@@ -1587,7 +1630,7 @@
   </entry>
   <entry>
     <title>hbase-基本原理</title>
-    <url>/2019/09/29/%E5%A4%A7%E6%95%B0%E6%8D%AE/hbase-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</url>
+    <url>/posts/2318572945/</url>
     <content><![CDATA[<p>简单介绍了hbase的基本原理：数据结构、读写操作、flush、合并与切分</p>
 <a id="more"></a>
 <h1 id="数据结构"><a class="header-anchor" href="#数据结构"></a>数据结构</h1>
@@ -1662,7 +1705,7 @@
   </entry>
   <entry>
     <title>hbase-安装与配置</title>
-    <url>/2019/09/28/%E5%A4%A7%E6%95%B0%E6%8D%AE/hbase-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/</url>
+    <url>/posts/2130342154/</url>
     <content><![CDATA[<p>介绍hbase的安装与简单使用</p>
 <a id="more"></a>
 <h1 id="准备"><a class="header-anchor" href="#准备"></a>准备</h1>
@@ -1692,13 +1735,13 @@
         <category>大数据</category>
       </categories>
       <tags>
-        <tag>配置</tag>
         <tag>hbase</tag>
+        <tag>配置</tag>
       </tags>
   </entry>
   <entry>
     <title>zookeeper-基本原理</title>
-    <url>/2019/09/24/%E5%A4%A7%E6%95%B0%E6%8D%AE/zookeeper-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</url>
+    <url>/posts/2054705260/</url>
     <content><![CDATA[<p>介绍了zookeeper的基本原理和使用</p>
 <a id="more"></a>
 <h1 id="简介"><a class="header-anchor" href="#简介"></a>简介</h1>
@@ -1781,7 +1824,7 @@
   </entry>
   <entry>
     <title>hive-DML</title>
-    <url>/2019/09/19/%E5%A4%A7%E6%95%B0%E6%8D%AE/hive-DML/</url>
+    <url>/posts/3957134780/</url>
     <content><![CDATA[<p>hive中一些DML的操作</p>
 <a id="more"></a>
 <p>DML（数据操纵语言）主要指数据的增删查改</p>
@@ -1910,7 +1953,7 @@
   </entry>
   <entry>
     <title>hive-DDL</title>
-    <url>/2019/09/17/%E5%A4%A7%E6%95%B0%E6%8D%AE/hive-DDL/</url>
+    <url>/posts/975154933/</url>
     <content><![CDATA[<p>hive中一些DDL的操作</p>
 <a id="more"></a>
 <h1 id="DDL"><a class="header-anchor" href="#DDL"></a>DDL</h1>
@@ -1960,7 +2003,7 @@
   </entry>
   <entry>
     <title>随笔-中秋入学有感</title>
-    <url>/2019/09/16/%E9%9A%8F%E7%AC%94/%E9%9A%8F%E7%AC%94-20190916%E5%85%A5%E5%AD%A6/</url>
+    <url>/posts/405844152/</url>
     <content><![CDATA[<p>很早想写，却迟迟未动笔。今有兴留以纪念。</p>
 <a id="more"></a>
 <p><strong>终于正式成为了研究生大军的一员～</strong></p>
@@ -1988,7 +2031,7 @@
   </entry>
   <entry>
     <title>hive-安装与配置</title>
-    <url>/2019/09/16/%E5%A4%A7%E6%95%B0%E6%8D%AE/hive-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/</url>
+    <url>/posts/3435041295/</url>
     <content><![CDATA[<p>介绍hive的安装，使用 mysql 做 hive 的元数据库</p>
 <a id="more"></a>
 <h1 id="准备"><a class="header-anchor" href="#准备"></a>准备</h1>
@@ -2029,7 +2072,7 @@
   </entry>
   <entry>
     <title>flume-基本原理</title>
-    <url>/2019/09/12/%E5%A4%A7%E6%95%B0%E6%8D%AE/flume-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</url>
+    <url>/posts/1228702381/</url>
     <content><![CDATA[<p>介绍了flume的基本原理和使用</p>
 <a id="more"></a>
 <h1 id="简介"><a class="header-anchor" href="#简介"></a>简介</h1>
@@ -2141,7 +2184,7 @@
   </entry>
   <entry>
     <title>spark基础-DataFrame和DataSet</title>
-    <url>/2019/09/09/spark/spark%E5%9F%BA%E7%A1%80-DataFrame%E5%92%8CDataSet/</url>
+    <url>/posts/2917570157/</url>
     <content><![CDATA[<p>介绍了在spark中DataFrame和DataSet，以及它们之间的相互转换。</p>
 <a id="more"></a>
 <h1 id="概念分析"><a class="header-anchor" href="#概念分析"></a>概念分析</h1>
@@ -2228,7 +2271,7 @@
   </entry>
   <entry>
     <title>spark基础-窄、宽依赖和任务划分</title>
-    <url>/2019/09/09/spark/spark%E5%9F%BA%E7%A1%80-%E7%AA%84%E3%80%81%E5%AE%BD%E4%BE%9D%E8%B5%96%E5%92%8C%E4%BB%BB%E5%8A%A1%E5%88%92%E5%88%86/</url>
+    <url>/posts/560408338/</url>
     <content><![CDATA[<p>介绍了在spark中窄、宽依赖的划分以及任务划分</p>
 <a id="more"></a>
 <h1 id="窄依赖和宽依赖"><a class="header-anchor" href="#窄依赖和宽依赖"></a>窄依赖和宽依赖</h1>
@@ -2282,7 +2325,7 @@
   </entry>
   <entry>
     <title>spark基础-Yarn流程解析</title>
-    <url>/2019/09/02/spark/spark%E5%9F%BA%E7%A1%80-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
+    <url>/posts/2293825606/</url>
     <content><![CDATA[<p>介绍了在spark中Yarn的工作流程和一些总结</p>
 <a id="more"></a>
 <h1 id="流程"><a class="header-anchor" href="#流程"></a>流程</h1>
@@ -2346,7 +2389,7 @@
   </entry>
   <entry>
     <title>hadoop-Yarn流程解析</title>
-    <url>/2019/08/31/%E5%A4%A7%E6%95%B0%E6%8D%AE/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
+    <url>/posts/908130272/</url>
     <content><![CDATA[<p>介绍了Yarn的工作流程和一些总结</p>
 <a id="more"></a>
 <h1 id="Yarn运行机制流程图"><a class="header-anchor" href="#Yarn运行机制流程图"></a>Yarn运行机制流程图</h1>
@@ -2411,7 +2454,7 @@
   </entry>
   <entry>
     <title>hadoop-HDFS流程解析</title>
-    <url>/2019/08/31/%E5%A4%A7%E6%95%B0%E6%8D%AE/hadoop-HDFS%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
+    <url>/posts/922918404/</url>
     <content><![CDATA[<p>介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互</p>
 <a id="more"></a>
 <h1 id="HDFS写数据"><a class="header-anchor" href="#HDFS写数据"></a>HDFS写数据</h1>
@@ -2518,7 +2561,7 @@
   </entry>
   <entry>
     <title>hadoop-MapReduce流程解析</title>
-    <url>/2019/08/30/%E5%A4%A7%E6%95%B0%E6%8D%AE/hadoop-MapReduce%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</url>
+    <url>/posts/3537618435/</url>
     <content><![CDATA[<p>介绍了MapReduce的详细流程和一些总结</p>
 <a id="more"></a>
 <h1 id="流程图"><a class="header-anchor" href="#流程图"></a>流程图</h1>
@@ -2593,7 +2636,7 @@
   </entry>
   <entry>
     <title>hadoop-单节点伪分布式搭建</title>
-    <url>/2019/08/24/%E5%A4%A7%E6%95%B0%E6%8D%AE/hadoop-%E5%8D%95%E8%8A%82%E7%82%B9%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA/</url>
+    <url>/posts/3555926790/</url>
     <content><![CDATA[<p>在mac上搭建hadoop伪分布式</p>
 <a id="more"></a>
 <p>操作系统： macOS Mojave 10.14.5</p>
@@ -2698,7 +2741,7 @@
   </entry>
   <entry>
     <title>3种Linux命令后台执行方法：&amp;、nohup、tmux</title>
-    <url>/2019/06/26/linux/3%E7%A7%8DLinux%E5%91%BD%E4%BB%A4%E5%90%8E%E5%8F%B0%E6%89%A7%E8%A1%8C%E6%96%B9%E6%B3%95%EF%BC%9A-%E3%80%81nohup%E3%80%81tmux/</url>
+    <url>/posts/3913736931/</url>
     <content><![CDATA[<p>让命令在后台跑起来！</p>
 <a id="more"></a>
 <h1 id><a class="header-anchor" href="#"></a>&amp;</h1>
@@ -2763,7 +2806,7 @@
   </entry>
   <entry>
     <title>用jupyter notebook打开服务器（告别黑框框)</title>
-    <url>/2019/04/11/linux/%E7%94%A8jupyter-notebook%E6%89%93%E5%BC%80%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%88%E5%91%8A%E5%88%AB%E9%BB%91%E6%A1%86%E6%A1%86/</url>
+    <url>/posts/1800443372/</url>
     <content><![CDATA[<p>几步完成服务器内jupyter notebook的使用</p>
 <a id="more"></a>
 <h1 id="为啥要这样"><a class="header-anchor" href="#为啥要这样"></a>为啥要这样</h1>
@@ -2825,7 +2868,7 @@
   </entry>
   <entry>
     <title>linux下命令行安装anaconda3+pytorch+fastai</title>
-    <url>/2019/04/10/linux/linux%E4%B8%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%AE%89%E8%A3%85anaconda3-pytorch-fastai/</url>
+    <url>/posts/1623029904/</url>
     <content><![CDATA[<p>几步完成 anaconda3+pytorch+fastai 的安装</p>
 <a id="more"></a>
 <h1 id="为啥用anaconda"><a class="header-anchor" href="#为啥用anaconda"></a>为啥用anaconda</h1>
@@ -2883,7 +2926,7 @@
   </entry>
   <entry>
     <title>JVM(8)-虚拟机字节码执行引擎</title>
-    <url>/2019/03/29/java/JVM-8-%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%97%E8%8A%82%E7%A0%81%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/</url>
+    <url>/posts/1266200013/</url>
     <content><![CDATA[<p>本文是《深入理解Java虚拟机（第二版）》第八章的笔记</p>
 <a id="more"></a>
 <h1 id="运行时栈帧结构"><a class="header-anchor" href="#运行时栈帧结构"></a>运行时栈帧结构</h1>
@@ -2956,7 +2999,7 @@
   </entry>
   <entry>
     <title>JVM(7)-虚拟机类加载机制</title>
-    <url>/2019/03/29/java/JVM-7-%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/</url>
+    <url>/posts/2602438549/</url>
     <content><![CDATA[<p>本文是《深入理解Java虚拟机（第二版）》第七章的笔记</p>
 <a id="more"></a>
 <h1 id="类加载的时机"><a class="header-anchor" href="#类加载的时机"></a>类加载的时机</h1>
@@ -3052,7 +3095,7 @@
   </entry>
   <entry>
     <title>JVM(4)-虚拟机性能监控与故障处理工具</title>
-    <url>/2019/03/25/java/JVM-4-%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7%E4%B8%8E%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7/</url>
+    <url>/posts/2533373470/</url>
     <content><![CDATA[<p>本文是《深入理解Java虚拟机（第二版）》第四章的笔记</p>
 <a id="more"></a>
 <p>我的JDK工具地址</p>
@@ -3184,7 +3227,7 @@
   </entry>
   <entry>
     <title>JVM(3)-垃圾收集器与内存分配策略</title>
-    <url>/2019/03/25/java/JVM-3-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/</url>
+    <url>/posts/2930319464/</url>
     <content><![CDATA[<p>本文是《深入理解Java虚拟机（第二版）》第三章的笔记</p>
 <a id="more"></a>
 <h1 id="如何判断对象为垃圾对象"><a class="header-anchor" href="#如何判断对象为垃圾对象"></a>如何判断对象为垃圾对象</h1>
@@ -3266,7 +3309,7 @@
   </entry>
   <entry>
     <title>IntelliJ IDEA 实用快捷键</title>
-    <url>/2019/03/22/%E5%B7%A5%E5%85%B7/IntelliJ-IDEA-%E5%AE%9E%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/</url>
+    <url>/posts/1565301592/</url>
     <content><![CDATA[<p>IntelliJ IDEA 的小技巧 （ mac 版）</p>
 <a id="more"></a>
 <h1 id="码代码"><a class="header-anchor" href="#码代码"></a>码代码</h1>
@@ -3320,7 +3363,7 @@
   </entry>
   <entry>
     <title>JVM(2)-Java内存区域与内存溢出异常</title>
-    <url>/2019/03/22/java/JVM-2-Java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E4%B8%8E%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E5%BC%82%E5%B8%B8/</url>
+    <url>/posts/1447014473/</url>
     <content><![CDATA[<p>本文是《深入理解Java虚拟机（第二版）》第二章的笔记</p>
 <a id="more"></a>
 <h1 id="运行时数据区域"><a class="header-anchor" href="#运行时数据区域"></a>运行时数据区域</h1>
@@ -3416,7 +3459,7 @@
   </entry>
   <entry>
     <title>JDK1.8 String常量池详解</title>
-    <url>/2019/03/22/java/JDK1-8-String%E5%B8%B8%E9%87%8F%E6%B1%A0%E8%AF%A6%E8%A7%A3/</url>
+    <url>/posts/2172529398/</url>
     <content><![CDATA[<p>本文是 JDK1.8 String常量池详解，带图哦</p>
 <a id="more"></a>
 <p><strong>jdk 1.8</strong></p>
@@ -3462,7 +3505,7 @@
   </entry>
   <entry>
     <title>java多线程编程chap5-7</title>
-    <url>/2019/03/14/java/java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8Bchap5-7/</url>
+    <url>/posts/4237360076/</url>
     <content><![CDATA[<p>本文是《java多线程编程核心技术》第五、六、七章的学习笔记。</p>
 <a id="more"></a>
 <h1 id="定时器-Timer"><a class="header-anchor" href="#定时器-Timer"></a>定时器 Timer</h1>
@@ -3530,7 +3573,7 @@
   </entry>
   <entry>
     <title>java多线程编程chap3-4</title>
-    <url>/2019/03/13/java/java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8Bchap3-4/</url>
+    <url>/posts/1628755652/</url>
     <content><![CDATA[<p>本文是《java多线程编程核心技术》第三、四章的学习笔记。</p>
 <a id="more"></a>
 <h1 id="线程间通信"><a class="header-anchor" href="#线程间通信"></a>线程间通信</h1>
@@ -3616,7 +3659,7 @@
   </entry>
   <entry>
     <title>java多线程编程chap1-2</title>
-    <url>/2019/03/11/java/java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8Bchap1-2/</url>
+    <url>/posts/2348001183/</url>
     <content><![CDATA[<p>本文是《java多线程编程核心技术》第一、二章的学习笔记。</p>
 <a id="more"></a>
 <h1 id="第一章：Java多线程技能"><a class="header-anchor" href="#第一章：Java多线程技能"></a>第一章：Java多线程技能</h1>
@@ -3704,7 +3747,7 @@
   </entry>
   <entry>
     <title>corejava基础知识(6)-视图</title>
-    <url>/2019/03/07/java/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-6-%E8%A7%86%E5%9B%BE/</url>
+    <url>/posts/1344073668/</url>
     <content><![CDATA[<p>本文是对 java 视图的总结。</p>
 <a id="more"></a>
 <h1 id="集合包装器视图"><a class="header-anchor" href="#集合包装器视图"></a>集合包装器视图</h1>
@@ -3750,7 +3793,7 @@
   </entry>
   <entry>
     <title>corejava基础知识(5)-集合</title>
-    <url>/2019/03/07/java/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-5-%E9%9B%86%E5%90%88/</url>
+    <url>/posts/3931249009/</url>
     <content><![CDATA[<p>本文是对 java 集合的总结。书的思路是将接口与实现分开讲；然后从父讲起，再讲子对父的提升。我觉得这种方式很好理解加记忆，所以本文也是这样整理的。</p>
 <a id="more"></a>
 <h1 id="集合框架"><a class="header-anchor" href="#集合框架"></a>集合框架</h1>
@@ -3886,7 +3929,7 @@
   </entry>
   <entry>
     <title>corejava基础知识(4)-通配符</title>
-    <url>/2019/03/05/java/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86(4)-%E9%80%9A%E9%85%8D%E7%AC%A6/</url>
+    <url>/posts/3618360913/</url>
     <content><![CDATA[<p>本文是对 java 通配符的总结</p>
 <a id="more"></a>
 <h1 id="通配符"><a class="header-anchor" href="#通配符"></a>通配符</h1>
@@ -3968,7 +4011,7 @@
   </entry>
   <entry>
     <title>corejava基础知识(3)-泛型</title>
-    <url>/2019/03/05/java/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86(3)-%E6%B3%9B%E5%9E%8B/</url>
+    <url>/posts/1012286877/</url>
     <content><![CDATA[<p>本文是对 java 泛型的总结</p>
 <a id="more"></a>
 <h1 id="泛型"><a class="header-anchor" href="#泛型"></a>泛型</h1>
@@ -4052,7 +4095,7 @@
   </entry>
   <entry>
     <title>corejava基础知识(2)-接口和lambda表达式</title>
-    <url>/2019/03/05/java/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86(2)-%E6%8E%A5%E5%8F%A3%E5%92%8Clambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/</url>
+    <url>/posts/3529805088/</url>
     <content><![CDATA[<p>本文是对 java 接口和lambda表达式的总结</p>
 <a id="more"></a>
 <h1 id="接口"><a class="header-anchor" href="#接口"></a>接口</h1>
@@ -4164,7 +4207,7 @@
   </entry>
   <entry>
     <title>corejava基础知识(1)-继承</title>
-    <url>/2019/03/05/java/corejava%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86(1)-%E7%BB%A7%E6%89%BF/</url>
+    <url>/posts/1962966044/</url>
     <content><![CDATA[<a id="more"></a>
 <p>占位</p>
 ]]></content>
@@ -4176,27 +4219,10 @@
       </tags>
   </entry>
   <entry>
-    <title>hello hexo</title>
-    <url>/2019/02/26/%E5%B7%A5%E5%85%B7/hello-hexo/</url>
+    <title>markdown语法</title>
+    <url>/posts/4046760165/</url>
     <content><![CDATA[<p><img src="https://i.loli.net/2020/01/10/5UKxWLad8w37kAi.png" alt="me.png"></p>
 <a id="more"></a>
-<h1 id="生成文章"><a class="header-anchor" href="#生成文章"></a>生成文章</h1>
-<ol>
-<li>使用命令生成初始文章，文件名之间有空格的话会自动加-中横线</li>
-</ol>
-<p><code>hexo n &quot;hello hexo&quot;  #双引号中填写要生成的文章名</code></p>
-<ol start="2">
-<li>在hexo/source/_posts中编辑生成出来的hello-hexo.md文件</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: hello hexo</span><br><span class="line">date: 2019-02-26 11:20:55</span><br><span class="line">tags:</span><br><span class="line">- hello</span><br><span class="line">categories: </span><br><span class="line">- hello hexo</span><br><span class="line">---</span><br></pre></td></tr></table></figure>
-<ol start="3">
-<li>本地预览文章内容，登录localhost:4000查看效果</li>
-</ol>
-<p><code>hexo s</code></p>
-<ol start="4">
-<li>内容发布到public文件夹数中，然后手动复制同步GitHub</li>
-</ol>
-<p><code>hexo clean &amp;&amp; hexo g &amp;&amp; hexo d</code></p>
 <hr>
 <h1 id="Markdown语法"><a class="header-anchor" href="#Markdown语法"></a>Markdown语法</h1>
 <h2 id="一、标题"><a class="header-anchor" href="#一、标题"></a>一、标题</h2>
@@ -4220,7 +4246,7 @@
 <p><strong>示例：</strong></p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">![test](hello-hexo/test.jpg &quot;图片&quot;)</span><br></pre></td></tr></table></figure>
 <p><strong>效果：</strong></p>
-<p><img src="https://i.loli.net/2020/01/10/2PaTmrRCe65lLgN.jpg" alt="test.jpg"></p>
+<img src="https://i.loli.net/2020/01/10/2PaTmrRCe65lLgN.jpg" alt="test.jpg" style="zoom: 33%;">
 <h2 id="五、超链接"><a class="header-anchor" href="#五、超链接"></a>五、超链接</h2>
 <p><strong>语法：</strong></p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[超链接名](超链接地址 &quot;超链接title&quot;)</span><br><span class="line">title可加可不加</span><br></pre></td></tr></table></figure>

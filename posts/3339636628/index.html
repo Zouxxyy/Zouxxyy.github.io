@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://zouxxyy.github.io').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="首先明确spark有个自己文件系统，block就是里面的一个文件。如：缓存后的RDD的一个分区是一个block；计算产生的临时文件也是block。任何你要存的东西都是block。 因此既然它是文件，它就有文件名、元信息、锁、数据，理解它们，你就理解了block！">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark源码-block">
+<meta property="og:url" content="https://zouxxyy.github.io/posts/3339636628/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="首先明确spark有个自己文件系统，block就是里面的一个文件。如：缓存后的RDD的一个分区是一个block；计算产生的临时文件也是block。任何你要存的东西都是block。 因此既然它是文件，它就有文件名、元信息、锁、数据，理解它们，你就理解了block！">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-01-16T09:04:05.501Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark源码-block">
+<meta name="twitter:description" content="首先明确spark有个自己文件系统，block就是里面的一个文件。如：缓存后的RDD的一个分区是一个block；计算产生的临时文件也是block。任何你要存的东西都是block。 因此既然它是文件，它就有文件名、元信息、锁、数据，理解它们，你就理解了block！">
+
+<link rel="canonical" href="https://zouxxyy.github.io/posts/3339636628/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>spark源码-block | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/posts/3339636628/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spark源码-block
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-11 21:40:28" itemprop="dateCreated datePublished" datetime="2020-01-11T21:40:28+08:00">2020-01-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-01-16 17:04:05" itemprop="dateModified" datetime="2020-01-16T17:04:05+08:00">2020-01-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/posts/3339636628/" class="post-meta-item leancloud_visitors" data-flag-title="spark源码-block" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/posts/3339636628/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/posts/3339636628/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>首先明确spark有个自己文件系统，block就是里面的一个文件</strong>。如：缓存后<strong>的RDD的一个分区是一个block；计算产生的</strong>临时文件<strong>也是block</strong>。<strong>任何你要存的东西都是block</strong>。</p>
+<p>因此既然它是文件，它就有<strong>文件名</strong>、<strong>元信息</strong>、<strong>锁</strong>、<strong>数据</strong>，理解它们，你就理解了block！</p>
+<a id="more"></a>
+<h1 id="BlockId"><a class="header-anchor" href="#BlockId"></a>BlockId</h1>
+<p>每个Block都有个ID与之一一对应，这个<strong>BlockId也就是该文件的文件名</strong></p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BlockId</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">name</span></span>: <span class="type">String</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// RDDBlockId、ShuffleBlockId什么的都是它的子类</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">asRDDId</span></span>: <span class="type">Option</span>[<span class="type">RDDBlockId</span>] = <span class="keyword">if</span> (isRDD) <span class="type">Some</span>(asInstanceOf[<span class="type">RDDBlockId</span>]) <span class="keyword">else</span> <span class="type">None</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">isRDD</span></span>: <span class="type">Boolean</span> = isInstanceOf[<span class="type">RDDBlockId</span>]</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">isShuffle</span></span>: <span class="type">Boolean</span> = isInstanceOf[<span class="type">ShuffleBlockId</span>]</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">isBroadcast</span></span>: <span class="type">Boolean</span> = isInstanceOf[<span class="type">BroadcastBlockId</span>]</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span></span>: <span class="type">String</span> = name</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>理解了取名的规则，你就对spark的计算流程理解了。例如：</p>
+<p>todo：理解全部的 BlockId</p>
+<p><strong>普通RDD</strong>：</p>
+<ul>
+<li>RDDBlockId <code>&quot;rdd_&quot; + rddId + &quot;_&quot; + splitIndex</code></li>
+</ul>
+<p>简单的按 rddId 和 分区ID 划分</p>
+<p><strong>Shuffle过程</strong>：</p>
+<ul>
+<li>ShuffleBlockId <code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code></li>
+<li>ShuffleDataBlockId <code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId + &quot;.data&quot;</code></li>
+<li>ShuffleIndexBlockId <code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId + &quot;.index&quot;</code></li>
+</ul>
+<p><strong>ShuffleBlockId 就是ShuffleWrite时单个task生成的那个大文件，ShuffleDataBlockId是这个大文件的临时叫法，ShuffleIndexBlockId是索引文件</strong>。而它们由<strong>shuffleId、mapId、reduceId</strong> 3者共同确定。</p>
+<p>注意：<strong>reduceId是0（<code>NOOP_REDUCE_ID</code>）</strong>，因为<strong>SortShuffle最后生成的是1个大文件</strong>，所以这个reduceid没什么软用。理解清楚SortShuffleManager和被淘汰的HashShuffleManager的区别，骚年。</p>
+<p><strong>broadcast</strong>：</p>
+<ul>
+<li>BroadcastBlockId <code>&quot;broadcast_&quot; + broadcastId + (if (field == &quot;&quot;) &quot;&quot; else &quot;_&quot; + field)</code></li>
+</ul>
+<p>广播变量的存储，分两种：原对象形成的block，直接是 broadcast_&quot; + broadcastId；还有原对象<strong>切分</strong>成的小块，后接块序号。</p>
+<p><strong>临时文件</strong>：</p>
+<ul>
+<li>
+<p>TempLocalBlockId <code>temp_local_ + “randomUUID”</code></p>
+</li>
+<li>
+<p>TempShuffleBlockId <code>temp_shuffle_ + “randomUUID”</code></p>
+</li>
+</ul>
+<p><strong>TempLocalBlockId是本地计算中间临时文件</strong></p>
+<p><strong>TempShuffleBlockId是shuffle计算中间临时文件</strong>：1、BypassShuffle 单分区临时文件；2、shuffle排序时如果内存不够发生spill到磁盘的文件。</p>
+<h1 id="BlockInfo"><a class="header-anchor" href="#BlockInfo"></a>BlockInfo</h1>
+<p>block的元信息如下</p>
+<p>构造参数：</p>
+<ul>
+<li><strong>StorageLevel</strong>：存储等级</li>
+<li><strong>classTag</strong>：类名，用于序列化需求</li>
+<li><strong>tellMaster</strong>：是否需要通知master block改变，大多数都要，但是broadcast blocks不用</li>
+</ul>
+<p>内部属性（可get、set）后面两参数用于实现锁机制：</p>
+<ul>
+<li><strong>size</strong>: block的大小（bytes）</li>
+<li><strong>readerCount</strong>： 目前有多少个Task在读它</li>
+<li><strong>writerTask</strong>：<strong>持有该块写锁的Task ID</strong>。默认值：BlockInfo.NO_WRITER，代表没有人写</li>
+</ul>
+<p>在set值后，会调用checkInvariants方法，检查值是否合格。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">checkInvariants</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="comment">// 可多人读</span></span><br><span class="line">  assert(_readerCount &gt;= <span class="number">0</span>)</span><br><span class="line">  <span class="comment">// 读写互斥</span></span><br><span class="line">  assert(_readerCount == <span class="number">0</span> || _writerTask == <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="BlockInfoManager"><a class="header-anchor" href="#BlockInfoManager"></a>BlockInfoManager</h1>
+<p>它用于控制块的元信息，以<strong>实现块的锁机制</strong>，一个经典的文件读写锁机制。</p>
+<p>需求：</p>
+<ul>
+<li>同一个文件可以多个人读，前提没人写；且读锁可重入</li>
+<li>只能有一个人写文件，且没人读 ；且写锁不可重入</li>
+<li>当拿不到锁，可以选择一直等待（实现方法：拿不到锁wait，放锁notify）</li>
+</ul>
+<h2 id="成员"><a class="header-anchor" href="#成员"></a>成员</h2>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 换个别名</span></span><br><span class="line"><span class="comment">// 理解：一个task一个线程，锁的就它</span></span><br><span class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">type</span> <span class="title">TaskAttemptId</span> </span>= <span class="type">Long</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// BlockId 和 BlockInfo的映射</span></span><br><span class="line"><span class="meta">@GuardedBy</span>(<span class="string">"this"</span>)</span><br><span class="line"><span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span> infos = <span class="keyword">new</span> mutable.<span class="type">HashMap</span>[<span class="type">BlockId</span>, <span class="type">BlockInfo</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">// 任务ID 和 它拥有的写锁</span></span><br><span class="line"><span class="meta">@GuardedBy</span>(<span class="string">"this"</span>)</span><br><span class="line"><span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span> writeLocksByTask =</span><br><span class="line"><span class="keyword">new</span> mutable.<span class="type">HashMap</span>[<span class="type">TaskAttemptId</span>, mutable.<span class="type">Set</span>[<span class="type">BlockId</span>]]</span><br><span class="line"><span class="keyword">with</span> mutable.<span class="type">MultiMap</span>[<span class="type">TaskAttemptId</span>, <span class="type">BlockId</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">// 任务ID 和 它拥有的读锁</span></span><br><span class="line"><span class="meta">@GuardedBy</span>(<span class="string">"this"</span>)</span><br><span class="line"><span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span> readLocksByTask =</span><br><span class="line"><span class="keyword">new</span> mutable.<span class="type">HashMap</span>[<span class="type">TaskAttemptId</span>, <span class="type">ConcurrentHashMultiset</span>[<span class="type">BlockId</span>]]</span><br></pre></td></tr></table></figure>
+<p>writeLocksByTask的数据结构的写法真是<a href="https://www.scala-lang.org/api/current/scala/collection/mutable/MultiMap.html" target="_blank" rel="noopener">活久见</a>，使用<strong>有重复值的set</strong>实现<strong>可重入锁</strong>。</p>
+<h2 id="难点方法"><a class="header-anchor" href="#难点方法"></a>难点方法</h2>
+<h3 id="registerTask"><a class="header-anchor" href="#registerTask"></a>registerTask</h3>
+<p>给<code>readLocksByTask</code>添加映射，值自然是空的</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">registerTask</span></span>(taskAttemptId: <span class="type">TaskAttemptId</span>): <span class="type">Unit</span> = synchronized &#123;</span><br><span class="line">  require(!readLocksByTask.contains(taskAttemptId),</span><br><span class="line">          <span class="string">s"Task attempt <span class="subst">$taskAttemptId</span> is already registered"</span>)</span><br><span class="line">  readLocksByTask(taskAttemptId) = <span class="type">ConcurrentHashMultiset</span>.create()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意一个特殊的TaskId: <code>NON_TASK_WRITER</code>，它在<strong>BlockInfoManager初始化时被注册</strong>，非任务线程，如driver线程。</p>
+<h3 id="lockNewBlockForWriting"><a class="header-anchor" href="#lockNewBlockForWriting"></a>lockNewBlockForWriting</h3>
+<p>创建新的block时，自然需要<strong>加写锁</strong>，它用到了<code>lockForReading</code>和<code>lockForWriting</code></p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">lockNewBlockForWriting</span></span>(</span><br><span class="line">  blockId: <span class="type">BlockId</span>,</span><br><span class="line">  newBlockInfo: <span class="type">BlockInfo</span>): <span class="type">Boolean</span> = synchronized &#123;</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> trying to put <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="comment">// 由于有多线程的存在不能直接执行操作，而是先判断读锁，防止别的兄弟先一步已经lockNewBlockForWriting了</span></span><br><span class="line">  lockForReading(blockId) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(info) =&gt;</span><br><span class="line">    <span class="literal">false</span></span><br><span class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt;</span><br><span class="line">    <span class="comment">// 给 infos 加映射</span></span><br><span class="line">    infos(blockId) = newBlockInfo</span><br><span class="line">    <span class="comment">// 上写锁</span></span><br><span class="line">    lockForWriting(blockId)</span><br><span class="line">    <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="lockForWriting"><a class="header-anchor" href="#lockForWriting"></a>lockForWriting</h3>
+<p>加写锁</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">lockForWriting</span></span>(</span><br><span class="line">    blockId: <span class="type">BlockId</span>,</span><br><span class="line">    blocking: <span class="type">Boolean</span> = <span class="literal">true</span>): <span class="type">Option</span>[<span class="type">BlockInfo</span>] = synchronized &#123;</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> trying to acquire write lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  do &#123;</span><br><span class="line">    infos.get(blockId) <span class="keyword">match</span> &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="keyword">return</span> <span class="type">None</span></span><br><span class="line">      <span class="keyword">case</span> <span class="type">Some</span>(info) =&gt;</span><br><span class="line">      	<span class="comment">// 当该block没有人读，且没有人写时才能锁它，并返回</span></span><br><span class="line">        <span class="keyword">if</span> (info.writerTask == <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span> &amp;&amp; info.readerCount == <span class="number">0</span>) &#123;</span><br><span class="line">          info.writerTask = currentTaskAttemptId</span><br><span class="line">          writeLocksByTask.addBinding(currentTaskAttemptId, blockId)</span><br><span class="line">          logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> acquired write lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">          <span class="keyword">return</span> <span class="type">Some</span>(info)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果之前没拿到锁，就wait()，blocking控制是否等待</span></span><br><span class="line">    <span class="keyword">if</span> (blocking) &#123;</span><br><span class="line">      wait()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">while</span> (blocking)</span><br><span class="line">  <span class="type">None</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="lockForReading"><a class="header-anchor" href="#lockForReading"></a>lockForReading</h3>
+<p>加读锁</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">lockForReading</span></span>(</span><br><span class="line">  blockId: <span class="type">BlockId</span>,</span><br><span class="line">  blocking: <span class="type">Boolean</span> = <span class="literal">true</span>): <span class="type">Option</span>[<span class="type">BlockInfo</span>] = synchronized &#123;</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> trying to acquire read lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  do &#123;</span><br><span class="line">    infos.get(blockId) <span class="keyword">match</span> &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="keyword">return</span> <span class="type">None</span></span><br><span class="line">      <span class="keyword">case</span> <span class="type">Some</span>(info) =&gt;</span><br><span class="line">      <span class="comment">// 没有人写，即可加读锁，并返回</span></span><br><span class="line">      <span class="keyword">if</span> (info.writerTask == <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span>) &#123;</span><br><span class="line">        info.readerCount += <span class="number">1</span></span><br><span class="line">        readLocksByTask(currentTaskAttemptId).add(blockId)</span><br><span class="line">        logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> acquired read lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="type">Some</span>(info)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 同上</span></span><br><span class="line">    <span class="keyword">if</span> (blocking) &#123;</span><br><span class="line">      wait()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">while</span> (blocking)</span><br><span class="line">  <span class="type">None</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="unlock"><a class="header-anchor" href="#unlock"></a>unlock</h3>
+<p>放锁</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">unlock</span></span>(blockId: <span class="type">BlockId</span>, taskAttemptId: <span class="type">Option</span>[<span class="type">TaskAttemptId</span>] = <span class="type">None</span>): <span class="type">Unit</span> = synchronized &#123;</span><br><span class="line">  <span class="keyword">val</span> taskId = taskAttemptId.getOrElse(currentTaskAttemptId)</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$taskId</span> releasing lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="keyword">val</span> info = get(blockId).getOrElse &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">s"Block <span class="subst">$blockId</span> not found"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 放写锁</span></span><br><span class="line">  <span class="keyword">if</span> (info.writerTask != <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span>) &#123;</span><br><span class="line">    info.writerTask = <span class="type">BlockInfo</span>.<span class="type">NO_WRITER</span></span><br><span class="line">    writeLocksByTask.removeBinding(taskId, blockId)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    assert(info.readerCount &gt; <span class="number">0</span>, <span class="string">s"Block <span class="subst">$blockId</span> is not locked for reading"</span>)</span><br><span class="line">    <span class="comment">// 放读锁</span></span><br><span class="line">    info.readerCount -= <span class="number">1</span></span><br><span class="line">    <span class="keyword">val</span> countsForTask = readLocksByTask(taskId)</span><br><span class="line">    <span class="comment">// remove(blockId, n) 删除重复set中指定元素 n 个 。此处自然只删一个</span></span><br><span class="line">    <span class="keyword">val</span> newPinCountForTask: <span class="type">Int</span> = countsForTask.remove(blockId, <span class="number">1</span>) - <span class="number">1</span></span><br><span class="line">    assert(newPinCountForTask &gt;= <span class="number">0</span>,</span><br><span class="line">      <span class="string">s"Task <span class="subst">$taskId</span> release lock on block <span class="subst">$blockId</span> more times than it acquired it"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  notifyAll()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="downgradeLock"><a class="header-anchor" href="#downgradeLock"></a>downgradeLock</h3>
+<p>由写锁降为读锁。todo：了解这玩意有啥用</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">downgradeLock</span></span>(blockId: <span class="type">BlockId</span>): <span class="type">Unit</span> = synchronized &#123;</span><br><span class="line">  logTrace(<span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> downgrading write lock for <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="keyword">val</span> info = get(blockId).get</span><br><span class="line">  require(info.writerTask == currentTaskAttemptId,</span><br><span class="line">    <span class="string">s"Task <span class="subst">$currentTaskAttemptId</span> tried to downgrade a write lock that it does not hold on"</span> +</span><br><span class="line">      <span class="string">s" block <span class="subst">$blockId</span>"</span>)</span><br><span class="line">  <span class="comment">// 放锁</span></span><br><span class="line">  unlock(blockId)</span><br><span class="line">  <span class="comment">// 加读锁，注意blocking为false</span></span><br><span class="line">  <span class="keyword">val</span> lockOutcome = lockForReading(blockId, blocking = <span class="literal">false</span>)</span><br><span class="line">  assert(lockOutcome.isDefined)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="BlockResult"><a class="header-anchor" href="#BlockResult"></a>BlockResult</h1>
+<p>调用 <code>getLocalValues(blockId)</code> 或者 <code>getRemoteValues(blockId)</code> 时，以java对象的形式返回block。</p>
+<p>注意，<strong>数据是存在store中的</strong>，如<code>memoryStore</code>，调它的API取出数据封装成BlockResult。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="class"><span class="keyword">class</span> <span class="title">BlockResult</span>(<span class="params"></span></span></span><br><span class="line"><span class="class"><span class="params">    val data: <span class="type">Iterator</span>[<span class="type">Any</span>],    // 数据，从memoryStore中取出</span></span></span><br><span class="line"><span class="class"><span class="params">    val readMethod: <span class="type">DataReadMethod</span>.<span class="type">Value</span>, // <span class="type">Memory</span>, <span class="type">Disk</span>, <span class="type">Hadoop</span>, <span class="type">Network</span></span></span></span><br><span class="line"><span class="class"><span class="params">    val bytes: <span class="type">Long</span></span>)            <span class="title">//</span> <span class="title">大小，从info中取出</span></span></span><br></pre></td></tr></table></figure>
+<h1 id="BlockData"><a class="header-anchor" href="#BlockData"></a>BlockData</h1>
+<p>调用 <code>getLocalBytes(blockId)</code> 或者 <code>getRemoteBytes(blockId)</code> 时，以序列化字节的形式返回block。</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="class"><span class="keyword">trait</span> <span class="title">BlockData</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">toInputStream</span></span>(): <span class="type">InputStream</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">toNetty</span></span>(): <span class="type">Object</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">toChunkedByteBuffer</span></span>(allocator: <span class="type">Int</span> =&gt; <span class="type">ByteBuffer</span>): <span class="type">ChunkedByteBuffer</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">toByteBuffer</span></span>(): <span class="type">ByteBuffer</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">size</span></span>: <span class="type">Long</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">dispose</span></span>(): <span class="type">Unit</span>   <span class="comment">// 多了一个销毁</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>它有3个实现类，<code>ByteBufferBlockData</code>、<code>DiskBlockData</code>，以及<code>EncryptedBlockData</code>。</p>
+<p>以<code>ByteBufferBlockData</code>为例：</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="class"><span class="keyword">class</span> <span class="title">ByteBufferBlockData</span>(<span class="params"></span></span></span><br><span class="line"><span class="class"><span class="params">    val buffer: <span class="type">ChunkedByteBuffer</span>,     // 数据，从memoryStore中取出</span></span></span><br><span class="line"><span class="class"><span class="params">    val shouldDispose: <span class="type">Boolean</span></span>) <span class="keyword">extends</span> <span class="title">BlockData</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 下面4个是选择以什么形式提取</span></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toInputStream</span></span>(): <span class="type">InputStream</span> = buffer.toInputStream(dispose = <span class="literal">false</span>)</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toNetty</span></span>(): <span class="type">Object</span> = buffer.toNetty</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toChunkedByteBuffer</span></span>(allocator: <span class="type">Int</span> =&gt; <span class="type">ByteBuffer</span>): <span class="type">ChunkedByteBuffer</span> = &#123;</span><br><span class="line">    buffer.copy(allocator)&#125;</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toByteBuffer</span></span>(): <span class="type">ByteBuffer</span> = buffer.toByteBuffer</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">size</span></span>: <span class="type">Long</span> = buffer.size</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">dispose</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">    <span class="keyword">if</span> (shouldDispose) &#123;</span><br><span class="line">      buffer.dispose()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="小结"><a class="header-anchor" href="#小结"></a>小结</h1>
+<p>我觉得对Block的认识<strong>非常非常重要</strong>，它是spark内部文件系统的基石。</p>
+<p>对知识梳理一波：</p>
+<p>Store：真正存数据，如MemoryStore、DiskStore</p>
+<p>MemoryManager: 划分内存</p>
+<p>Block：文件，有<strong>文件名</strong>（blockId）、<strong>元信息</strong>(blockInfo)、<strong>锁</strong>(blockInfoManager)、<strong>数据</strong>（从Store中取）</p>
+<p>BlockManager：对Block进行管理（下一节）</p>
+<p>RPC：各种master、manager（以后再学）</p>
+<p>这当真是一个完整的<strong>分布式多人文件系统</strong>！</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Zouxxyy
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://zouxxyy.github.io/posts/3339636628/" title="spark源码-block">https://zouxxyy.github.io/posts/3339636628/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/spark/" rel="tag"># spark</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/3282537882/" rel="prev" title="spark源码-DiskBlockManager和DiskStore">
+      <i class="fa fa-chevron-left"></i> spark源码-DiskBlockManager和DiskStore
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/2354185139/" rel="next" title="spark源码-cache和persist">
+      spark源码-cache和persist <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#BlockId"><span class="nav-text">BlockId</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#BlockInfo"><span class="nav-text">BlockInfo</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#BlockInfoManager"><span class="nav-text">BlockInfoManager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#成员"><span class="nav-text">成员</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#难点方法"><span class="nav-text">难点方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#registerTask"><span class="nav-text">registerTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lockNewBlockForWriting"><span class="nav-text">lockNewBlockForWriting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lockForWriting"><span class="nav-text">lockForWriting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lockForReading"><span class="nav-text">lockForReading</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unlock"><span class="nav-text">unlock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#downgradeLock"><span class="nav-text">downgradeLock</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#BlockResult"><span class="nav-text">BlockResult</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#BlockData"><span class="nav-text">BlockData</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-text">小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

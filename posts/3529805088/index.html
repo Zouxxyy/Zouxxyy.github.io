@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://zouxxyy.github.io').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="本文是对 java 接口和lambda表达式的总结">
+<meta name="keywords" content="java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="corejava基础知识(2)-接口和lambda表达式">
+<meta property="og:url" content="https://zouxxyy.github.io/posts/3529805088/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="本文是对 java 接口和lambda表达式的总结">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-01-16T09:04:05.457Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="corejava基础知识(2)-接口和lambda表达式">
+<meta name="twitter:description" content="本文是对 java 接口和lambda表达式的总结">
+
+<link rel="canonical" href="https://zouxxyy.github.io/posts/3529805088/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>corejava基础知识(2)-接口和lambda表达式 | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/posts/3529805088/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          corejava基础知识(2)-接口和lambda表达式
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-03-05 15:45:25" itemprop="dateCreated datePublished" datetime="2019-03-05T15:45:25+08:00">2019-03-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-01-16 17:04:05" itemprop="dateModified" datetime="2020-01-16T17:04:05+08:00">2020-01-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程语言/" itemprop="url" rel="index">
+                    <span itemprop="name">编程语言</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/posts/3529805088/" class="post-meta-item leancloud_visitors" data-flag-title="corejava基础知识(2)-接口和lambda表达式" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/posts/3529805088/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/posts/3529805088/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文是对 java 接口和lambda表达式的总结</p>
+<a id="more"></a>
+<h1 id="接口"><a class="header-anchor" href="#接口"></a>接口</h1>
+<h2 id="接口概念"><a class="header-anchor" href="#接口概念"></a>接口概念</h2>
+<p>接口是对类的一组需求的描述，类遵从特定的描述，实现这项服务。<br>
+例如：<br>
+这是Camprable接口</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Comparable</span>&lt;<span class="title">T</span>&gt;</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(T other)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后在类中实现这一接口:</p>
+<ol>
+<li>将类声明为实现给定的接口</li>
+<li>对接口中<strong>所有</strong>方法进行定义</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Employee</span> <span class="keyword">implements</span> <span class="title">Comparable</span>&lt;<span class="title">Employee</span>&gt;</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(Employee other)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Double.compare(salary, other.salary);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="接口特性"><a class="header-anchor" href="#接口特性"></a>接口特性</h2>
+<ul>
+<li>接口不是类，不能用new实例化一个接口，可是能声明接口变量，然后再引用实现了该接口的类对象</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Compararble x;</span><br><span class="line">x = <span class="keyword">new</span> Employee(...); <span class="comment">//ok</span></span><br></pre></td></tr></table></figure>
+<p>解释：</p>
+<p>可能会问这样的接口变量有啥用呢？？举个定时器的例子，Timer函数 需要接收 一个操作函数 ，但是我们不能直接传函数进去，所以我们把接口变量（引用实现了该接口的类）传进去。同时我们可以发现接口里的方法<strong>不是静态方法</strong>，因为我们需要先新建对象。</p>
+<p>当然 javase8 中可以用 <strong>lambda表达式</strong> 传函数，见下文 lambda 表达式</p>
+<ul>
+<li>检查某对象是否实现某接口</li>
+</ul>
+<p><code>if(anObject instanceof Comparable) {...}</code></p>
+<ul>
+<li>接口也可以扩展</li>
+</ul>
+<p><code>public interface Powered extends Moveable</code></p>
+<ul>
+<li>接口中不含实例域，却可以包含常量（publice static final)</li>
+<li>可以为接口提供默认实现</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Comparable</span>&lt;&lt;<span class="title">T</span>&gt;</span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">default</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(T other)</span></span>&#123;<span class="keyword">return</span> <span class="number">0</span>&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>
+<p>一个类可以有多个接口</p>
+</li>
+<li>
+<p><strong>继承时容易出现的问题：</strong></p>
+</li>
+</ul>
+<p>例如子类继承compareTo方法时，必须要有<strong>子类与超类进行比较</strong>的思想，就像第五章equals方法一样，不然会有<strong>ClassCastException</strong>错误。</p>
+<ul>
+<li>只有一个抽象方法，并用lambda表达式替代，这种接口叫<strong>函数式接口</strong>；不含任何方法的接口叫<strong>标记接口</strong>，如 Cloneable。</li>
+</ul>
+<h2 id="解决接口冲突"><a class="header-anchor" href="#解决接口冲突"></a>解决接口冲突</h2>
+<p>同名，且参数类型相同下：</p>
+<p>1）超类优先</p>
+<p>2）接口冲突：只要其中一个接口提供了默认方法，就会报错；如果都不提供，就是抽象类。</p>
+<p>ps. 类优先的机制确保了与java SE 7 的兼容，因为那时没有默认方法。</p>
+<h1 id="lambda表达式"><a class="header-anchor" href="#lambda表达式"></a>lambda表达式</h1>
+<h2 id="为什么引入lambda表达式呢？"><a class="header-anchor" href="#为什么引入lambda表达式呢？"></a>为什么引入lambda表达式呢？</h2>
+<p><code>Arrays.sort(strings, new LengthComparator());</code></p>
+<p>这段代码用定制的比较器完成字符串排序，可以看出它传入了一个对象（接口），这个对象实现了Camparable接口，对象里面有compare方法。我们主要目的就是想传递这个方法，但是Java之前只能通过构造对象，来传递该方法。于是lambda表达式正式引入！</p>
+<h2 id="lambda表达式语法"><a class="header-anchor" href="#lambda表达式语法"></a>lambda表达式语法</h2>
+<p>例子：</p>
+<p><code>(String first, String second) -&gt; {...}</code></p>
+<p>把它替换到之前到代码中：</p>
+<p><code>Array.sort(strings, (fisrt, second)-&gt;first.length() - second.length());</code></p>
+<p>一些细节：</p>
+<ul>
+<li>如果可以推导出参数类型，那么类型可以不写；而且如果只有这一个参数，小括号也可以不写。</li>
+<li>如果某些分支返回一个值，而另一些分支不返回值，这是不合法的。<br>
+<code>(int) -&gt; {if(x &gt;= 0) return 1;} //不合法</code></li>
+<li>对于只有一个抽象方法的接口，可以提供一个lambda，就像例子；这种接口称为函数式接口。常的用函数式接口有：Predicate, Consumer, Function, Supplier 等等。</li>
+</ul>
+<h2 id="方法引用与lambda"><a class="header-anchor" href="#方法引用与lambda"></a>方法引用与lambda</h2>
+<p>假如想传递的 lambda 已经有了现成的方法，那么可以用方法引用来代替lambda。<br>
+三种情况：</p>
+<ol>
+<li>
+<p>静态方法</p>
+<ul>
+<li>Lambda: <code>(args) -&gt; ClassName.staticMethod(args)</code></li>
+<li>方法引用：<code>ClassName::staticMethod</code></li>
+</ul>
+</li>
+<li>
+<p>现有对象的实例方法</p>
+<ul>
+<li>Lambda: <code>(args) -&gt; expr.instanceMethod(args)</code></li>
+<li>方法引用：<code>expr::intanceMethod</code></li>
+</ul>
+</li>
+<li>
+<p>某类的实例方法</p>
+<ul>
+<li>Lambda: <code>(arg0, rest) -&gt; arg0.instanceMethod(rest)</code></li>
+<li>方法引用：<code>ClassName::instanceMethod //arg0 是 ClassName 类型的</code></li>
+</ul>
+</li>
+</ol>
+<h2 id="变量作用域"><a class="header-anchor" href="#变量作用域"></a>变量作用域</h2>
+<p>lambda 表达式可以访问外围方法或类中的变量，但需注意：</p>
+<ul>
+<li>该变量必须是最终变量，不可以重新赋值；如String</li>
+<li>在 lambda 表达式中声明与一个局部变量同名的参数或局部变量是不合法的。</li>
+<li>在一个 lambda 表达式中使用 this 关键字时， 是指创建这个 lambda 表达式的方法的 this 参数。 简单说就是没变化。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Zouxxyy
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://zouxxyy.github.io/posts/3529805088/" title="corejava基础知识(2)-接口和lambda表达式">https://zouxxyy.github.io/posts/3529805088/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/1962966044/" rel="prev" title="corejava基础知识(1)-继承">
+      <i class="fa fa-chevron-left"></i> corejava基础知识(1)-继承
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/1012286877/" rel="next" title="corejava基础知识(3)-泛型">
+      corejava基础知识(3)-泛型 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#接口"><span class="nav-text">接口</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#接口概念"><span class="nav-text">接口概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口特性"><span class="nav-text">接口特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决接口冲突"><span class="nav-text">解决接口冲突</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#lambda表达式"><span class="nav-text">lambda表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么引入lambda表达式呢？"><span class="nav-text">为什么引入lambda表达式呢？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lambda表达式语法"><span class="nav-text">lambda表达式语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法引用与lambda"><span class="nav-text">方法引用与lambda</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量作用域"><span class="nav-text">变量作用域</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
