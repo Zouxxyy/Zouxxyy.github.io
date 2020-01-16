@@ -54,12 +54,12 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="spark 三大ShuffleWriter 之 SortShuffleWriter">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/shuffle/SortShuffleWriter.jpg">
-<meta property="og:updated_time" content="2020-01-10T09:31:11.570Z">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/7u2U9BC8gFZYbJ1.jpg">
+<meta property="og:updated_time" content="2020-01-16T03:36:03.347Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark源码-shuffle之SortShuffleWriter">
 <meta name="twitter:description" content="spark 三大ShuffleWriter 之 SortShuffleWriter">
-<meta name="twitter:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/shuffle/SortShuffleWriter.jpg">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/16/7u2U9BC8gFZYbJ1.jpg">
 
 <link rel="canonical" href="https://zouxxyy.github.io/2019/12/04/spark/spark源码-shuffle之SortShuffleWriter/">
 
@@ -210,7 +210,7 @@
     <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/2019/12/04/spark/spark源码-shuffle之SortShuffleWriter/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="image" content="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
       <meta itemprop="name" content="Zouxxyy">
       <meta itemprop="description" content="fly~">
     </span>
@@ -224,6 +224,8 @@
         </h1>
 
         <div class="post-meta">
+
+          
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
@@ -237,7 +239,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-01-10 17:31:11" itemprop="dateModified" datetime="2020-01-10T17:31:11+08:00">2020-01-10</time>
+                <time title="修改时间：2020-01-16 11:36:03" itemprop="dateModified" datetime="2020-01-16T11:36:03+08:00">2020-01-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -319,7 +321,7 @@
 </ol>
 <p>总的来说就是一个 <strong>task</strong> 生成一个<strong>由 spill 文件合并形成的且聚合了的大文件</strong>和一个<strong>索引文件</strong>。</p>
 <p>由于情况2更复杂点，以情况2为示例：<br>
-<img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/shuffle/SortShuffleWriter.jpg" alt></p>
+<img src="https://i.loli.net/2020/01/16/7u2U9BC8gFZYbJ1.jpg" alt="SortShuffleWriter.jpg" style="zoom:54%;"></p>
 <h1 id="源码"><a class="header-anchor" href="#源码"></a>源码</h1>
 <h2 id="write-…"><a class="header-anchor" href="#write-…"></a>write(…)</h2>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">write</span></span>(records: <span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]]): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="comment">// 流程1：根据是否需要 mapSideCombine 选择不同的 sorter</span></span><br><span class="line">  sorter = <span class="keyword">if</span> (dep.mapSideCombine) &#123;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">ExternalSorter</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>](</span><br><span class="line">      context, dep.aggregator, <span class="type">Some</span>(dep.partitioner), dep.keyOrdering, dep.serializer)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// In this case we pass neither an aggregator nor an ordering to the sorter, because we don't</span></span><br><span class="line">    <span class="comment">// care whether the keys get sorted in each partition; that will be done on the reduce side</span></span><br><span class="line">    <span class="comment">// if the operation being run is sortByKey.</span></span><br><span class="line">    <span class="comment">// 注意 ordering = None，官方解释的很清楚了，对吧</span></span><br><span class="line">    <span class="keyword">new</span> <span class="type">ExternalSorter</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">V</span>](</span><br><span class="line">      context, aggregator = <span class="type">None</span>, <span class="type">Some</span>(dep.partitioner), ordering = <span class="type">None</span>, dep.serializer)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 流程2-3：读取数据 与 spill</span></span><br><span class="line">  sorter.insertAll(records)</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">  <span class="comment">// 文件名 "shuffle_" + shuffleId + "_" + mapId + "_" + reduceId + ".data"</span></span><br><span class="line">  <span class="keyword">val</span> output = shuffleBlockResolver.getDataFile(dep.shuffleId, mapId)</span><br><span class="line">  <span class="keyword">val</span> tmp = <span class="type">Utils</span>.tempFileWith(output)</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 流程4: 合并 spill文件 和 内存中未spill的文件，并返回分区长度数组</span></span><br><span class="line">    <span class="keyword">val</span> blockId = <span class="type">ShuffleBlockId</span>(dep.shuffleId, mapId, <span class="type">IndexShuffleBlockResolver</span>.<span class="type">NOOP_REDUCE_ID</span>)</span><br><span class="line">    <span class="keyword">val</span> partitionLengths = sorter.writePartitionedFile(blockId, tmp)</span><br><span class="line">    <span class="comment">// 流程5: 根据分区长度数组生成索引文件。这个步骤都是一样的，参考 BypassMergeSortShuffleWriter 篇</span></span><br><span class="line">    shuffleBlockResolver.writeIndexFileAndCommit(dep.shuffleId, mapId, partitionLengths, tmp)</span><br><span class="line">    <span class="comment">// 流程6: 封装信息到 MapStatus 返回</span></span><br><span class="line">    mapStatus = <span class="type">MapStatus</span>(blockManager.shuffleServerId, partitionLengths)</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (tmp.exists() &amp;&amp; !tmp.delete()) &#123;</span><br><span class="line">      logError(<span class="string">s"Error while deleting temp file <span class="subst">$&#123;tmp.getAbsolutePath&#125;</span>"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -463,7 +465,7 @@
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <img class="site-author-image" itemprop="image" alt="Zouxxyy"
-      src="/images/me.png">
+      src="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
   <p class="site-author-name" itemprop="name">Zouxxyy</p>
   <div class="site-description" itemprop="description">fly~</div>
 </div>
@@ -472,7 +474,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

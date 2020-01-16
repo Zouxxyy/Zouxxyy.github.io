@@ -1,6 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>spark-学习目录</title>
+    <url>/2020/01/16/spark/spark-%E5%AD%A6%E4%B9%A0%E7%9B%AE%E5%BD%95/</url>
+    <content><![CDATA[<p>spark基础、源码分析、杂谈</p>
+<a id="more"></a>
+<h1 id="基础"><a class="header-anchor" href="#基础"></a>基础</h1>
+<ul>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/09/09/spark/spark%E5%9F%BA%E7%A1%80-%E7%AA%84%E3%80%81%E5%AE%BD%E4%BE%9D%E8%B5%96%E5%92%8C%E4%BB%BB%E5%8A%A1%E5%88%92%E5%88%86/">窄、宽依赖和任务划分</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/09/09/spark/spark%E5%9F%BA%E7%A1%80-DataFrame%E5%92%8CDataSet/">DataFrame和DataSet</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/09/02/spark/spark%E5%9F%BA%E7%A1%80-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/">Yarn流程解析</a></p>
+</li>
+</ul>
+<h1 id="源码"><a class="header-anchor" href="#源码"></a>源码</h1>
+<h2 id="RDD"><a class="header-anchor" href="#RDD"></a>RDD</h2>
+<ul>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/11/28/spark/spark%E6%BA%90%E7%A0%81-Partitioner/">Partitioner</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2020/01/15/spark/spark%E6%BA%90%E7%A0%81-dependency/">dependency</a></p>
+</li>
+<li>
+<p>rdd</p>
+</li>
+</ul>
+<h2 id="任务调度"><a class="header-anchor" href="#任务调度"></a>任务调度</h2>
+<h2 id="shuffle"><a class="header-anchor" href="#shuffle"></a>shuffle</h2>
+<ul>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/11/29/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BShuffleManager/">ShuffleManager</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/11/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBypassMergeSortShuffleWriter/">BypassMergeSortShuffleWriter</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/12/02/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BUnsafeShuffleWriter/">UnsafeShuffleWriter</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/12/04/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BSortShuffleWriter/">SortShuffleWriter</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/12/30/spark/spark%E6%BA%90%E7%A0%81-shuffle%E4%B9%8BBlockStoreShuffleReader/">BlockStoreShuffleReader</a></p>
+</li>
+<li>
+<p>ShuffleBlockFetcherIterator</p>
+</li>
+</ul>
+<h2 id="文件系统"><a class="header-anchor" href="#文件系统"></a>文件系统</h2>
+<ul>
+<li>
+<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-MemoryManager%E5%92%8CMemoryStore/">MemoryManager 和 MemoryPool</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-DiskBlockManager%E5%92%8CDiskStore/">DiskBlockManager 和 DiskStore</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-block/">block</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-BlockManager/">BlockManager</a></p>
+</li>
+<li>
+<p>BlockManagerRPC</p>
+</li>
+</ul>
+<h2 id="持久化和共享"><a class="header-anchor" href="#持久化和共享"></a>持久化和共享</h2>
+<ul>
+<li>
+<p><a href="https://zouxxyy.github.io/2020/01/11/spark/spark%E6%BA%90%E7%A0%81-cache%E5%92%8Cpersist/">cache 和 persist</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2020/01/14/spark/spark%E6%BA%90%E7%A0%81-Broadcast/">Broadcast</a></p>
+</li>
+<li>
+<p>累加器</p>
+</li>
+<li>
+<p>闭包</p>
+</li>
+<li>
+<p>checkpoint</p>
+</li>
+</ul>
+<h2 id="RPC"><a class="header-anchor" href="#RPC"></a>RPC</h2>
+<h1 id="杂谈"><a class="header-anchor" href="#杂谈"></a>杂谈</h1>
+<ul>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/11/27/spark/spark%E6%9D%82%E8%B0%88-%E4%BD%BF%E7%94%A8textFile%E8%AF%BB%E5%8F%96HDFS%E7%9A%84%E5%88%86%E5%8C%BA%E8%A7%84%E5%88%99/">使用textFile读取HDFS的分区规则</a></p>
+</li>
+<li>
+<p><a href="https://zouxxyy.github.io/2019/12/28/spark/spark%E6%9D%82%E8%B0%88-%E6%8C%87%E5%AE%9A%E6%96%87%E4%BB%B6%E5%9C%A8HDFS%E4%B8%AD%E7%9A%84%E5%86%99%E5%85%A5%E8%8A%82%E7%82%B9/">指定文件在HDFS中的写入节点</a></p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>spark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark源码-dependency</title>
+    <url>/2020/01/15/spark/spark%E6%BA%90%E7%A0%81-dependency/</url>
+    <content><![CDATA[<p>每个RDD都有 dependencies，分窄依赖和宽依赖（ShuffleDependency）。遇到 ShuffleDependency 划分stage。</p>
+<a id="more"></a>
+<h1 id="窄依赖"><a class="header-anchor" href="#窄依赖"></a>窄依赖</h1>
+<p>窄依赖就是 <code>NarrowDependency</code></p>
+<p>父RDD的Partition最多被子RDD的一个Partition使用。常见2种，<code>OneToOneDependency</code>和<code>RangeDependency</code></p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeveloperApi</span></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">NarrowDependency</span>[<span class="type">T</span>](<span class="params">_rdd: <span class="type">RDD</span>[<span class="type">T</span>]</span>) <span class="keyword">extends</span> <span class="title">Dependency</span>[<span class="type">T</span>] </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取某分区 对应的父RDD的分区ID</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">getParents</span></span>(partitionId: <span class="type">Int</span>): <span class="type">Seq</span>[<span class="type">Int</span>]</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">rdd</span></span>: <span class="type">RDD</span>[<span class="type">T</span>] = _rdd</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过窄依赖可以：</p>
+<ul>
+<li>
+<p><strong>获取父RDD</strong></p>
+</li>
+<li>
+<p><strong>获取某分区 对应的父RDD的分区ID</strong></p>
+</li>
+</ul>
+<h2 id="OneToOneDependency"><a class="header-anchor" href="#OneToOneDependency"></a>OneToOneDependency</h2>
+<p>子RDD随父RDD一对一，partitionId自然不变</p>
+<img src="https://i.loli.net/2020/01/15/qH6w5ornk7seuCt.png" alt="1.png" style="zoom: 50%;">
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeveloperApi</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OneToOneDependency</span>[<span class="type">T</span>](<span class="params">rdd: <span class="type">RDD</span>[<span class="type">T</span>]</span>) <span class="keyword">extends</span> <span class="title">NarrowDependency</span>[<span class="type">T</span>](<span class="params">rdd</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 一对一</span></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getParents</span></span>(partitionId: <span class="type">Int</span>): <span class="type">List</span>[<span class="type">Int</span>] = <span class="type">List</span>(partitionId)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// RDD.scala 初始化</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">this</span></span>(<span class="meta">@transient</span> oneParent: <span class="type">RDD</span>[_]) =</span><br><span class="line">	<span class="keyword">this</span>(oneParent.context, <span class="type">List</span>(<span class="keyword">new</span> <span class="type">OneToOneDependency</span>(oneParent)))</span><br></pre></td></tr></table></figure>
+<h2 id="RangeDependency"><a class="header-anchor" href="#RangeDependency"></a>RangeDependency</h2>
+<p>仅用用于Union操作，2个RDD Union 生成的UnionRDD 的 <code>dependencies_ </code> 属性含2个<code>RangeDependency</code>。</p>
+<p><code>getParents</code>计算方式如图：</p>
+<img src="https://i.loli.net/2020/01/15/7E9FRraG2CgZPqz.png" alt="3.png" style="zoom:50%;">
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeveloperApi</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RangeDependency</span>[<span class="type">T</span>](<span class="params">rdd: <span class="type">RDD</span>[<span class="type">T</span>], inStart: <span class="type">Int</span>, outStart: <span class="type">Int</span>, length: <span class="type">Int</span></span>)</span></span><br><span class="line"><span class="class">  <span class="keyword">extends</span> <span class="title">NarrowDependency</span>[<span class="type">T</span>](<span class="params">rdd</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在 UnionRDD 中用到了 RangeDependency</span></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getParents</span></span>(partitionId: <span class="type">Int</span>): <span class="type">List</span>[<span class="type">Int</span>] = &#123;</span><br><span class="line">    <span class="keyword">if</span> (partitionId &gt;= outStart &amp;&amp; partitionId &lt; outStart + length) &#123;</span><br><span class="line">      <span class="type">List</span>(partitionId - outStart + inStart)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="type">Nil</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// UnionRDD.scala 初始化</span></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getDependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = &#123;</span><br><span class="line">  <span class="keyword">val</span> deps = <span class="keyword">new</span> <span class="type">ArrayBuffer</span>[<span class="type">Dependency</span>[_]]</span><br><span class="line">  <span class="keyword">var</span> pos = <span class="number">0</span></span><br><span class="line">  <span class="keyword">for</span> (rdd &lt;- rdds) &#123;</span><br><span class="line">    <span class="comment">// 在 UnionRDD 中用到了 RangeDependency</span></span><br><span class="line">    deps += <span class="keyword">new</span> <span class="type">RangeDependency</span>(rdd, <span class="number">0</span>, pos, rdd.partitions.length)</span><br><span class="line">    pos += rdd.partitions.length</span><br><span class="line">  &#125;</span><br><span class="line">  deps</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="宽依赖"><a class="header-anchor" href="#宽依赖"></a>宽依赖</h1>
+<p>宽依赖也就是<code>ShuffleDependency</code></p>
+<p>父RDD的Partition被子RDD的多个Partition使用，伴随shuffle</p>
+<img src="https://i.loli.net/2020/01/15/WczDQ2BVxoRMNg5.png" alt="2.png" style="zoom:50%;">
+<h2 id="ShuffleDependency"><a class="header-anchor" href="#ShuffleDependency"></a>ShuffleDependency</h2>
+<p>这里面的内容都很熟悉，通过宽依赖可以获取：</p>
+<ul>
+<li><strong>父RDD</strong></li>
+<li><strong>partitioner</strong>、<strong>serializer</strong></li>
+<li><strong>keyOrdering</strong></li>
+<li><strong>aggregator</strong>、mapSideCombine</li>
+<li>shuffleId、<strong>shuffleHandle</strong></li>
+<li>keyClassName、valueClassName、combinerClassName</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeveloperApi</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ShuffleDependency</span>[<span class="type">K</span>: <span class="type">ClassTag</span>, <span class="type">V</span>: <span class="type">ClassTag</span>, <span class="type">C</span>: <span class="type">ClassTag</span>](<span class="params"></span></span></span><br><span class="line"><span class="class"><span class="params">    @transient private val _rdd: <span class="type">RDD</span>[_ &lt;: <span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]], // <span class="type">RDD</span> 必须是 k,v 的</span></span></span><br><span class="line"><span class="class"><span class="params">    val partitioner: <span class="type">Partitioner</span>,</span></span></span><br><span class="line"><span class="class"><span class="params">    val serializer: <span class="type">Serializer</span> = <span class="type">SparkEnv</span>.get.serializer,</span></span></span><br><span class="line"><span class="class"><span class="params">    val keyOrdering: <span class="type">Option</span>[<span class="type">Ordering</span>[<span class="type">K</span>]] = <span class="type">None</span>,</span></span></span><br><span class="line"><span class="class"><span class="params">    val aggregator: <span class="type">Option</span>[<span class="type">Aggregator</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>]] = <span class="type">None</span>,</span></span></span><br><span class="line"><span class="class"><span class="params">    val mapSideCombine: <span class="type">Boolean</span> = false</span>)</span></span><br><span class="line"><span class="class">  <span class="keyword">extends</span> <span class="title">Dependency</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]] </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (mapSideCombine) &#123;</span><br><span class="line">    require(aggregator.isDefined, <span class="string">"Map-side combine without Aggregator specified!"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">rdd</span></span>: <span class="type">RDD</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]] = _rdd.asInstanceOf[<span class="type">RDD</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]]]</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span>[spark] <span class="keyword">val</span> keyClassName: <span class="type">String</span> = reflect.classTag[<span class="type">K</span>].runtimeClass.getName</span><br><span class="line">  <span class="keyword">private</span>[spark] <span class="keyword">val</span> valueClassName: <span class="type">String</span> = reflect.classTag[<span class="type">V</span>].runtimeClass.getName</span><br><span class="line">  <span class="comment">// Note: It's possible that the combiner class tag is null, if the combineByKey</span></span><br><span class="line">  <span class="comment">// methods in PairRDDFunctions are used instead of combineByKeyWithClassTag.</span></span><br><span class="line">  <span class="keyword">private</span>[spark] <span class="keyword">val</span> combinerClassName: <span class="type">Option</span>[<span class="type">String</span>] =</span><br><span class="line">    <span class="type">Option</span>(reflect.classTag[<span class="type">C</span>]).map(_.runtimeClass.getName)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ShuffleId</span></span><br><span class="line">  <span class="keyword">val</span> shuffleId: <span class="type">Int</span> = _rdd.context.newShuffleId()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ShuffleHandle</span></span><br><span class="line">  <span class="keyword">val</span> shuffleHandle: <span class="type">ShuffleHandle</span> = _rdd.context.env.shuffleManager.registerShuffle(</span><br><span class="line">    shuffleId, _rdd.partitions.length, <span class="keyword">this</span>)</span><br><span class="line"></span><br><span class="line">  _rdd.sparkContext.cleaner.foreach(_.registerShuffleForCleanup(<span class="keyword">this</span>))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ShuffledRDD.scala 初始化</span></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getDependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = &#123;</span><br><span class="line">  <span class="keyword">val</span> serializer = userSpecifiedSerializer.getOrElse &#123;</span><br><span class="line">    <span class="keyword">val</span> serializerManager = <span class="type">SparkEnv</span>.get.serializerManager</span><br><span class="line">    <span class="keyword">if</span> (mapSideCombine) &#123;</span><br><span class="line">      serializerManager.getSerializer(implicitly[<span class="type">ClassTag</span>[<span class="type">K</span>]], implicitly[<span class="type">ClassTag</span>[<span class="type">C</span>]])</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      serializerManager.getSerializer(implicitly[<span class="type">ClassTag</span>[<span class="type">K</span>]], implicitly[<span class="type">ClassTag</span>[<span class="type">V</span>]])</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="type">List</span>(<span class="keyword">new</span> <span class="type">ShuffleDependency</span>(prev, part, serializer, keyOrdering, aggregator, mapSideCombine))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="使用"><a class="header-anchor" href="#使用"></a>使用</h1>
+<p><strong>第一次调用</strong> <code>dependencies  -&gt;  getDependencies  -&gt;  dependencies_</code></p>
+<p>以后 <code>dependencies  -&gt;  dependencies_</code></p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 调用 getDependencies 封装入 dependencies_ 属性中（该方法用户也可以调用）</span></span><br><span class="line"><span class="comment">// 很明显 getDependencies 仅被调用一次！</span></span><br><span class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">dependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = &#123;</span><br><span class="line">  checkpointRDD.map(r =&gt; <span class="type">List</span>(<span class="keyword">new</span> <span class="type">OneToOneDependency</span>(r))).getOrElse &#123;</span><br><span class="line">    <span class="keyword">if</span> (dependencies_ == <span class="literal">null</span>) &#123;</span><br><span class="line">      dependencies_ = getDependencies</span><br><span class="line">    &#125;</span><br><span class="line">    dependencies_</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * RDD 五大特性三：父RDD依赖列表</span></span><br><span class="line"><span class="comment">  * 该方法只被调用一次！</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"><span class="comment">// 该方法默认是deps（普通RDD构造器中的deps）。但可以被重写！比如上面的 UnionRDD 和 ShuffleRDD</span></span><br><span class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">def</span> <span class="title">getDependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = deps</span><br><span class="line"></span><br><span class="line"><span class="comment">// 真正的 dependencies 属性</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">var</span> dependencies_ : <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = _</span><br></pre></td></tr></table></figure>
+<h1 id="小结"><a class="header-anchor" href="#小结"></a>小结</h1>
+<p>原始父类 <code>dependency</code> 里唯一的方法就是 <code>def rdd: RDD[T]</code>，通过它获取父RDD。</p>
+<p>其子类 <code>NarrowDependency</code> 和 <code>ShuffleDependency</code> 都各自添加了一点功能。</p>
+<p>在划分stage时，是按<code>ShuffleDependency</code> 划分。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>spark</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>spark源码-Broadcast</title>
     <url>/2020/01/14/spark/spark%E6%BA%90%E7%A0%81-Broadcast/</url>
     <content><![CDATA[<h1 id="简介"><a class="header-anchor" href="#简介"></a>简介</h1>
@@ -228,7 +392,7 @@
 <h1 id="流程"><a class="header-anchor" href="#流程"></a>流程</h1>
 <h2 id="cache-or-persist-…"><a class="header-anchor" href="#cache-or-persist-…"></a>cache() or persist(…)</h2>
 <p>解决一个疑问：<code>rdd1.cache()  rdd1 -&gt; rdd2 rdd2.cahce()</code> ，此时 rdd1 和 rdd2 都会被缓存</p>
-<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// cache() 等同于 persist() 等同于 persist(StorageLevel.MEMORY_ONLY) ，也就是仅缓存于存储内存中。</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cache</span></span>(): <span class="keyword">this</span>.<span class="keyword">type</span> = persist()</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(): <span class="keyword">this</span>.<span class="keyword">type</span> = persist(<span class="type">StorageLevel</span>.<span class="type">MEMORY_ONLY</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 缓存级别，由5个参数组成</span></span><br><span class="line"><span class="keyword">new</span> <span class="type">StorageLevel</span>(useDisk, useMemory, useOffHeap, deserialized, replication))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(newLevel: <span class="type">StorageLevel</span>): <span class="keyword">this</span>.<span class="keyword">type</span> = &#123;</span><br><span class="line">  <span class="comment">// isLocallyCheckpointed 方法 判断该RDD是否已经标记为 checkpoint，注意不是cache</span></span><br><span class="line">  <span class="keyword">if</span> (isLocallyCheckpointed) &#123;</span><br><span class="line">    persist(<span class="type">LocalRDDCheckpointData</span>.transformStorageLevel(newLevel), allowOverride = <span class="literal">true</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    persist(newLevel, allowOverride = <span class="literal">false</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(newLevel: <span class="type">StorageLevel</span>, allowOverride: <span class="type">Boolean</span>): <span class="keyword">this</span>.<span class="keyword">type</span> = &#123;</span><br><span class="line">  <span class="comment">// 可以发现当前版本并不支持改变已缓存 RDD 的 StorageLevel (注意RDD1转成RDD2后自然可以改变)</span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span> &amp;&amp; newLevel != storageLevel &amp;&amp; !allowOverride) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">UnsupportedOperationException</span>(</span><br><span class="line">      <span class="string">"Cannot change storage level of an RDD after it was already assigned a level"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 仅第一次缓存时触发 </span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel == <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">    sc.cleaner.foreach(_.registerRDDForCleanup(<span class="keyword">this</span>)) <span class="comment">// 用于 cleanups</span></span><br><span class="line">    <span class="comment">// 写入 persistentRdds，它是一个map（rdd.id, rdd），可调用 sc.getPersistentRDDs 得到</span></span><br><span class="line">    sc.persistRDD(<span class="keyword">this</span>) </span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 设置 storageLevel，之前默认为StorageLevel.NONE</span></span><br><span class="line">  storageLevel = newLevel</span><br><span class="line">  <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// cache() 等同于 persist() 等同于 persist(StorageLevel.MEMORY_ONLY) ，也就是仅缓存于存储内存中。</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cache</span></span>(): <span class="keyword">this</span><span class="class">.<span class="keyword">type</span> </span>= persist()</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(): <span class="keyword">this</span><span class="class">.<span class="keyword">type</span> </span>= persist(<span class="type">StorageLevel</span>.<span class="type">MEMORY_ONLY</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 缓存级别，由5个参数组成</span></span><br><span class="line"><span class="keyword">new</span> <span class="type">StorageLevel</span>(useDisk, useMemory, useOffHeap, deserialized, replication))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(newLevel: <span class="type">StorageLevel</span>): <span class="keyword">this</span><span class="class">.<span class="keyword">type</span> </span>= &#123;</span><br><span class="line">  <span class="comment">// isLocallyCheckpointed 方法 判断该RDD是否已经标记为 checkpoint，注意不是cache</span></span><br><span class="line">  <span class="keyword">if</span> (isLocallyCheckpointed) &#123;</span><br><span class="line">    persist(<span class="type">LocalRDDCheckpointData</span>.transformStorageLevel(newLevel), allowOverride = <span class="literal">true</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    persist(newLevel, allowOverride = <span class="literal">false</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">persist</span></span>(newLevel: <span class="type">StorageLevel</span>, allowOverride: <span class="type">Boolean</span>): <span class="keyword">this</span><span class="class">.<span class="keyword">type</span> </span>= &#123;</span><br><span class="line">  <span class="comment">// 可以发现当前版本并不支持改变已缓存 RDD 的 StorageLevel (注意RDD1转成RDD2后自然可以改变)</span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span> &amp;&amp; newLevel != storageLevel &amp;&amp; !allowOverride) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">UnsupportedOperationException</span>(</span><br><span class="line">      <span class="string">"Cannot change storage level of an RDD after it was already assigned a level"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 仅第一次缓存时触发 </span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel == <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">    sc.cleaner.foreach(_.registerRDDForCleanup(<span class="keyword">this</span>)) <span class="comment">// 用于 cleanups</span></span><br><span class="line">    <span class="comment">// 写入 persistentRdds，它是一个map（rdd.id, rdd），可调用 sc.getPersistentRDDs 得到</span></span><br><span class="line">    sc.persistRDD(<span class="keyword">this</span>) </span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 设置 storageLevel，之前默认为StorageLevel.NONE</span></span><br><span class="line">  storageLevel = newLevel</span><br><span class="line">  <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="getOrCompute-…"><a class="header-anchor" href="#getOrCompute-…"></a>getOrCompute(…)</h2>
 <p>cache() 给 RDD埋了一个属性<code>storageLevel</code>，只有执行行动操作才会真正执行缓存</p>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// RDD的iterator，由于RDD本身懒加载，只要行动操作才会执行</span></span><br><span class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">iterator</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] = &#123;</span><br><span class="line">  <span class="comment">// 计算前先检查 storageLevel 是否不为NONE</span></span><br><span class="line">  <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">    getOrCompute(split, context) <span class="comment">// 核心</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    computeOrReadCheckpoint(split, context)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>[spark] <span class="function"><span class="keyword">def</span> <span class="title">getOrCompute</span></span>(partition: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] = &#123;</span><br><span class="line">  <span class="keyword">val</span> blockId = <span class="type">RDDBlockId</span>(id, partition.index)</span><br><span class="line">  <span class="keyword">var</span> readCachedBlock = <span class="literal">true</span></span><br><span class="line">  <span class="comment">// 调用blockManager 的 getOrElseUpdate方法，取出或者生成该blockId对应的block数据，返回blockResult</span></span><br><span class="line">  <span class="type">SparkEnv</span>.get.blockManager.getOrElseUpdate(blockId, storageLevel, elementClassTag, () =&gt; &#123;</span><br><span class="line">    <span class="comment">// 该函数变量仅生成block时执行</span></span><br><span class="line">    readCachedBlock = <span class="literal">false</span></span><br><span class="line">    computeOrReadCheckpoint(partition, context)</span><br><span class="line">  &#125;) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Left</span>(blockResult) =&gt;</span><br><span class="line">    <span class="comment">// 读 cache ：会计数</span></span><br><span class="line">    <span class="keyword">if</span> (readCachedBlock) &#123;</span><br><span class="line">      <span class="keyword">val</span> existingMetrics = context.taskMetrics().inputMetrics</span><br><span class="line">      existingMetrics.incBytesRead(blockResult.bytes)</span><br><span class="line">      <span class="comment">// blockResul.data 得到迭代器，封装成 InterruptibleIterator，结束！</span></span><br><span class="line">      <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>[<span class="type">T</span>](context, blockResult.data.asInstanceOf[<span class="type">Iterator</span>[<span class="type">T</span>]]) &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">next</span></span>(): <span class="type">T</span> = &#123;</span><br><span class="line">          existingMetrics.incRecordsRead(<span class="number">1</span>)</span><br><span class="line">          delegate.next()</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 生成 cache：compute 内有自己的计数，这里就不用处理</span></span><br><span class="line">      <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>(context, blockResult.data.asInstanceOf[<span class="type">Iterator</span>[<span class="type">T</span>]])</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Right</span>(iter) =&gt;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">InterruptibleIterator</span>(context, iter.asInstanceOf[<span class="type">Iterator</span>[<span class="type">T</span>]])</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -840,11 +1004,11 @@
 <ul>
 <li>格式</li>
 </ul>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">- hosts:</span> <span class="string">组名</span></span><br><span class="line"><span class="attr">  vars:</span></span><br><span class="line">    <span class="string">变量名:</span> <span class="string">值</span></span><br><span class="line"><span class="attr">  remote_user:</span> <span class="string">root</span></span><br><span class="line"><span class="attr">  tasks:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">描述任务（自定义）</span></span><br><span class="line">    <span class="string">模块名:</span> <span class="string">具体操作</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">xxxx</span></span><br><span class="line">    <span class="string">模块名:</span> <span class="string">xxxxx</span></span><br><span class="line"><span class="attr">    notify:</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">钩子名(</span> <span class="string">task</span> <span class="string">结束且该</span> <span class="string">task</span> <span class="string">有意义（改变了东西）时被触发，只执行一次)</span></span><br><span class="line"><span class="attr">  handlers:</span></span><br><span class="line"><span class="attr">    - name:</span> <span class="string">钩子名</span></span><br><span class="line">      <span class="string">模块名:</span> <span class="string">具体操作</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">组名</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="string">变量名:</span> <span class="string">值</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">描述任务（自定义）</span></span><br><span class="line">    <span class="string">模块名:</span> <span class="string">具体操作</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">xxxx</span></span><br><span class="line">    <span class="string">模块名:</span> <span class="string">xxxxx</span></span><br><span class="line">    <span class="attr">notify:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">钩子名(</span> <span class="string">task</span> <span class="string">结束且该</span> <span class="string">task</span> <span class="string">有意义（改变了东西）时被触发，只执行一次)</span></span><br><span class="line">  <span class="attr">handlers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">钩子名</span></span><br><span class="line">      <span class="string">模块名:</span> <span class="string">具体操作</span></span><br></pre></td></tr></table></figure>
 <ul>
 <li>例子</li>
 </ul>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">- hosts:</span> <span class="string">webservers</span></span><br><span class="line"><span class="attr">  vars:</span></span><br><span class="line"><span class="attr">    http_port:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">    max_clients:</span> <span class="number">200</span></span><br><span class="line"><span class="attr">  remote_user:</span> <span class="string">root</span></span><br><span class="line"><span class="attr">  tasks:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">ensure</span> <span class="string">apache</span> <span class="string">is</span> <span class="string">at</span> <span class="string">the</span> <span class="string">latest</span> <span class="string">version</span></span><br><span class="line"><span class="attr">    yum:</span> <span class="string">pkg=httpd</span> <span class="string">state=latest</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">write</span> <span class="string">the</span> <span class="string">apache</span> <span class="string">config</span> <span class="string">file</span></span><br><span class="line"><span class="attr">    template:</span> <span class="string">src=/srv/httpd.j2</span> <span class="string">dest=/etc/httpd.conf</span></span><br><span class="line"><span class="attr">    notify:</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">restart</span> <span class="string">apache</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">ensure</span> <span class="string">apache</span> <span class="string">is</span> <span class="string">running</span></span><br><span class="line"><span class="attr">    service:</span> <span class="string">name=httpd</span> <span class="string">state=started</span></span><br><span class="line"><span class="attr">  handlers:</span></span><br><span class="line"><span class="attr">    - name:</span> <span class="string">restart</span> <span class="string">apache</span></span><br><span class="line"><span class="attr">      service:</span> <span class="string">name=httpd</span> <span class="string">state=restarted</span></span><br></pre></td></tr></table></figure>]]></content>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">webservers</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">http_port:</span> <span class="number">80</span></span><br><span class="line">    <span class="attr">max_clients:</span> <span class="number">200</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">ensure</span> <span class="string">apache</span> <span class="string">is</span> <span class="string">at</span> <span class="string">the</span> <span class="string">latest</span> <span class="string">version</span></span><br><span class="line">    <span class="attr">yum:</span> <span class="string">pkg=httpd</span> <span class="string">state=latest</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">write</span> <span class="string">the</span> <span class="string">apache</span> <span class="string">config</span> <span class="string">file</span></span><br><span class="line">    <span class="attr">template:</span> <span class="string">src=/srv/httpd.j2</span> <span class="string">dest=/etc/httpd.conf</span></span><br><span class="line">    <span class="attr">notify:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">restart</span> <span class="string">apache</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">ensure</span> <span class="string">apache</span> <span class="string">is</span> <span class="string">running</span></span><br><span class="line">    <span class="attr">service:</span> <span class="string">name=httpd</span> <span class="string">state=started</span></span><br><span class="line">  <span class="attr">handlers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">restart</span> <span class="string">apache</span></span><br><span class="line">      <span class="attr">service:</span> <span class="string">name=httpd</span> <span class="string">state=restarted</span></span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Tools</category>
       </categories>
@@ -1029,7 +1193,7 @@
 </ol>
 <p>总的来说就是一个 <strong>task</strong> 生成一个<strong>由 spill 文件合并形成的且聚合了的大文件</strong>和一个<strong>索引文件</strong>。</p>
 <p>由于情况2更复杂点，以情况2为示例：<br>
-<img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/shuffle/SortShuffleWriter.jpg" alt></p>
+<img src="https://i.loli.net/2020/01/16/7u2U9BC8gFZYbJ1.jpg" alt="SortShuffleWriter.jpg" style="zoom:54%;"></p>
 <h1 id="源码"><a class="header-anchor" href="#源码"></a>源码</h1>
 <h2 id="write-…"><a class="header-anchor" href="#write-…"></a>write(…)</h2>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">write</span></span>(records: <span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]]): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="comment">// 流程1：根据是否需要 mapSideCombine 选择不同的 sorter</span></span><br><span class="line">  sorter = <span class="keyword">if</span> (dep.mapSideCombine) &#123;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">ExternalSorter</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>](</span><br><span class="line">      context, dep.aggregator, <span class="type">Some</span>(dep.partitioner), dep.keyOrdering, dep.serializer)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// In this case we pass neither an aggregator nor an ordering to the sorter, because we don't</span></span><br><span class="line">    <span class="comment">// care whether the keys get sorted in each partition; that will be done on the reduce side</span></span><br><span class="line">    <span class="comment">// if the operation being run is sortByKey.</span></span><br><span class="line">    <span class="comment">// 注意 ordering = None，官方解释的很清楚了，对吧</span></span><br><span class="line">    <span class="keyword">new</span> <span class="type">ExternalSorter</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">V</span>](</span><br><span class="line">      context, aggregator = <span class="type">None</span>, <span class="type">Some</span>(dep.partitioner), ordering = <span class="type">None</span>, dep.serializer)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 流程2-3：读取数据 与 spill</span></span><br><span class="line">  sorter.insertAll(records)</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">  <span class="comment">// 文件名 "shuffle_" + shuffleId + "_" + mapId + "_" + reduceId + ".data"</span></span><br><span class="line">  <span class="keyword">val</span> output = shuffleBlockResolver.getDataFile(dep.shuffleId, mapId)</span><br><span class="line">  <span class="keyword">val</span> tmp = <span class="type">Utils</span>.tempFileWith(output)</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 流程4: 合并 spill文件 和 内存中未spill的文件，并返回分区长度数组</span></span><br><span class="line">    <span class="keyword">val</span> blockId = <span class="type">ShuffleBlockId</span>(dep.shuffleId, mapId, <span class="type">IndexShuffleBlockResolver</span>.<span class="type">NOOP_REDUCE_ID</span>)</span><br><span class="line">    <span class="keyword">val</span> partitionLengths = sorter.writePartitionedFile(blockId, tmp)</span><br><span class="line">    <span class="comment">// 流程5: 根据分区长度数组生成索引文件。这个步骤都是一样的，参考 BypassMergeSortShuffleWriter 篇</span></span><br><span class="line">    shuffleBlockResolver.writeIndexFileAndCommit(dep.shuffleId, mapId, partitionLengths, tmp)</span><br><span class="line">    <span class="comment">// 流程6: 封装信息到 MapStatus 返回</span></span><br><span class="line">    mapStatus = <span class="type">MapStatus</span>(blockManager.shuffleServerId, partitionLengths)</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (tmp.exists() &amp;&amp; !tmp.delete()) &#123;</span><br><span class="line">      logError(<span class="string">s"Error while deleting temp file <span class="subst">$&#123;tmp.getAbsolutePath&#125;</span>"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -1114,7 +1278,7 @@
 </li>
 </ol>
 <p>总的来说就是一个 <strong>task</strong> 生成一个<strong>由 spill 文件合并形成的大文件（这玩意只是按分区排好，内部是无序的）<strong>和一个</strong>索引文件</strong>（上面流程是主要流程，重命名什么的就不写了）。<br>
-<img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/shuffle/UnsafeShuffleWriter.jpg" alt></p>
+<img src="https://i.loli.net/2020/01/16/7DZpOAt8UdMky4T.jpg" alt="UnsafeShuffleWriter.jpg" style="zoom:53%;"></p>
 <h1 id="源码"><a class="header-anchor" href="#源码"></a>源码</h1>
 <h2 id="write-…"><a class="header-anchor" href="#write-…"></a>write(…)</h2>
 <p>这个<code>write(...)</code>方法就比较清爽了，因为步骤都封在方法里了</p>
@@ -1206,7 +1370,7 @@
 </li>
 </ol>
 <p>总的来说就是生成了一个<strong>由分区文件合并形成的大文件</strong>和一个<strong>索引文件</strong>（上面流程是主要流程，重命名什么的就不写了）。</p>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/shuffle/BypassMergeSortShuffleWriter.jpg" alt></p>
+<img src="https://i.loli.net/2020/01/16/GmB45HCvlYjA7MP.jpg" alt="BypassMergeSortShuffleWriter.jpg" style="zoom: 54%;">
 <h1 id="源码"><a class="header-anchor" href="#源码"></a>源码</h1>
 <h2 id="write-…"><a class="header-anchor" href="#write-…"></a>write(…)</h2>
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line">public void write(<span class="type">Iterator</span>&lt;<span class="type">Product2</span>&lt;<span class="type">K</span>, <span class="type">V</span>&gt;&gt; records) <span class="keyword">throws</span> <span class="type">IOException</span> &#123;</span><br><span class="line">  assert (partitionWriters == <span class="literal">null</span>);</span><br><span class="line">  <span class="keyword">if</span> (!records.hasNext()) &#123;</span><br><span class="line">    partitionLengths = <span class="keyword">new</span> long[numPartitions];</span><br><span class="line">    shuffleBlockResolver.writeIndexFileAndCommit(shuffleId, mapId, partitionLengths, <span class="literal">null</span>);</span><br><span class="line">    mapStatus = <span class="type">MapStatus</span>$.<span class="type">MODULE</span>$.apply(blockManager.shuffleServerId(), partitionLengths);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">final</span> <span class="type">SerializerInstance</span> serInstance = serializer.newInstance();</span><br><span class="line">  <span class="keyword">final</span> long openStartTime = <span class="type">System</span>.nanoTime();</span><br><span class="line">  <span class="comment">// partitionWriter 数组：分区号即是数组偏移量。它们将数据按分区号分别写入不同的个文件，有多少个分区就形成多少个文件</span></span><br><span class="line">  <span class="comment">// 这里的 numPartitions 是分区后的数量</span></span><br><span class="line">  partitionWriters = <span class="keyword">new</span> <span class="type">DiskBlockObjectWriter</span>[numPartitions];</span><br><span class="line">  partitionWriterSegments = <span class="keyword">new</span> <span class="type">FileSegment</span>[numPartitions];</span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; numPartitions; i++) &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Tuple2</span>&lt;<span class="type">TempShuffleBlockId</span>, <span class="type">File</span>&gt; tempShuffleBlockIdPlusFile =</span><br><span class="line">      blockManager.diskBlockManager().createTempShuffleBlock();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">File</span> file = tempShuffleBlockIdPlusFile._2();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">BlockId</span> blockId = tempShuffleBlockIdPlusFile._1();</span><br><span class="line">    partitionWriters[i] =</span><br><span class="line">      blockManager.getDiskWriter(blockId, file, serInstance, fileBufferSize, writeMetrics);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// Creating the file to write to and creating a disk writer both involve interacting with</span></span><br><span class="line">  <span class="comment">// the disk, and can take a long time in aggregate when we open many files, so should be</span></span><br><span class="line">  <span class="comment">// included in the shuffle write time.</span></span><br><span class="line">  writeMetrics.incWriteTime(<span class="type">System</span>.nanoTime() - openStartTime);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (records.hasNext()) &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Product2</span>&lt;<span class="type">K</span>, <span class="type">V</span>&gt; record = records.next();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">K</span> key = record._1();</span><br><span class="line">    <span class="comment">// 按分区器的规则写入数据</span></span><br><span class="line">    partitionWriters[partitioner.getPartition(key)].write(key, record._2());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; numPartitions; i++) &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">DiskBlockObjectWriter</span> writer = partitionWriters[i];</span><br><span class="line">    <span class="comment">// 刷写数据到磁盘</span></span><br><span class="line">    partitionWriterSegments[i] = writer.commitAndGet();</span><br><span class="line">    writer.close();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 文件名："shuffle_" + shuffleId + "_" + mapId + "_" + reduceId + ".data"</span></span><br><span class="line">  <span class="type">File</span> output = shuffleBlockResolver.getDataFile(shuffleId, mapId);</span><br><span class="line">  <span class="type">File</span> tmp = <span class="type">Utils</span>.tempFileWith(output);</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 合并生成的分区文件，并返回每个分区文件的大小，用于计算偏移量</span></span><br><span class="line">    partitionLengths = writePartitionedFile(tmp);</span><br><span class="line">    <span class="comment">// 生成索引文件</span></span><br><span class="line">    shuffleBlockResolver.writeIndexFileAndCommit(shuffleId, mapId, partitionLengths, tmp);</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">// 这里可以删除是因为 writeIndexFileAndCommit 中重命名了它</span></span><br><span class="line">    <span class="keyword">if</span> (tmp.exists() &amp;&amp; !tmp.delete()) &#123;</span><br><span class="line">      logger.error(<span class="string">"Error while deleting temp file &#123;&#125;"</span>, tmp.getAbsolutePath());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  mapStatus = <span class="type">MapStatus</span>$.<span class="type">MODULE</span>$.apply(blockManager.shuffleServerId(), partitionLengths);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -1428,7 +1592,7 @@
 <a id="more"></a>
 <h1 id="数据结构"><a class="header-anchor" href="#数据结构"></a>数据结构</h1>
 <h2 id="逻辑结构"><a class="header-anchor" href="#逻辑结构"></a>逻辑结构</h2>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/luoji.png" alt></p>
+<img src="https://i.loli.net/2020/01/16/5XjAx9K3FbMePud.png" alt="luoji.png" style="zoom:50%;">
 <p>一个<strong>namespace</strong>可以有多个<strong>表</strong>，如<code>zxylearn:student</code>，代表<code>zxylearn</code>命名空间下的<code>student</code>表。</p>
 <p>一个<strong>表</strong>可以有多个<strong>region</strong>，如上图有3个region。一个region一个文件夹。可以预分区（推荐）或者当一个region过大时会自动触发切分。</p>
 <p>一个<strong>region</strong>可以有多个<strong>store</strong>（按列族划分），如上图有两个列族。一个store一个文件夹，文件夹名是列族名。</p>
@@ -1436,11 +1600,11 @@
 <p><strong>HFile</strong>中就是具体数据了，逻辑上是一行行序列化的数据。</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># HDFS中的一个HFile的完整路径：</span><br><span class="line">/hbase/data/zxylearn/student/0fe474b3eb5fef1573d85acae8e5b787/info1/2dce02f62ea446f892a0b3cfc4e4db8a</span><br><span class="line"># namespace  zxylearn</span><br><span class="line"># 表名        student</span><br><span class="line"># region     0fe474b3eb5fef1573d85acae8e5b787</span><br><span class="line"># 列族名      info1</span><br><span class="line"># HFile      2dce02f62ea446f892a0b3cfc4e4db8a</span><br></pre></td></tr></table></figure>
 <h2 id="物理结构"><a class="header-anchor" href="#物理结构"></a>物理结构</h2>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/wuli.png" alt></p>
+<img src="https://i.loli.net/2020/01/16/w69airpqoxgAjKs.png" alt="wuli.png" style="zoom: 55%;">
 <p>通过指定 <code>'namespace：表名'</code> 和 <code>'Row Key'</code>，可查找到数据的<code>列族</code>、<code>列名</code>、<code>timestamp</code>、<code>value</code></p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hbase(main):018:0&gt; get &apos;zxylearn:student&apos;,&apos;1001&apos;</span><br><span class="line">COLUMN                  CELL</span><br><span class="line"> info1:name             timestamp=1569722805794, value=zhangsan</span><br></pre></td></tr></table></figure>
 <h1 id="写数据流程"><a class="header-anchor" href="#写数据流程"></a>写数据流程</h1>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/write.png" alt></p>
+<p><img src="https://i.loli.net/2020/01/16/JHnsKcp8WjxDLqu.png" alt="write.png"></p>
 <ol>
 <li>客户端向ZK请求返回 元数据表所在的RegionServer地址。（我们可以在ZK客户端中用<code>get /hbase/meta-region-server</code>看到它）</li>
 <li>客户端接收地址，向它请求返回 待写数据所在的RegionServer地址。（我们可以在hbase客户端用<code>scan 'hbase:meta'</code>看到它：<code>column=info:server, timestamp=1569658344714, value=localhost:16020</code>）</li>
@@ -1461,7 +1625,7 @@
 </ul>
 <p>反正记住这里会干掉不要的数据（版本数与删除标记决定），但<strong>不会干掉带删除标记的数据</strong>。</p>
 <h1 id="读数据流程"><a class="header-anchor" href="#读数据流程"></a>读数据流程</h1>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/read.png" alt></p>
+<p><img src="https://i.loli.net/2020/01/16/zjnyYGHdMDe2NLq.png" alt="read.png"></p>
 <ol>
 <li>找到数据所在RS服务器的流程和写数据基本一样。</li>
 <li>向该地址请求读数据。</li>
@@ -1567,7 +1731,7 @@
 <p>如果触发了爆炸条件：<code>ls</code>就是该节点有增加删减子节点；<code>get set</code>就是该节点数据改变。</p>
 <p>炸弹爆炸（只炸一次）也就是执行里面的回调函数。</p>
 <p>很明显这里用户端至少需要启动两个线程：connect线程负责网络连接通信：绑炸弹并把任务发给zk与后续数据互传；listener线程监听炸弹爆炸信号。</p>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/zookeeper/zk.png" alt></p>
+<p><img src="https://i.loli.net/2020/01/16/2OZIMybA73ShFxi.png" alt="zk.png"></p>
 <h2 id="ZAB协议"><a class="header-anchor" href="#ZAB协议"></a>ZAB协议</h2>
 <p>Zab协议（Zookeeper Atomic Broadcast），通过它来保证分布式事务的最终一致性。<br>
 这个内容很多，详细的可以参考：</p>
@@ -1869,12 +2033,12 @@
     <content><![CDATA[<p>介绍了flume的基本原理和使用</p>
 <a id="more"></a>
 <h1 id="简介"><a class="header-anchor" href="#简介"></a>简介</h1>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/agent.png" alt></p>
+<img src="https://i.loli.net/2020/01/16/3KAI29R1uVfGOwW.png" alt="agent.png" style="zoom: 50%;">
 <p>Flume是一种<strong>分布式</strong>，<strong>可靠且可用</strong>的服务，用于<strong>有效地收集，聚合和传输大量日志数据</strong>，是基于<strong>流式</strong>的简单灵活的架构。</p>
 <p>它具有可靠的<strong>可靠性机制</strong>和许多<strong>故障转移和恢复机制</strong>，具有强大的容错性。</p>
 <p>它使用简单的<strong>可扩展</strong>数据模型，允许在线分析应用程序。</p>
 <h1 id="流程图"><a class="header-anchor" href="#流程图"></a>流程图</h1>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/flume/flume.png" alt></p>
+<p><img src="https://i.loli.net/2020/01/16/LGmdlKw2MsSZ3Hh.png" alt="flume.png"></p>
 <h1 id="六大组件"><a class="header-anchor" href="#六大组件"></a>六大组件</h1>
 <p>3大基本组件，3个辅助组件。这些组件都支持用户自定义。</p>
 <h2 id="Source"><a class="header-anchor" href="#Source"></a>Source</h2>
@@ -2014,7 +2178,7 @@
 </li>
 </ul>
 <h1 id="RDD、DataFrame和DataSet转换"><a class="header-anchor" href="#RDD、DataFrame和DataSet转换"></a>RDD、DataFrame和DataSet转换</h1>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dataframe2dataset.png" alt></p>
+<img src="https://i.loli.net/2020/01/16/PkpdJSz4EYGv9sR.png" alt="dataframe2dataset.png" style="zoom:47%;">
 <p><strong>注意</strong></p>
 <ul>
 <li>
@@ -2073,26 +2237,16 @@
 <li>每一个父RDD的Partition最多被子RDD的一个Partition使用</li>
 <li>独生子女：一个爹RDD只有一个子</li>
 </ul>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/Narrow-dependence.png" alt></p>
+<img src="https://i.loli.net/2020/01/16/XpO9e8mSvkVDuZ6.png" alt="Narrow-dependence.png" style="zoom: 75%;">
 <h2 id="宽依赖"><a class="header-anchor" href="#宽依赖"></a>宽依赖</h2>
 <ul>
 <li>每一个父RDD的Partition被子RDD的多个Partition使用，伴随shuffle</li>
 <li>超生：一个爹RDD有多个子</li>
 </ul>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/Wide.jpg" alt></p>
-<h2 id="个人理解"><a class="header-anchor" href="#个人理解"></a>个人理解</h2>
-<p>由于还没学shuffle，所以从宏观简单思考。学一个东西不能死记硬背，最好的理解就是：问问自己<strong>为啥要分窄依赖和宽依赖？</strong></p>
-<p>先分析例子：</p>
-<ul>
-<li>例1：用map时，一个分区里的数据经过函数，形成新的数据，大家你搞你的我搞我的，互不干扰。</li>
-<li>例2：用合并操作时，多个分区合到一个分区，同样，各走各的，顶走跑之前计算下新偏移量（这个偏移别人没跑完我也知道），也可以说是互不干扰</li>
-<li>例3：用groupbykey时，这下可不是互不干扰了，因为需要比较洗牌，你得等你的伙伴（另一个分区）算完了，才能执行groupbykey。</li>
-</ul>
-<p>因此我觉得这就是所谓的宽依赖：<strong>别的分区没跑完，不能执行下一步，需要等待</strong>。只有当大家都准备好了，才可以一起进行洗牌。由于分区里的数据顺序之前是乱的，所以shuffle时一般都会拆开，然后送到不同的子分区。这就造成了结果——超生。说实话，如果你从结果出发去思考，是不好区分例2例3的。</p>
-<p>接着，划分窄依赖（<strong>别的分区没跑完，可以执行下一步</strong>）和宽依赖（<strong>别的分区没跑完，不可以执行下一步</strong>）的原因显而易见。我们可以把窄依赖的步骤划分到一起，它可以一路执行，不需要等待，直到宽依赖步骤卡住（必须等其它分区执行完）。这个从窄依赖一路执行到宽依赖的过程，可以在逻辑上划分成一个<strong>stage</strong>。这也就是常说的<strong>宽依赖是划分Stage的依据</strong>。</p>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/stage.jpg" alt></p>
+<img src="https://i.loli.net/2020/01/16/RsGEF8dIlb9hKkp.jpg" alt="Wide.jpg" style="zoom:67%;">
 <h1 id="任务划分"><a class="header-anchor" href="#任务划分"></a>任务划分</h1>
 <p>RDD任务的切分，分为：Application、Job、Stage和Task，而且每一层都是<strong>1对n</strong>的关系</p>
+<img src="https://i.loli.net/2020/01/16/rKuYTv3pB4xRHd1.jpg" alt="stage.jpeg" style="zoom:30%;">
 <h2 id="4个名词"><a class="header-anchor" href="#4个名词"></a>4个名词</h2>
 <ul>
 <li><strong>Application</strong>：初始化一个SparkContext即生成一个Application</li>
@@ -2100,7 +2254,7 @@
 <li><strong>Stage</strong>：根据RDD之间的依赖关系的不同将Job划分成不同的Stage，遇到一个宽依赖则划分一个Stage。</li>
 <li><strong>Task</strong>：Stage是一个TaskSet，将Stage划分的结果发送到不同的Executor执行即为一个Task。</li>
 </ul>
-<h2 id="个人理解-v2"><a class="header-anchor" href="#个人理解-v2"></a>个人理解</h2>
+<h2 id="个人理解"><a class="header-anchor" href="#个人理解"></a>个人理解</h2>
 <p>同样思考为啥要划分这么多东西？</p>
 <ul>
 <li><strong>Application</strong></li>
@@ -2113,7 +2267,7 @@
 <ul>
 <li><strong>Stage</strong></li>
 </ul>
-<p>在一个Job中，有的可一路执行到宽依赖的，不需要等待，按这个划分为一个Stage。这个不理解的再看看上面的分析。</p>
+<p>在一个Job中，有的可一路执行到宽依赖的，不需要shuffle写磁盘，按这个划分为一个Stage。</p>
 <ul>
 <li><strong>Task</strong></li>
 </ul>
@@ -2132,7 +2286,7 @@
     <content><![CDATA[<p>介绍了在spark中Yarn的工作流程和一些总结</p>
 <a id="more"></a>
 <h1 id="流程"><a class="header-anchor" href="#流程"></a>流程</h1>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/spark-yarn.png" alt="YARN-Cluster流程图" title="YARN-Cluster流程图"></p>
+<img src="https://i.loli.net/2020/01/16/XCI3zMckJf7PxUb.png" alt="spark-yarn.png" style="zoom:50%;">
 <p>主要流程和<a href="https://zouxxyy.github.io/2019/08/31/hadoop-Yarn%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/#more">Yarn的流程</a>一样，不同的就是紫色部分。这里采用的是spark的<strong>yarn-cluster</strong>模式，driver在APPMaster中。</p>
 <h1 id="细节"><a class="header-anchor" href="#细节"></a>细节</h1>
 <h2 id="解耦思想"><a class="header-anchor" href="#解耦思想"></a>解耦思想</h2>
@@ -2196,7 +2350,7 @@
     <content><![CDATA[<p>介绍了Yarn的工作流程和一些总结</p>
 <a id="more"></a>
 <h1 id="Yarn运行机制流程图"><a class="header-anchor" href="#Yarn运行机制流程图"></a>Yarn运行机制流程图</h1>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/Yarn.png?raw=true" alt="Yarn运行机制流程图" title="Yarn运行机制流程图"></p>
+<p><img src="https://i.loli.net/2020/01/16/iV4PBsSf59gZnlb.png" alt="Yarn.png"></p>
 <h1 id="具体步骤"><a class="header-anchor" href="#具体步骤"></a>具体步骤</h1>
 <p>（1）作业提交</p>
 <ol start="0">
@@ -2262,7 +2416,7 @@
 <a id="more"></a>
 <h1 id="HDFS写数据"><a class="header-anchor" href="#HDFS写数据"></a>HDFS写数据</h1>
 <h2 id="流程图"><a class="header-anchor" href="#流程图"></a>流程图</h2>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/readHDFS.png?raw=true" alt="HDFS写数据" title="HDFS写数据"></p>
+<p><img src="https://i.loli.net/2020/01/16/J7wzPWbQpBIgsH3.png" alt="readHDFS.png"></p>
 <h2 id="具体步骤"><a class="header-anchor" href="#具体步骤"></a>具体步骤</h2>
 <ol>
 <li>客户端调用DS模块向NameNode请求上传文件。</li>
@@ -2282,7 +2436,7 @@
 </ul>
 <h1 id="HDFS读数据"><a class="header-anchor" href="#HDFS读数据"></a>HDFS读数据</h1>
 <h2 id="流程图-v2"><a class="header-anchor" href="#流程图-v2"></a>流程图</h2>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/writeHDFS.png?raw=true" alt="HDFS读数据" title="HDFS读数据"></p>
+<p><img src="https://i.loli.net/2020/01/16/nh45VUlZBjywe1d.png" alt="writeHDFS.png"></p>
 <h2 id="具体步骤-v2"><a class="header-anchor" href="#具体步骤-v2"></a>具体步骤</h2>
 <ol>
 <li>客户端调用DS模块向NameNode请求下载文件。</li>
@@ -2298,7 +2452,7 @@
 </ul>
 <h1 id="NameNode和SecondaryNameNode"><a class="header-anchor" href="#NameNode和SecondaryNameNode"></a>NameNode和SecondaryNameNode</h1>
 <h2 id="流程图-v3"><a class="header-anchor" href="#流程图-v3"></a>流程图</h2>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/NNand2NN.png?raw=true" alt="NameNode和SecondaryNameNode" title="NameNode和SecondaryNameNode"></p>
+<p><img src="https://i.loli.net/2020/01/16/oTxaRfPXkVrsO2g.png" alt="NNand2NN.png"></p>
 <h2 id="具体步骤-v3"><a class="header-anchor" href="#具体步骤-v3"></a>具体步骤</h2>
 <p>第一阶段：NameNode</p>
 <ol>
@@ -2338,7 +2492,7 @@
 <p>不是，可以发现Secondary NameNode合并的是滚动前的edis，它总是比NameNode的编辑日志少一点。</p>
 <h1 id="DataNode和NameNode"><a class="header-anchor" href="#DataNode和NameNode"></a>DataNode和NameNode</h1>
 <h2 id="流程图-v4"><a class="header-anchor" href="#流程图-v4"></a>流程图</h2>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/DataNode.png?raw=true" alt="NameNode和DataNode" title="NameNode和DataNode"></p>
+<p><img src="https://i.loli.net/2020/01/16/Gz1VEYR7hq32ymX.png" alt="DataNode.png"></p>
 <h2 id="具体步骤-v4"><a class="header-anchor" href="#具体步骤-v4"></a>具体步骤</h2>
 <ol>
 <li>DataNode启动后向NameNode注册。</li>
@@ -2368,64 +2522,64 @@
     <content><![CDATA[<p>介绍了MapReduce的详细流程和一些总结</p>
 <a id="more"></a>
 <h1 id="流程图"><a class="header-anchor" href="#流程图"></a>流程图</h1>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/MapTask.png?raw=true" alt="MapTask流程图" title="MapTask流程图"></p>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/ReduceTask.png?raw=true" alt="ReduceTask流程图" title="ReduceTask流程图"></p>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/Shuffer.png?raw=true" alt="Shuffer流程图" title="Shuffer流程图"></p>
+<p><img src="https://i.loli.net/2020/01/16/WozdMtRy59OEF2L.png" alt="MapTask.png"></p>
+<p><img src="https://i.loli.net/2020/01/16/jB6t9W7GTAagwZD.png" alt="ReduceTask.png"></p>
+<p><img src="https://i.loli.net/2020/01/16/yBRLZj7fSMmub34.png" alt="Shuffer.png"></p>
 <h1 id="具体步骤"><a class="header-anchor" href="#具体步骤"></a>具体步骤</h1>
 <p>逻辑上可以这样划分：1-10是MapTask ；11-16是ReduceTask；7-14是shuffer</p>
-<h3 id="1-待处理文本"><a class="header-anchor" href="#1-待处理文本"></a><strong>1. 待处理文本</strong></h3>
+<h2 id="1-待处理文本"><a class="header-anchor" href="#1-待处理文本"></a><strong>1. 待处理文本</strong></h2>
 <p>这里假设是<code>/user/input</code>目录下的<code>ss.txt</code>	文件，大小为<strong>200M</strong>。</p>
-<h3 id="2-客户端submit（）"><a class="header-anchor" href="#2-客户端submit（）"></a><strong>2. 客户端submit（）</strong></h3>
+<h2 id="2-客户端submit（）"><a class="header-anchor" href="#2-客户端submit（）"></a><strong>2. 客户端submit（）</strong></h2>
 <p>发生在client端，主要获取3个信息：</p>
 <p>（1）<strong>Job.split</strong> ：找到文件ss.txt，根据切片算法，得到切片的元数据信息（起始位置，长度以及所在节点等）如把ss.txt分成两片 0-128M 和 128M-200M</p>
 <p>（2）<strong>Job.xml</strong>：任务的配置信息</p>
 <p>（3）<strong>wc.jar</strong>：任务的jar包</p>
 <p>（可以在<code>/tmp/hadoop-zxy/mapred/staging/zxy1248702679/.staging/</code>下找到它们）</p>
-<h3 id="3-提交信息"><a class="header-anchor" href="#3-提交信息"></a><strong>3. 提交信息</strong></h3>
+<h2 id="3-提交信息"><a class="header-anchor" href="#3-提交信息"></a><strong>3. 提交信息</strong></h2>
 <p>将刚刚获取的任务规划信息，提交到资源管理器上，我们这里用Yarn。</p>
-<h3 id="4-RM计算MapTask数量"><a class="header-anchor" href="#4-RM计算MapTask数量"></a><strong>4. RM计算MapTask数量</strong></h3>
+<h2 id="4-RM计算MapTask数量"><a class="header-anchor" href="#4-RM计算MapTask数量"></a><strong>4. RM计算MapTask数量</strong></h2>
 <p>接着向Yarn的RM申请资源，RM根据任务规划信息用户Job分成Task，并把任务下发给节点。这里我们数据分成了2片，根据默认规则，会有2个MapTask各自处理一片数据。</p>
-<h3 id="5-根据采用的InputFormat读取数据"><a class="header-anchor" href="#5-根据采用的InputFormat读取数据"></a><strong>5. 根据采用的InputFormat读取数据</strong></h3>
+<h2 id="5-根据采用的InputFormat读取数据"><a class="header-anchor" href="#5-根据采用的InputFormat读取数据"></a><strong>5. 根据采用的InputFormat读取数据</strong></h2>
 <p>这里采用默认的TextInputFormat类，按行读取每条记录。key是行偏移量，value是该行的内容。</p>
-<h3 id="6-执行Mapper的map"><a class="header-anchor" href="#6-执行Mapper的map"></a><strong>6. 执行Mapper的map()</strong></h3>
+<h2 id="6-执行Mapper的map"><a class="header-anchor" href="#6-执行Mapper的map"></a><strong>6. 执行Mapper的map()</strong></h2>
 <p>根据用户的代码执行map逻辑，把结果写入Context中。</p>
-<h3 id="7-向环形缓存区写入数据"><a class="header-anchor" href="#7-向环形缓存区写入数据"></a><strong>7. 向环形缓存区写入数据</strong></h3>
+<h2 id="7-向环形缓存区写入数据"><a class="header-anchor" href="#7-向环形缓存区写入数据"></a><strong>7. 向环形缓存区写入数据</strong></h2>
 <p>环形缓存区取一点：一边写索引，一边写真实数据。达到80%时发生溢写</p>
-<h3 id="8-分区、排序"><a class="header-anchor" href="#8-分区、排序"></a><strong>8. 分区、排序</strong></h3>
+<h2 id="8-分区、排序"><a class="header-anchor" href="#8-分区、排序"></a><strong>8. 分区、排序</strong></h2>
 <p>一种2次排序，先按区号排，再对key排序（快排）。得到一组按区排好序的数据。注意：这步是在环形缓存区就可以执行的，且排序排的是索引，真实数据不用动。且此时可以使用第一次Combiner合并操作。</p>
-<h3 id="9-溢出写入文件"><a class="header-anchor" href="#9-溢出写入文件"></a><strong>9. 溢出写入文件</strong></h3>
+<h2 id="9-溢出写入文件"><a class="header-anchor" href="#9-溢出写入文件"></a><strong>9. 溢出写入文件</strong></h2>
 <p>环形缓存区达到80%时，溢写到磁盘上。注意写磁盘前已经完成了分区、排序、合并、压缩等操作。此时生成第一组溢写文件<code>spillN.out</code> 与元数据<code>spillN.out.index</code>。</p>
-<h3 id="10-MapTask的归并排序"><a class="header-anchor" href="#10-MapTask的归并排序"></a><strong>10. MapTask的归并排序</strong></h3>
+<h2 id="10-MapTask的归并排序"><a class="header-anchor" href="#10-MapTask的归并排序"></a><strong>10. MapTask的归并排序</strong></h2>
 <p>将多组溢写文件，以分区为单位进行归并排序，写入磁盘形成大文件<code>output/file.out</code>，与索引文件<code>output/file.out.index</code>。此时一个MapTask任务完成，得到一个分区有序的数据。注意：在归并排序时可以使用第二次Combiner合并操作。</p>
-<h3 id="11-启动ReduceTask"><a class="header-anchor" href="#11-启动ReduceTask"></a><strong>11. 启动ReduceTask</strong></h3>
+<h2 id="11-启动ReduceTask"><a class="header-anchor" href="#11-启动ReduceTask"></a><strong>11. 启动ReduceTask</strong></h2>
 <p>假设分区数为2，此时启动2个ReduceTask，一个ReduceTask处理一个区的数据。</p>
-<h3 id="12-copy数据"><a class="header-anchor" href="#12-copy数据"></a><strong>12. copy数据</strong></h3>
+<h2 id="12-copy数据"><a class="header-anchor" href="#12-copy数据"></a><strong>12. copy数据</strong></h2>
 <p>ReduceTask从各个MapTask上拷贝它要处理的区的数据，如果其大小超过一定阈值，则写到磁盘上，否则直接放到内存中。</p>
-<h3 id="13-ReduceTask的归并排序"><a class="header-anchor" href="#13-ReduceTask的归并排序"></a><strong>13. ReduceTask的归并排序</strong></h3>
+<h2 id="13-ReduceTask的归并排序"><a class="header-anchor" href="#13-ReduceTask的归并排序"></a><strong>13. ReduceTask的归并排序</strong></h2>
 <p>把同区的数据复制到同一个ReduceTask后，对它们进行归并排序</p>
-<h3 id="14-分组"><a class="header-anchor" href="#14-分组"></a><strong>14. 分组</strong></h3>
+<h2 id="14-分组"><a class="header-anchor" href="#14-分组"></a><strong>14. 分组</strong></h2>
 <p>默认把key相同的数据分到一组。用户可以继承WritableComparator，自定义分组规则。</p>
-<h3 id="15-执行Reducer的Reduce"><a class="header-anchor" href="#15-执行Reducer的Reduce"></a><strong>15. 执行Reducer的Reduce()</strong></h3>
+<h2 id="15-执行Reducer的Reduce"><a class="header-anchor" href="#15-执行Reducer的Reduce"></a><strong>15. 执行Reducer的Reduce()</strong></h2>
 <p>根据用户的代码执行reduce逻辑，把结果写入Context中。注意：一次读一组，value是迭代器对象，包含一个组的全部数据。</p>
-<h3 id="16-根据采用的OutputFormat读取数据"><a class="header-anchor" href="#16-根据采用的OutputFormat读取数据"></a><strong>16. 根据采用的OutputFormat读取数据</strong></h3>
+<h2 id="16-根据采用的OutputFormat读取数据"><a class="header-anchor" href="#16-根据采用的OutputFormat读取数据"></a><strong>16. 根据采用的OutputFormat读取数据</strong></h2>
 <p>这里采用默认的TextOutputFormat类，按行写入key和value，key和value用tab分开。</p>
 <h1 id="一些总结"><a class="header-anchor" href="#一些总结"></a>一些总结</h1>
-<h3 id="1个逻辑"><a class="header-anchor" href="#1个逻辑"></a><strong>1个逻辑</strong></h3>
+<h2 id="1个逻辑"><a class="header-anchor" href="#1个逻辑"></a><strong>1个逻辑</strong></h2>
 <p><strong>先分区 -&gt; 再排序 -&gt; 再分组</strong></p>
 <p>分区：用户定义分区数后，默认按hash分区。用户也可以继承<code>Partitioner</code>，自定义分区规则。ReduceTask的个数一般等于分区数。</p>
 <p>排序：默认对key排序，key必须实现<code>WritableComparable</code>接口。用户可以重写<code>WritableComparable</code>接口的<code>compareTo()</code>方法，定义自己的排序规则。</p>
 <p>分组：默认把key相同的数据分到一组。用户也可以继承WritableComparator，自定义分组规则。用于reduce阶段，一次读取一组.</p>
-<h3 id="2次合并"><a class="header-anchor" href="#2次合并"></a><strong>2次合并</strong></h3>
+<h2 id="2次合并"><a class="header-anchor" href="#2次合并"></a><strong>2次合并</strong></h2>
 <p>Combiner的父类就是Reducer，它可以通过对Map阶段的局部结果进行汇总，减少输出。</p>
 <p>时机： 2次，<strong>分区排序后、MapTask的归并排序时</strong>。</p>
 <p>条件：不能影响业务逻辑 且 输入输出的范型一致</p>
-<h3 id="3次排序"><a class="header-anchor" href="#3次排序"></a><strong>3次排序</strong></h3>
+<h2 id="3次排序"><a class="header-anchor" href="#3次排序"></a><strong>3次排序</strong></h2>
 <p>MapTask：</p>
 <p><strong>分区排序</strong>：在缓行缓冲区进行，是一种2次排序。先按分区号排序，再对key排序（快排）。</p>
 <p><strong>归并排序</strong>：对每组溢写的数据，进行的按区，归并排序。</p>
 <p>ReduceTask：</p>
 <p><strong>归并排序</strong>：对从MapTask拷贝的同区数据，进行的归并排序。</p>
-<h3 id="分片和分区"><a class="header-anchor" href="#分片和分区"></a><strong>分片和分区</strong></h3>
+<h2 id="分片和分区"><a class="header-anchor" href="#分片和分区"></a><strong>分片和分区</strong></h2>
 <p>分片：<strong>分片数决定MapTask的个数</strong>。在客户端即完成，举FileInputFormat切片机制为例：简单的按文件长度进行切片，切片大小等于块大小（默认128M），切片时是对文件单独切片。</p>
 <p>分区：<strong>分区数决定ReduceTask的个数</strong>。</p>
 ]]></content>
@@ -3343,7 +3497,7 @@
 <li>针对某些重要代码单独的同步，效率提升，但是会创建多个实例</li>
 <li>使用DCL双检查锁</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyObject</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> MyObject myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">MyObject</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> MyObject <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (myObject != <span class="keyword">null</span>) &#123;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                Thread.sleep(<span class="number">3000</span>);</span><br><span class="line">                <span class="keyword">synchronized</span> (MyObject.class) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (myObject == <span class="keyword">null</span>) myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> myObject;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyObject</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> MyObject myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">MyObject</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> MyObject <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (myObject != <span class="keyword">null</span>) &#123;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                Thread.sleep(<span class="number">3000</span>);</span><br><span class="line">                <span class="keyword">synchronized</span> (MyObject<span class="class">.<span class="keyword">class</span>) </span>&#123;</span><br><span class="line">                    <span class="keyword">if</span> (myObject == <span class="keyword">null</span>) myObject = <span class="keyword">new</span> MyObject();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> myObject;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ul>
 <li>使用静态内置类</li>
 <li>使用static代码块</li>

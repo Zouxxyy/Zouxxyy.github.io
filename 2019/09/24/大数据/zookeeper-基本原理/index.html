@@ -54,12 +54,12 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="介绍了zookeeper的基本原理和使用">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/zookeeper/zk.png">
-<meta property="og:updated_time" content="2019-09-24T08:36:42.582Z">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/2OZIMybA73ShFxi.png">
+<meta property="og:updated_time" content="2020-01-16T03:46:40.773Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="zookeeper-基本原理">
 <meta name="twitter:description" content="介绍了zookeeper的基本原理和使用">
-<meta name="twitter:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/zookeeper/zk.png">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/16/2OZIMybA73ShFxi.png">
 
 <link rel="canonical" href="https://zouxxyy.github.io/2019/09/24/大数据/zookeeper-基本原理/">
 
@@ -210,7 +210,7 @@
     <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/2019/09/24/大数据/zookeeper-基本原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="image" content="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
       <meta itemprop="name" content="Zouxxyy">
       <meta itemprop="description" content="fly~">
     </span>
@@ -224,15 +224,23 @@
         </h1>
 
         <div class="post-meta">
+
+          
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2019-09-24 16:24:14 / 修改时间：16:36:42" itemprop="dateCreated datePublished" datetime="2019-09-24T16:24:14+08:00">2019-09-24</time>
+              <time title="创建时间：2019-09-24 16:24:14" itemprop="dateCreated datePublished" datetime="2019-09-24T16:24:14+08:00">2019-09-24</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-01-16 11:46:40" itemprop="dateModified" datetime="2020-01-16T11:46:40+08:00">2020-01-16</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -309,7 +317,7 @@
 <p>如果触发了爆炸条件：<code>ls</code>就是该节点有增加删减子节点；<code>get set</code>就是该节点数据改变。</p>
 <p>炸弹爆炸（只炸一次）也就是执行里面的回调函数。</p>
 <p>很明显这里用户端至少需要启动两个线程：connect线程负责网络连接通信：绑炸弹并把任务发给zk与后续数据互传；listener线程监听炸弹爆炸信号。</p>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/zookeeper/zk.png" alt></p>
+<p><img src="https://i.loli.net/2020/01/16/2OZIMybA73ShFxi.png" alt="zk.png"></p>
 <h2 id="ZAB协议"><a class="header-anchor" href="#ZAB协议"></a>ZAB协议</h2>
 <p>Zab协议（Zookeeper Atomic Broadcast），通过它来保证分布式事务的最终一致性。<br>
 这个内容很多，详细的可以参考：</p>
@@ -458,7 +466,7 @@
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <img class="site-author-image" itemprop="image" alt="Zouxxyy"
-      src="/images/me.png">
+      src="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
   <p class="site-author-name" itemprop="name">Zouxxyy</p>
   <div class="site-description" itemprop="description">fly~</div>
 </div>
@@ -467,7 +475,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

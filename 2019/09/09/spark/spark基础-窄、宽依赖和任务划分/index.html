@@ -54,14 +54,14 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="介绍了在spark中窄、宽依赖的划分以及任务划分">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/Narrow-dependence.png">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/Wide.jpg">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/stage.jpg">
-<meta property="og:updated_time" content="2019-12-20T03:16:33.992Z">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/XpO9e8mSvkVDuZ6.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/RsGEF8dIlb9hKkp.jpg">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/rKuYTv3pB4xRHd1.jpg">
+<meta property="og:updated_time" content="2020-01-16T03:29:22.663Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark基础-窄、宽依赖和任务划分">
 <meta name="twitter:description" content="介绍了在spark中窄、宽依赖的划分以及任务划分">
-<meta name="twitter:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/Narrow-dependence.png">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/16/XpO9e8mSvkVDuZ6.png">
 
 <link rel="canonical" href="https://zouxxyy.github.io/2019/09/09/spark/spark基础-窄、宽依赖和任务划分/">
 
@@ -212,7 +212,7 @@
     <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/2019/09/09/spark/spark基础-窄、宽依赖和任务划分/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="image" content="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
       <meta itemprop="name" content="Zouxxyy">
       <meta itemprop="description" content="fly~">
     </span>
@@ -226,6 +226,8 @@
         </h1>
 
         <div class="post-meta">
+
+          
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
@@ -239,7 +241,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-12-20 11:16:33" itemprop="dateModified" datetime="2019-12-20T11:16:33+08:00">2019-12-20</time>
+                <time title="修改时间：2020-01-16 11:29:22" itemprop="dateModified" datetime="2020-01-16T11:29:22+08:00">2020-01-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -293,26 +295,16 @@
 <li>每一个父RDD的Partition最多被子RDD的一个Partition使用</li>
 <li>独生子女：一个爹RDD只有一个子</li>
 </ul>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/Narrow-dependence.png" alt></p>
+<img src="https://i.loli.net/2020/01/16/XpO9e8mSvkVDuZ6.png" alt="Narrow-dependence.png" style="zoom: 75%;">
 <h2 id="宽依赖"><a class="header-anchor" href="#宽依赖"></a>宽依赖</h2>
 <ul>
 <li>每一个父RDD的Partition被子RDD的多个Partition使用，伴随shuffle</li>
 <li>超生：一个爹RDD有多个子</li>
 </ul>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/Wide.jpg" alt></p>
-<h2 id="个人理解"><a class="header-anchor" href="#个人理解"></a>个人理解</h2>
-<p>由于还没学shuffle，所以从宏观简单思考。学一个东西不能死记硬背，最好的理解就是：问问自己<strong>为啥要分窄依赖和宽依赖？</strong></p>
-<p>先分析例子：</p>
-<ul>
-<li>例1：用map时，一个分区里的数据经过函数，形成新的数据，大家你搞你的我搞我的，互不干扰。</li>
-<li>例2：用合并操作时，多个分区合到一个分区，同样，各走各的，顶走跑之前计算下新偏移量（这个偏移别人没跑完我也知道），也可以说是互不干扰</li>
-<li>例3：用groupbykey时，这下可不是互不干扰了，因为需要比较洗牌，你得等你的伙伴（另一个分区）算完了，才能执行groupbykey。</li>
-</ul>
-<p>因此我觉得这就是所谓的宽依赖：<strong>别的分区没跑完，不能执行下一步，需要等待</strong>。只有当大家都准备好了，才可以一起进行洗牌。由于分区里的数据顺序之前是乱的，所以shuffle时一般都会拆开，然后送到不同的子分区。这就造成了结果——超生。说实话，如果你从结果出发去思考，是不好区分例2例3的。</p>
-<p>接着，划分窄依赖（<strong>别的分区没跑完，可以执行下一步</strong>）和宽依赖（<strong>别的分区没跑完，不可以执行下一步</strong>）的原因显而易见。我们可以把窄依赖的步骤划分到一起，它可以一路执行，不需要等待，直到宽依赖步骤卡住（必须等其它分区执行完）。这个从窄依赖一路执行到宽依赖的过程，可以在逻辑上划分成一个<strong>stage</strong>。这也就是常说的<strong>宽依赖是划分Stage的依据</strong>。</p>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/spark/dependence/stage.jpg" alt></p>
+<img src="https://i.loli.net/2020/01/16/RsGEF8dIlb9hKkp.jpg" alt="Wide.jpg" style="zoom:67%;">
 <h1 id="任务划分"><a class="header-anchor" href="#任务划分"></a>任务划分</h1>
 <p>RDD任务的切分，分为：Application、Job、Stage和Task，而且每一层都是<strong>1对n</strong>的关系</p>
+<img src="https://i.loli.net/2020/01/16/rKuYTv3pB4xRHd1.jpg" alt="stage.jpeg" style="zoom:30%;">
 <h2 id="4个名词"><a class="header-anchor" href="#4个名词"></a>4个名词</h2>
 <ul>
 <li><strong>Application</strong>：初始化一个SparkContext即生成一个Application</li>
@@ -320,7 +312,7 @@
 <li><strong>Stage</strong>：根据RDD之间的依赖关系的不同将Job划分成不同的Stage，遇到一个宽依赖则划分一个Stage。</li>
 <li><strong>Task</strong>：Stage是一个TaskSet，将Stage划分的结果发送到不同的Executor执行即为一个Task。</li>
 </ul>
-<h2 id="个人理解-v2"><a class="header-anchor" href="#个人理解-v2"></a>个人理解</h2>
+<h2 id="个人理解"><a class="header-anchor" href="#个人理解"></a>个人理解</h2>
 <p>同样思考为啥要划分这么多东西？</p>
 <ul>
 <li><strong>Application</strong></li>
@@ -333,7 +325,7 @@
 <ul>
 <li><strong>Stage</strong></li>
 </ul>
-<p>在一个Job中，有的可一路执行到宽依赖的，不需要等待，按这个划分为一个Stage。这个不理解的再看看上面的分析。</p>
+<p>在一个Job中，有的可一路执行到宽依赖的，不需要shuffle写磁盘，按这个划分为一个Stage。</p>
 <ul>
 <li><strong>Task</strong></li>
 </ul>
@@ -440,14 +432,14 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#窄依赖和宽依赖"><span class="nav-text">窄依赖和宽依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#窄依赖"><span class="nav-text">窄依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#宽依赖"><span class="nav-text">宽依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#个人理解"><span class="nav-text">个人理解</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#任务划分"><span class="nav-text">任务划分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4个名词"><span class="nav-text">4个名词</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#个人理解-v2"><span class="nav-text">个人理解</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#窄依赖和宽依赖"><span class="nav-text">窄依赖和宽依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#窄依赖"><span class="nav-text">窄依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#宽依赖"><span class="nav-text">宽依赖</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#任务划分"><span class="nav-text">任务划分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4个名词"><span class="nav-text">4个名词</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#个人理解"><span class="nav-text">个人理解</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <img class="site-author-image" itemprop="image" alt="Zouxxyy"
-      src="/images/me.png">
+      src="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
   <p class="site-author-name" itemprop="name">Zouxxyy</p>
   <div class="site-description" itemprop="description">fly~</div>
 </div>
@@ -456,7 +448,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

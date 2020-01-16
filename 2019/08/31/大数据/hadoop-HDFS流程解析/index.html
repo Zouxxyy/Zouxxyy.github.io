@@ -54,15 +54,15 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/readHDFS.png?raw=true">
-<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/writeHDFS.png?raw=true">
-<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/NNand2NN.png?raw=true">
-<meta property="og:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/DataNode.png?raw=true">
-<meta property="og:updated_time" content="2019-08-31T07:12:19.630Z">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/J7wzPWbQpBIgsH3.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/nh45VUlZBjywe1d.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/oTxaRfPXkVrsO2g.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/Gz1VEYR7hq32ymX.png">
+<meta property="og:updated_time" content="2020-01-16T06:45:27.428Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hadoop-HDFS流程解析">
 <meta name="twitter:description" content="介绍了HDFS读写数据、NameNode和SecondaryNameNode、DataNode和NameNode的交互">
-<meta name="twitter:image" content="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/readHDFS.png?raw=true">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/16/J7wzPWbQpBIgsH3.png">
 
 <link rel="canonical" href="https://zouxxyy.github.io/2019/08/31/大数据/hadoop-HDFS流程解析/">
 
@@ -213,7 +213,7 @@
     <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/2019/08/31/大数据/hadoop-HDFS流程解析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="image" content="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
       <meta itemprop="name" content="Zouxxyy">
       <meta itemprop="description" content="fly~">
     </span>
@@ -227,15 +227,23 @@
         </h1>
 
         <div class="post-meta">
+
+          
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2019-08-31 15:04:57 / 修改时间：15:12:19" itemprop="dateCreated datePublished" datetime="2019-08-31T15:04:57+08:00">2019-08-31</time>
+              <time title="创建时间：2019-08-31 15:04:57" itemprop="dateCreated datePublished" datetime="2019-08-31T15:04:57+08:00">2019-08-31</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-01-16 14:45:27" itemprop="dateModified" datetime="2020-01-16T14:45:27+08:00">2020-01-16</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -284,7 +292,7 @@
 <a id="more"></a>
 <h1 id="HDFS写数据"><a class="header-anchor" href="#HDFS写数据"></a>HDFS写数据</h1>
 <h2 id="流程图"><a class="header-anchor" href="#流程图"></a>流程图</h2>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/readHDFS.png?raw=true" alt="HDFS写数据" title="HDFS写数据"></p>
+<p><img src="https://i.loli.net/2020/01/16/J7wzPWbQpBIgsH3.png" alt="readHDFS.png"></p>
 <h2 id="具体步骤"><a class="header-anchor" href="#具体步骤"></a>具体步骤</h2>
 <ol>
 <li>客户端调用DS模块向NameNode请求上传文件。</li>
@@ -304,7 +312,7 @@
 </ul>
 <h1 id="HDFS读数据"><a class="header-anchor" href="#HDFS读数据"></a>HDFS读数据</h1>
 <h2 id="流程图-v2"><a class="header-anchor" href="#流程图-v2"></a>流程图</h2>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/writeHDFS.png?raw=true" alt="HDFS读数据" title="HDFS读数据"></p>
+<p><img src="https://i.loli.net/2020/01/16/nh45VUlZBjywe1d.png" alt="writeHDFS.png"></p>
 <h2 id="具体步骤-v2"><a class="header-anchor" href="#具体步骤-v2"></a>具体步骤</h2>
 <ol>
 <li>客户端调用DS模块向NameNode请求下载文件。</li>
@@ -320,7 +328,7 @@
 </ul>
 <h1 id="NameNode和SecondaryNameNode"><a class="header-anchor" href="#NameNode和SecondaryNameNode"></a>NameNode和SecondaryNameNode</h1>
 <h2 id="流程图-v3"><a class="header-anchor" href="#流程图-v3"></a>流程图</h2>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/NNand2NN.png?raw=true" alt="NameNode和SecondaryNameNode" title="NameNode和SecondaryNameNode"></p>
+<p><img src="https://i.loli.net/2020/01/16/oTxaRfPXkVrsO2g.png" alt="NNand2NN.png"></p>
 <h2 id="具体步骤-v3"><a class="header-anchor" href="#具体步骤-v3"></a>具体步骤</h2>
 <p>第一阶段：NameNode</p>
 <ol>
@@ -360,7 +368,7 @@
 <p>不是，可以发现Secondary NameNode合并的是滚动前的edis，它总是比NameNode的编辑日志少一点。</p>
 <h1 id="DataNode和NameNode"><a class="header-anchor" href="#DataNode和NameNode"></a>DataNode和NameNode</h1>
 <h2 id="流程图-v4"><a class="header-anchor" href="#流程图-v4"></a>流程图</h2>
-<p><img src="https://github.com/Zouxxyy/bigdata-learning/blob/master/hadoop-learning/data/image/DataNode.png?raw=true" alt="NameNode和DataNode" title="NameNode和DataNode"></p>
+<p><img src="https://i.loli.net/2020/01/16/Gz1VEYR7hq32ymX.png" alt="DataNode.png"></p>
 <h2 id="具体步骤-v4"><a class="header-anchor" href="#具体步骤-v4"></a>具体步骤</h2>
 <ol>
 <li>DataNode启动后向NameNode注册。</li>
@@ -485,7 +493,7 @@
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <img class="site-author-image" itemprop="image" alt="Zouxxyy"
-      src="/images/me.png">
+      src="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
   <p class="site-author-name" itemprop="name">Zouxxyy</p>
   <div class="site-description" itemprop="description">fly~</div>
 </div>
@@ -494,7 +502,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

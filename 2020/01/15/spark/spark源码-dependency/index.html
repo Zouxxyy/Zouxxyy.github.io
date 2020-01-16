@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://zouxxyy.github.io').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="每个RDD都有 dependencies，分窄依赖和宽依赖（ShuffleDependency）。遇到 ShuffleDependency 划分stage。">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark源码-dependency">
+<meta property="og:url" content="https://zouxxyy.github.io/2020/01/15/spark/spark源码-dependency/index.html">
+<meta property="og:site_name" content="ZxysHexo">
+<meta property="og:description" content="每个RDD都有 dependencies，分窄依赖和宽依赖（ShuffleDependency）。遇到 ShuffleDependency 划分stage。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://i.loli.net/2020/01/15/qH6w5ornk7seuCt.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/15/7E9FRraG2CgZPqz.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/15/WczDQ2BVxoRMNg5.png">
+<meta property="og:updated_time" content="2020-01-15T09:22:49.378Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark源码-dependency">
+<meta name="twitter:description" content="每个RDD都有 dependencies，分窄依赖和宽依赖（ShuffleDependency）。遇到 ShuffleDependency 划分stage。">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/15/qH6w5ornk7seuCt.png">
+
+<link rel="canonical" href="https://zouxxyy.github.io/2020/01/15/spark/spark源码-dependency/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>spark源码-dependency | ZxysHexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ZxysHexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/2020/01/15/spark/spark源码-dependency/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
+      <meta itemprop="name" content="Zouxxyy">
+      <meta itemprop="description" content="fly~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ZxysHexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spark源码-dependency
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-01-15 17:13:47 / 修改时间：17:22:49" itemprop="dateCreated datePublished" datetime="2020-01-15T17:13:47+08:00">2020-01-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/01/15/spark/spark源码-dependency/" class="post-meta-item leancloud_visitors" data-flag-title="spark源码-dependency" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/01/15/spark/spark源码-dependency/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/01/15/spark/spark源码-dependency/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>每个RDD都有 dependencies，分窄依赖和宽依赖（ShuffleDependency）。遇到 ShuffleDependency 划分stage。</p>
+<a id="more"></a>
+<h1 id="窄依赖"><a class="header-anchor" href="#窄依赖"></a>窄依赖</h1>
+<p>窄依赖就是 <code>NarrowDependency</code></p>
+<p>父RDD的Partition最多被子RDD的一个Partition使用。常见2种，<code>OneToOneDependency</code>和<code>RangeDependency</code></p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeveloperApi</span></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">NarrowDependency</span>[<span class="type">T</span>](<span class="params">_rdd: <span class="type">RDD</span>[<span class="type">T</span>]</span>) <span class="keyword">extends</span> <span class="title">Dependency</span>[<span class="type">T</span>] </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取某分区 对应的父RDD的分区ID</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">getParents</span></span>(partitionId: <span class="type">Int</span>): <span class="type">Seq</span>[<span class="type">Int</span>]</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">rdd</span></span>: <span class="type">RDD</span>[<span class="type">T</span>] = _rdd</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过窄依赖可以：</p>
+<ul>
+<li>
+<p><strong>获取父RDD</strong></p>
+</li>
+<li>
+<p><strong>获取某分区 对应的父RDD的分区ID</strong></p>
+</li>
+</ul>
+<h2 id="OneToOneDependency"><a class="header-anchor" href="#OneToOneDependency"></a>OneToOneDependency</h2>
+<p>子RDD随父RDD一对一，partitionId自然不变</p>
+<img src="https://i.loli.net/2020/01/15/qH6w5ornk7seuCt.png" alt="1.png" style="zoom: 50%;">
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeveloperApi</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OneToOneDependency</span>[<span class="type">T</span>](<span class="params">rdd: <span class="type">RDD</span>[<span class="type">T</span>]</span>) <span class="keyword">extends</span> <span class="title">NarrowDependency</span>[<span class="type">T</span>](<span class="params">rdd</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 一对一</span></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getParents</span></span>(partitionId: <span class="type">Int</span>): <span class="type">List</span>[<span class="type">Int</span>] = <span class="type">List</span>(partitionId)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// RDD.scala 初始化</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">this</span></span>(<span class="meta">@transient</span> oneParent: <span class="type">RDD</span>[_]) =</span><br><span class="line">	<span class="keyword">this</span>(oneParent.context, <span class="type">List</span>(<span class="keyword">new</span> <span class="type">OneToOneDependency</span>(oneParent)))</span><br></pre></td></tr></table></figure>
+<h2 id="RangeDependency"><a class="header-anchor" href="#RangeDependency"></a>RangeDependency</h2>
+<p>仅用用于Union操作，2个RDD Union 生成的UnionRDD 的 <code>dependencies_ </code> 属性含2个<code>RangeDependency</code>。</p>
+<p><code>getParents</code>计算方式如图：</p>
+<img src="https://i.loli.net/2020/01/15/7E9FRraG2CgZPqz.png" alt="3.png" style="zoom:50%;">
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeveloperApi</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RangeDependency</span>[<span class="type">T</span>](<span class="params">rdd: <span class="type">RDD</span>[<span class="type">T</span>], inStart: <span class="type">Int</span>, outStart: <span class="type">Int</span>, length: <span class="type">Int</span></span>)</span></span><br><span class="line"><span class="class">  <span class="keyword">extends</span> <span class="title">NarrowDependency</span>[<span class="type">T</span>](<span class="params">rdd</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在 UnionRDD 中用到了 RangeDependency</span></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getParents</span></span>(partitionId: <span class="type">Int</span>): <span class="type">List</span>[<span class="type">Int</span>] = &#123;</span><br><span class="line">    <span class="keyword">if</span> (partitionId &gt;= outStart &amp;&amp; partitionId &lt; outStart + length) &#123;</span><br><span class="line">      <span class="type">List</span>(partitionId - outStart + inStart)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="type">Nil</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// UnionRDD.scala 初始化</span></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getDependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = &#123;</span><br><span class="line">  <span class="keyword">val</span> deps = <span class="keyword">new</span> <span class="type">ArrayBuffer</span>[<span class="type">Dependency</span>[_]]</span><br><span class="line">  <span class="keyword">var</span> pos = <span class="number">0</span></span><br><span class="line">  <span class="keyword">for</span> (rdd &lt;- rdds) &#123;</span><br><span class="line">    <span class="comment">// 在 UnionRDD 中用到了 RangeDependency</span></span><br><span class="line">    deps += <span class="keyword">new</span> <span class="type">RangeDependency</span>(rdd, <span class="number">0</span>, pos, rdd.partitions.length)</span><br><span class="line">    pos += rdd.partitions.length</span><br><span class="line">  &#125;</span><br><span class="line">  deps</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="宽依赖"><a class="header-anchor" href="#宽依赖"></a>宽依赖</h1>
+<p>宽依赖也就是<code>ShuffleDependency</code></p>
+<p>父RDD的Partition被子RDD的多个Partition使用，伴随shuffle</p>
+<img src="https://i.loli.net/2020/01/15/WczDQ2BVxoRMNg5.png" alt="2.png" style="zoom:50%;">
+<h2 id="ShuffleDependency"><a class="header-anchor" href="#ShuffleDependency"></a>ShuffleDependency</h2>
+<p>这里面的内容都很熟悉，通过宽依赖可以获取：</p>
+<ul>
+<li><strong>父RDD</strong></li>
+<li><strong>partitioner</strong>、<strong>serializer</strong></li>
+<li><strong>keyOrdering</strong></li>
+<li><strong>aggregator</strong>、mapSideCombine</li>
+<li>shuffleId、<strong>shuffleHandle</strong></li>
+<li>keyClassName、valueClassName、combinerClassName</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeveloperApi</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ShuffleDependency</span>[<span class="type">K</span>: <span class="type">ClassTag</span>, <span class="type">V</span>: <span class="type">ClassTag</span>, <span class="type">C</span>: <span class="type">ClassTag</span>](<span class="params"></span></span></span><br><span class="line"><span class="class"><span class="params">    @transient private val _rdd: <span class="type">RDD</span>[_ &lt;: <span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]], // <span class="type">RDD</span> 必须是 k,v 的</span></span></span><br><span class="line"><span class="class"><span class="params">    val partitioner: <span class="type">Partitioner</span>,</span></span></span><br><span class="line"><span class="class"><span class="params">    val serializer: <span class="type">Serializer</span> = <span class="type">SparkEnv</span>.get.serializer,</span></span></span><br><span class="line"><span class="class"><span class="params">    val keyOrdering: <span class="type">Option</span>[<span class="type">Ordering</span>[<span class="type">K</span>]] = <span class="type">None</span>,</span></span></span><br><span class="line"><span class="class"><span class="params">    val aggregator: <span class="type">Option</span>[<span class="type">Aggregator</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>]] = <span class="type">None</span>,</span></span></span><br><span class="line"><span class="class"><span class="params">    val mapSideCombine: <span class="type">Boolean</span> = false</span>)</span></span><br><span class="line"><span class="class">  <span class="keyword">extends</span> <span class="title">Dependency</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]] </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (mapSideCombine) &#123;</span><br><span class="line">    require(aggregator.isDefined, <span class="string">"Map-side combine without Aggregator specified!"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">rdd</span></span>: <span class="type">RDD</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]] = _rdd.asInstanceOf[<span class="type">RDD</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]]]</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span>[spark] <span class="keyword">val</span> keyClassName: <span class="type">String</span> = reflect.classTag[<span class="type">K</span>].runtimeClass.getName</span><br><span class="line">  <span class="keyword">private</span>[spark] <span class="keyword">val</span> valueClassName: <span class="type">String</span> = reflect.classTag[<span class="type">V</span>].runtimeClass.getName</span><br><span class="line">  <span class="comment">// Note: It's possible that the combiner class tag is null, if the combineByKey</span></span><br><span class="line">  <span class="comment">// methods in PairRDDFunctions are used instead of combineByKeyWithClassTag.</span></span><br><span class="line">  <span class="keyword">private</span>[spark] <span class="keyword">val</span> combinerClassName: <span class="type">Option</span>[<span class="type">String</span>] =</span><br><span class="line">    <span class="type">Option</span>(reflect.classTag[<span class="type">C</span>]).map(_.runtimeClass.getName)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ShuffleId</span></span><br><span class="line">  <span class="keyword">val</span> shuffleId: <span class="type">Int</span> = _rdd.context.newShuffleId()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ShuffleHandle</span></span><br><span class="line">  <span class="keyword">val</span> shuffleHandle: <span class="type">ShuffleHandle</span> = _rdd.context.env.shuffleManager.registerShuffle(</span><br><span class="line">    shuffleId, _rdd.partitions.length, <span class="keyword">this</span>)</span><br><span class="line"></span><br><span class="line">  _rdd.sparkContext.cleaner.foreach(_.registerShuffleForCleanup(<span class="keyword">this</span>))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ShuffledRDD.scala 初始化</span></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getDependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = &#123;</span><br><span class="line">  <span class="keyword">val</span> serializer = userSpecifiedSerializer.getOrElse &#123;</span><br><span class="line">    <span class="keyword">val</span> serializerManager = <span class="type">SparkEnv</span>.get.serializerManager</span><br><span class="line">    <span class="keyword">if</span> (mapSideCombine) &#123;</span><br><span class="line">      serializerManager.getSerializer(implicitly[<span class="type">ClassTag</span>[<span class="type">K</span>]], implicitly[<span class="type">ClassTag</span>[<span class="type">C</span>]])</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      serializerManager.getSerializer(implicitly[<span class="type">ClassTag</span>[<span class="type">K</span>]], implicitly[<span class="type">ClassTag</span>[<span class="type">V</span>]])</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="type">List</span>(<span class="keyword">new</span> <span class="type">ShuffleDependency</span>(prev, part, serializer, keyOrdering, aggregator, mapSideCombine))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="使用"><a class="header-anchor" href="#使用"></a>使用</h1>
+<p><strong>第一次调用</strong> <code>dependencies  -&gt;  getDependencies  -&gt;  dependencies_</code></p>
+<p>以后 <code>dependencies  -&gt;  dependencies_</code></p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 调用 getDependencies 封装入 dependencies_ 属性中（该方法用户也可以调用）</span></span><br><span class="line"><span class="comment">// 很明显 getDependencies 仅被调用一次！</span></span><br><span class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">dependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = &#123;</span><br><span class="line">  checkpointRDD.map(r =&gt; <span class="type">List</span>(<span class="keyword">new</span> <span class="type">OneToOneDependency</span>(r))).getOrElse &#123;</span><br><span class="line">    <span class="keyword">if</span> (dependencies_ == <span class="literal">null</span>) &#123;</span><br><span class="line">      dependencies_ = getDependencies</span><br><span class="line">    &#125;</span><br><span class="line">    dependencies_</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * RDD 五大特性三：父RDD依赖列表</span></span><br><span class="line"><span class="comment">  * 该方法只被调用一次！</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"><span class="comment">// 该方法默认是deps（普通RDD构造器中的deps）。但可以被重写！比如上面的 UnionRDD 和 ShuffleRDD</span></span><br><span class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">def</span> <span class="title">getDependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = deps</span><br><span class="line"></span><br><span class="line"><span class="comment">// 真正的 dependencies 属性</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">var</span> dependencies_ : <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = _</span><br></pre></td></tr></table></figure>
+<h1 id="小结"><a class="header-anchor" href="#小结"></a>小结</h1>
+<p>原始父类 <code>dependency</code> 里唯一的方法就是 <code>def rdd: RDD[T]</code>，通过它获取父RDD。</p>
+<p>其子类 <code>NarrowDependency</code> 和 <code>ShuffleDependency</code> 都各自添加了一点功能。</p>
+<p>在划分stage时，是按<code>ShuffleDependency</code> 划分。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Zouxxyy
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://zouxxyy.github.io/2020/01/15/spark/spark源码-dependency/" title="spark源码-dependency">https://zouxxyy.github.io/2020/01/15/spark/spark源码-dependency/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/spark/" rel="tag"># spark</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/14/spark/spark源码-Broadcast/" rel="prev" title="spark源码-Broadcast">
+      <i class="fa fa-chevron-left"></i> spark源码-Broadcast
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/16/spark/spark-学习目录/" rel="next" title="spark-学习目录">
+      spark-学习目录 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#窄依赖"><span class="nav-text">窄依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#OneToOneDependency"><span class="nav-text">OneToOneDependency</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RangeDependency"><span class="nav-text">RangeDependency</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#宽依赖"><span class="nav-text">宽依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ShuffleDependency"><span class="nav-text">ShuffleDependency</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用"><span class="nav-text">使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-text">小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zouxxyy"
+      src="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
+  <p class="site-author-name" itemprop="name">Zouxxyy</p>
+  <div class="site-description" itemprop="description">fly~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zouxxyy" title="GitHub → https://github.com/Zouxxyy" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zouxxyy</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: true,
+      notify: false,
+      appId: 'vGjPO17Vs1pQ9w6GNvqJbUoL-gzGzoHsz',
+      appKey: 'n0AyTpynyL9gSwIMYrE6NJvz',
+      placeholder: "ヾﾉ≧∀≦)o 开黑吗！",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

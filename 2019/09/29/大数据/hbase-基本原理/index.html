@@ -54,15 +54,15 @@
 <meta property="og:site_name" content="ZxysHexo">
 <meta property="og:description" content="简单介绍了hbase的基本原理：数据结构、读写操作、flush、合并与切分">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/luoji.png">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/wuli.png">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/write.png">
-<meta property="og:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/read.png">
-<meta property="og:updated_time" content="2019-10-08T02:10:35.843Z">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/5XjAx9K3FbMePud.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/w69airpqoxgAjKs.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/JHnsKcp8WjxDLqu.png">
+<meta property="og:image" content="https://i.loli.net/2020/01/16/zjnyYGHdMDe2NLq.png">
+<meta property="og:updated_time" content="2020-01-16T03:45:32.890Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hbase-基本原理">
 <meta name="twitter:description" content="简单介绍了hbase的基本原理：数据结构、读写操作、flush、合并与切分">
-<meta name="twitter:image" content="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/luoji.png">
+<meta name="twitter:image" content="https://i.loli.net/2020/01/16/5XjAx9K3FbMePud.png">
 
 <link rel="canonical" href="https://zouxxyy.github.io/2019/09/29/大数据/hbase-基本原理/">
 
@@ -213,7 +213,7 @@
     <link itemprop="mainEntityOfPage" href="https://zouxxyy.github.io/2019/09/29/大数据/hbase-基本原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/me.png">
+      <meta itemprop="image" content="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
       <meta itemprop="name" content="Zouxxyy">
       <meta itemprop="description" content="fly~">
     </span>
@@ -227,6 +227,8 @@
         </h1>
 
         <div class="post-meta">
+
+          
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
@@ -240,7 +242,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-08 10:10:35" itemprop="dateModified" datetime="2019-10-08T10:10:35+08:00">2019-10-08</time>
+                <time title="修改时间：2020-01-16 11:45:32" itemprop="dateModified" datetime="2020-01-16T11:45:32+08:00">2020-01-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -290,7 +292,7 @@
 <a id="more"></a>
 <h1 id="数据结构"><a class="header-anchor" href="#数据结构"></a>数据结构</h1>
 <h2 id="逻辑结构"><a class="header-anchor" href="#逻辑结构"></a>逻辑结构</h2>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/luoji.png" alt></p>
+<img src="https://i.loli.net/2020/01/16/5XjAx9K3FbMePud.png" alt="luoji.png" style="zoom:50%;">
 <p>一个<strong>namespace</strong>可以有多个<strong>表</strong>，如<code>zxylearn:student</code>，代表<code>zxylearn</code>命名空间下的<code>student</code>表。</p>
 <p>一个<strong>表</strong>可以有多个<strong>region</strong>，如上图有3个region。一个region一个文件夹。可以预分区（推荐）或者当一个region过大时会自动触发切分。</p>
 <p>一个<strong>region</strong>可以有多个<strong>store</strong>（按列族划分），如上图有两个列族。一个store一个文件夹，文件夹名是列族名。</p>
@@ -298,11 +300,11 @@
 <p><strong>HFile</strong>中就是具体数据了，逻辑上是一行行序列化的数据。</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># HDFS中的一个HFile的完整路径：</span><br><span class="line">/hbase/data/zxylearn/student/0fe474b3eb5fef1573d85acae8e5b787/info1/2dce02f62ea446f892a0b3cfc4e4db8a</span><br><span class="line"># namespace  zxylearn</span><br><span class="line"># 表名        student</span><br><span class="line"># region     0fe474b3eb5fef1573d85acae8e5b787</span><br><span class="line"># 列族名      info1</span><br><span class="line"># HFile      2dce02f62ea446f892a0b3cfc4e4db8a</span><br></pre></td></tr></table></figure>
 <h2 id="物理结构"><a class="header-anchor" href="#物理结构"></a>物理结构</h2>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/wuli.png" alt></p>
+<img src="https://i.loli.net/2020/01/16/w69airpqoxgAjKs.png" alt="wuli.png" style="zoom: 55%;">
 <p>通过指定 <code>'namespace：表名'</code> 和 <code>'Row Key'</code>，可查找到数据的<code>列族</code>、<code>列名</code>、<code>timestamp</code>、<code>value</code></p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hbase(main):018:0&gt; get &apos;zxylearn:student&apos;,&apos;1001&apos;</span><br><span class="line">COLUMN                  CELL</span><br><span class="line"> info1:name             timestamp=1569722805794, value=zhangsan</span><br></pre></td></tr></table></figure>
 <h1 id="写数据流程"><a class="header-anchor" href="#写数据流程"></a>写数据流程</h1>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/write.png" alt></p>
+<p><img src="https://i.loli.net/2020/01/16/JHnsKcp8WjxDLqu.png" alt="write.png"></p>
 <ol>
 <li>客户端向ZK请求返回 元数据表所在的RegionServer地址。（我们可以在ZK客户端中用<code>get /hbase/meta-region-server</code>看到它）</li>
 <li>客户端接收地址，向它请求返回 待写数据所在的RegionServer地址。（我们可以在hbase客户端用<code>scan 'hbase:meta'</code>看到它：<code>column=info:server, timestamp=1569658344714, value=localhost:16020</code>）</li>
@@ -323,7 +325,7 @@
 </ul>
 <p>反正记住这里会干掉不要的数据（版本数与删除标记决定），但<strong>不会干掉带删除标记的数据</strong>。</p>
 <h1 id="读数据流程"><a class="header-anchor" href="#读数据流程"></a>读数据流程</h1>
-<p><img src="https://zouxxyy.s3-us-west-2.amazonaws.com/blog/hbase/read.png" alt></p>
+<p><img src="https://i.loli.net/2020/01/16/zjnyYGHdMDe2NLq.png" alt="read.png"></p>
 <ol>
 <li>找到数据所在RS服务器的流程和写数据基本一样。</li>
 <li>向该地址请求读数据。</li>
@@ -459,7 +461,7 @@
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <img class="site-author-image" itemprop="image" alt="Zouxxyy"
-      src="/images/me.png">
+      src="https://i.loli.net/2020/01/14/fMvkDpnHuyTcxLU.png">
   <p class="site-author-name" itemprop="name">Zouxxyy</p>
   <div class="site-description" itemprop="description">fly~</div>
 </div>
@@ -468,7 +470,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
